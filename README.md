@@ -98,6 +98,7 @@ bno-5plus1-tracker/
 │   ├── App.vue            # Root component with App Bar & Theme switcher
 │   └── main.js            # Vue app bootstrap
 ├── .antigravity.md        # Workspace context & developer guidelines
+├── .gitlab-ci.yml         # GitLab CI/CD pipeline configuration for GitLab Pages
 ├── package.json           # App manifest and scripts
 └── vite.config.js         # Vite configuration with Vuetify plugin
 ```

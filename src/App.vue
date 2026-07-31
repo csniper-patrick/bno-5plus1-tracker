@@ -26,7 +26,6 @@ function toggleTheme() {
       >
         UK BNO Path
       </v-chip>
-      <v-btn to="/" prepend-icon="mdi-home" variant="text">Home</v-btn>
       <v-btn
         :icon="theme.global.current.value.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
         variant="text"

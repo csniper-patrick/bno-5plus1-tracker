@@ -29,6 +29,8 @@ export default {
         dest: '',
       },
       clearAllDialog: false,
+      visaDateDialog: false,
+      visaDateInput: '',
     }
   },
 
@@ -65,10 +67,34 @@ export default {
       if (days >= 150) return 'warning'
       return 'success'
     },
+
+    settlementTargetDate() {
+      if (!this.absentsStore.visaStartDate) return '-'
+      const d = new Date(this.absentsStore.visaStartDate)
+      if (isNaN(d.getTime())) return '-'
+      d.setFullYear(d.getFullYear() + 5)
+      return d.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+    },
   },
 
   methods: {
     calculateDays,
+
+    openVisaDateDialog() {
+      this.visaDateInput = this.absentsStore.visaStartDate || ''
+      this.visaDateDialog = true
+    },
+
+    saveVisaStartDate() {
+      if (!this.visaDateInput) return
+      this.absentsStore.setVisaStartDate(this.visaDateInput)
+      this.visaDateDialog = false
+      this.showSnackbar('Visa Start Date saved successfully!', 'success')
+    },
 
     handleSave() {
       if (!this.isFormValid) return
@@ -184,6 +210,61 @@ export default {
       >
         <strong>UK Absence Rule Notice:</strong> Under BNO 5+1 guidelines, departure (start) and arrival (end) dates are partially spent in the UK and are <strong>excluded</strong>. Only complete 24-hour days spent abroad are counted.
       </v-alert>
+    </v-card>
+
+    <!-- Visa Start Date Prompt Alert (If Missing) -->
+    <v-alert
+      v-if="!absentsStore.isVisaDateSet"
+      type="warning"
+      variant="tonal"
+      prominent
+      icon="mdi-calendar-alert"
+      class="mb-6 rounded-lg"
+    >
+      <div class="d-flex align-center justify-space-between flex-wrap ga-4">
+        <div>
+          <h3 class="text-h6 font-weight-bold">BNO Visa Start Date Required</h3>
+          <p class="text-body-2 mb-0">
+            Please set your BNO Visa Start Date to calculate your 5-year residency path and settlement milestones accurately.
+          </p>
+        </div>
+        <v-btn
+          color="warning"
+          variant="flat"
+          prepend-icon="mdi-calendar-plus"
+          @click="openVisaDateDialog"
+        >
+          Set Visa Start Date
+        </v-btn>
+      </div>
+    </v-alert>
+
+    <!-- Visa Start Date Info Bar (If Set) -->
+    <v-card v-else elevation="2" class="pa-4 rounded-lg mb-6 bg-surface-variant">
+      <div class="d-flex align-center justify-space-between flex-wrap ga-3">
+        <div class="d-flex align-center ga-3">
+          <v-icon icon="mdi-calendar-check" color="primary" size="large"></v-icon>
+          <div>
+            <div class="text-caption text-medium-emphasis">BNO Visa Start Date</div>
+            <div class="text-subtitle-1 font-weight-bold">
+              {{ formatDate(absentsStore.visaStartDate) }}
+              <span class="text-body-2 text-medium-emphasis font-weight-regular ml-2">
+                (5-Year Target: <strong>{{ settlementTargetDate }}</strong>)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <v-btn
+          variant="outlined"
+          color="primary"
+          size="small"
+          prepend-icon="mdi-pencil"
+          @click="openVisaDateDialog"
+        >
+          Edit Visa Date
+        </v-btn>
+      </div>
     </v-card>
 
     <!-- Stats Row -->
@@ -453,6 +534,41 @@ export default {
         <v-card-actions class="justify-end">
           <v-btn variant="text" @click="clearAllDialog = false">Cancel</v-btn>
           <v-btn color="error" variant="flat" @click="executeClearAll">Clear All</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Set / Edit Visa Start Date Dialog -->
+    <v-dialog v-model="visaDateDialog" max-width="500">
+      <v-card class="rounded-lg pa-6">
+        <v-card-title class="px-0 pt-0 d-flex align-center">
+          <v-icon icon="mdi-calendar-edit" color="primary" class="mr-2"></v-icon>
+          <span class="text-h6 font-weight-bold">Set BNO Visa Start Date</span>
+        </v-card-title>
+        <v-card-text class="px-0 py-4">
+          <p class="text-body-2 text-medium-emphasis mb-4">
+            Enter the start date of your 5-year BNO Visa to enable accurate residency and settlement tracking.
+          </p>
+          <v-text-field
+            v-model="visaDateInput"
+            label="Visa Start Date"
+            type="date"
+            variant="outlined"
+            prepend-inner-icon="mdi-calendar-start"
+            hide-details="auto"
+            required
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
+          <v-btn variant="text" @click="visaDateDialog = false">Cancel</v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            :disabled="!visaDateInput"
+            @click="saveVisaStartDate"
+          >
+            Save Date
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

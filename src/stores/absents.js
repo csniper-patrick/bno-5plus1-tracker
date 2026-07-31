@@ -7,6 +7,11 @@ import { defineStore } from 'pinia'
 const STORAGE_KEY = 'bno_absences'
 
 /**
+ * LocalStorage key used to persist user BNO Visa Start Date across browser sessions.
+ */
+const STORAGE_VISA_KEY = 'bno_visa_start_date'
+
+/**
  * Calculates the number of full days absent for a given period.
  * Departure (start) and return (end) days are partially spent in the UK and are excluded.
  * Only full 24-hour days spent entirely abroad are counted as days absent.
@@ -60,8 +65,16 @@ export const useAbsentsStore = defineStore('absents', () => {
    */
   const absences = ref(initialAbsences)
 
+  // Attempt to restore saved Visa Start Date
+  const storedVisaDate = localStorage.getItem(STORAGE_VISA_KEY) || ''
+
+  /**
+   * The start date of the user's BNO visa (YYYY-MM-DD format).
+   */
+  const visaStartDate = ref(storedVisaDate)
+
   // ---------------------------------------------------------------------------
-  // Persistence Watcher
+  // Persistence Watchers
   // ---------------------------------------------------------------------------
 
   // Automatically sync absence record modifications to localStorage
@@ -73,9 +86,23 @@ export const useAbsentsStore = defineStore('absents', () => {
     { deep: true },
   )
 
+  // Automatically sync visa start date to localStorage
+  watch(visaStartDate, (newVal) => {
+    if (newVal) {
+      localStorage.setItem(STORAGE_VISA_KEY, newVal)
+    } else {
+      localStorage.removeItem(STORAGE_VISA_KEY)
+    }
+  })
+
   // ---------------------------------------------------------------------------
   // Getters / Computed Properties
   // ---------------------------------------------------------------------------
+
+  /**
+   * Boolean indicating whether the Visa Start Date has been set.
+   */
+  const isVisaDateSet = computed(() => Boolean(visaStartDate.value))
 
   /**
    * Computed array of absences sorted chronologically by start date (ascending).
@@ -96,6 +123,15 @@ export const useAbsentsStore = defineStore('absents', () => {
   // ---------------------------------------------------------------------------
   // Actions
   // ---------------------------------------------------------------------------
+
+  /**
+   * Sets or updates the BNO Visa start date.
+   *
+   * @param {string} dateStr - Date string in 'YYYY-MM-DD' format.
+   */
+  function setVisaStartDate(dateStr) {
+    visaStartDate.value = dateStr || ''
+  }
 
   /**
    * Adds a new absence entry to the store and maintains chronological sorting by start date.
@@ -156,6 +192,9 @@ export const useAbsentsStore = defineStore('absents', () => {
 
   return {
     absences,
+    visaStartDate,
+    isVisaDateSet,
+    setVisaStartDate,
     sortedAbsences,
     totalDaysAbsent,
     calculateDays,

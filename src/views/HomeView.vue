@@ -208,38 +208,38 @@ export default {
 
 <template>
   <div>
-    <!-- Header / Info Card -->
-    <v-card elevation="2" class="pa-6 rounded-lg mb-6 bg-surface">
-      <div class="d-flex align-center flex-wrap ga-4">
-        <v-avatar color="primary" size="56" class="elevation-2">
-          <v-icon icon="mdi-passport" size="32"></v-icon>
-        </v-avatar>
-        <div>
-          <h1 class="text-h4 font-weight-bold">BNO 5+1 Absence Tracker</h1>
-          <p class="text-subtitle-1 text-medium-emphasis mb-0">
-            Log your trip departure and return dates to keep track of total days absent outside the
-            UK.
-          </p>
-        </div>
-      </div>
-
-      <v-alert
-        type="info"
-        variant="tonal"
-        icon="mdi-information-outline"
-        class="mt-4 text-caption"
-        density="compact"
-      >
-        <strong>UK Absence Rule Notice:</strong> Under BNO 5+1 guidelines, departure (start) and
-        arrival (end) dates are partially spent in the UK and are <strong>excluded</strong>. Only
-        complete 24-hour days spent abroad are counted.
-      </v-alert>
-    </v-card>
-
     <!-- Main Side-by-Side 2 Column Layout (Wide Desktop) -->
     <v-row class="ma-n2">
       <!-- LEFT COLUMN (Takes up more space: 7 cols on desktop) -->
       <v-col cols="12" md="7" class="pa-3 d-flex flex-column ga-6">
+        <!-- Header / Info Card -->
+        <v-card elevation="2" class="pa-6 rounded-lg bg-surface">
+          <div class="d-flex align-center flex-wrap ga-4">
+            <v-avatar color="primary" size="56" class="elevation-2">
+              <v-icon icon="mdi-passport" size="32"></v-icon>
+            </v-avatar>
+            <div>
+              <h1 class="text-h4 font-weight-bold">BNO 5+1 Absence Tracker</h1>
+              <p class="text-subtitle-1 text-medium-emphasis mb-0">
+                Log your trip departure and return dates to keep track of total days absent outside
+                the UK.
+              </p>
+            </div>
+          </div>
+
+          <v-alert
+            type="info"
+            variant="tonal"
+            icon="mdi-information-outline"
+            class="mt-4 text-caption"
+            density="compact"
+          >
+            <strong>UK Absence Rule Notice:</strong> Under BNO 5+1 guidelines, departure (start) and
+            arrival (end) dates are partially spent in the UK and are <strong>excluded</strong>.
+            Only complete 24-hour days spent abroad are counted.
+          </v-alert>
+        </v-card>
+
         <!-- 1. BNO Visa & UK Arrival Dates -->
         <div>
           <!-- Prompt Alert if missing -->

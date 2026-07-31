@@ -106,6 +106,10 @@ export default {
       return this.formatDate(this.absentsStore.settlementTargetDate)
     },
 
+    earliestIlrApplicationDate() {
+      return this.formatDate(this.absentsStore.earliestIlrApplicationDate)
+    },
+
     queriedRangeDays() {
       if (!this.queryForm.startDate || !this.queryForm.endDate) return 0
       return this.absentsStore.queryAbsentDaysInRange(
@@ -321,10 +325,6 @@ export default {
                     <div class="text-caption text-medium-emphasis">BNO Visa Start Date</div>
                     <div class="text-subtitle-1 font-weight-bold">
                       {{ formatDate(absentsStore.visaStartDate) }}
-                      <span class="text-body-2 text-medium-emphasis font-weight-regular ml-2">
-                        (5-Yr Target: <strong>{{ settlementTargetDate }}</strong
-                        >)
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -757,6 +757,24 @@ export default {
                   </v-card>
                 </v-col>
               </v-row>
+
+              <!-- Earliest ILR Application Banner -->
+              <v-alert
+                type="info"
+                variant="tonal"
+                icon="mdi-clock-start"
+                class="mt-3 text-caption"
+                density="compact"
+              >
+                <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+                  <span>
+                    <strong>Earliest ILR Application Date:</strong> (28 days before 5 years)
+                  </span>
+                  <strong class="text-subtitle-2 text-primary font-weight-bold">
+                    {{ earliestIlrApplicationDate }}
+                  </strong>
+                </div>
+              </v-alert>
             </v-card>
 
             <!-- SECTION 2: Naturalisation / Citizenship Card -->

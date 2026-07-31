@@ -577,6 +577,23 @@ export const useAbsentsStore = defineStore('absents', () => {
   })
 
   /**
+   * Calculates the earliest date (YYYY-MM-DD) when an ILR application can be submitted.
+   * Under UK Home Office rules, an ILR application can be submitted up to 28 days before completing 5 years.
+   */
+  const earliestIlrApplicationDate = computed(() => {
+    if (!visaStartDate.value) return ''
+    const vStart = parseDateUTC(visaStartDate.value)
+    if (!vStart) return ''
+    const target = new Date(vStart)
+    target.setUTCFullYear(target.getUTCFullYear() + 5)
+    target.setUTCDate(target.getUTCDate() - 28)
+    const y = target.getUTCFullYear()
+    const m = String(target.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(target.getUTCDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  })
+
+  /**
    * Returns UI status color ('error', 'warning', 'success') based on peak rolling 12-month absence.
    */
   const ruleStatusColor = computed(() => {
@@ -934,6 +951,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     max12MonthAbsence,
     max12MonthAbsenceInfo,
     settlementTargetDate,
+    earliestIlrApplicationDate,
     ruleStatusColor,
     isRuleExceeded,
     ilr5YearTotalAbsence,

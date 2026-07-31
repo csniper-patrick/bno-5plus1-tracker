@@ -910,10 +910,12 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
-   * Clears all absence records from the store, re-initializes the initial entry to UK record if conditions are met, and resets the segment tree.
+   * Clears all absence records from the store, resets visa start date and UK arrival date, and resets the segment tree.
    */
   function clearAbsences() {
     absences.value = []
+    visaStartDate.value = ''
+    ukArrivalDate.value = ''
     syncArrivalRecord()
     rebuildSegmentTree()
   }

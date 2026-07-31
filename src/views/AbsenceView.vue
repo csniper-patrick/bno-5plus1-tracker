@@ -202,7 +202,7 @@ export default {
       this.absentsStore.clearAbsences()
       this.clearAllDialog = false
       this.resetForm()
-      this.showSnackbar('All absence records cleared', 'info')
+      this.showSnackbar('All absence records and key dates cleared', 'info')
     },
 
     showSnackbar(text, color = 'success') {
@@ -950,7 +950,8 @@ export default {
           Clear All Records?
         </v-card-title>
         <v-card-text>
-          This action will permanently delete all logged absence records. This cannot be undone.
+          This action will permanently delete all logged absence records and reset your key visa &
+          arrival dates. This cannot be undone.
         </v-card-text>
         <v-card-actions class="justify-end">
           <v-btn variant="text" @click="clearAllDialog = false">Cancel</v-btn>

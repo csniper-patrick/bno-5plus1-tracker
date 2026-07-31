@@ -42,7 +42,7 @@ const unionJackLightTheme = {
 
 export default createVuetify({
   theme: {
-    defaultTheme: 'dark',
+    defaultTheme: 'light',
     themes: {
       dark: unionJackDarkTheme,
       light: unionJackLightTheme,

@@ -29,7 +29,7 @@ function toggleTheme() {
     </v-app-bar>
 
     <v-main>
-      <v-container class="py-8">
+      <v-container max-width="1600" class="py-6 px-4 px-md-8">
         <RouterView />
       </v-container>
     </v-main>

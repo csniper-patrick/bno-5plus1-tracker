@@ -213,7 +213,7 @@ export default {
       <!-- LEFT COLUMN (Takes up more space: 7 cols on desktop) -->
       <v-col cols="12" md="7" class="pa-3 d-flex flex-column ga-6">
         <!-- Header / Info Card -->
-        <v-card elevation="2" class="pa-6 rounded-lg bg-surface">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
           <div class="d-flex align-center flex-wrap ga-4">
             <v-avatar color="primary" size="56" class="elevation-2">
               <v-icon icon="mdi-passport" size="32"></v-icon>
@@ -271,7 +271,7 @@ export default {
           </v-alert>
 
           <!-- Info Bar Card if set -->
-          <v-card v-else elevation="2" class="pa-5 rounded-lg bg-surface">
+          <v-card v-else elevation="2" class="pa-3 rounded-lg bg-surface">
             <div class="d-flex align-center justify-space-between flex-wrap ga-4">
               <div class="d-flex align-center flex-wrap ga-6">
                 <!-- BNO Visa Start Date -->
@@ -321,7 +321,7 @@ export default {
         </div>
 
         <!-- 2. Absence Record Editor -->
-        <v-card elevation="2" class="pa-6 rounded-lg">
+        <v-card elevation="2" class="pa-3 rounded-lg">
           <v-card-title class="px-0 pt-0 d-flex align-center">
             <v-icon
               :icon="editingId ? 'mdi-pencil' : 'mdi-plus-circle'"
@@ -429,7 +429,7 @@ export default {
         <!-- 3. Absence Record List -->
         <v-card elevation="2" class="rounded-lg">
           <v-card-title
-            class="pa-4 d-flex align-center justify-space-between flex-wrap ga-2 border-b"
+            class="pa-3 d-flex align-center justify-space-between flex-wrap ga-2 border-b"
           >
             <div class="d-flex align-center flex-wrap ga-2">
               <v-icon icon="mdi-format-list-bulleted" color="primary" class="mr-1"></v-icon>
@@ -607,7 +607,7 @@ export default {
         <v-card
           v-if="!absentsStore.isVisaDateSet"
           elevation="2"
-          class="pa-8 rounded-lg text-center bg-surface border-dashed"
+          class="pa-4 rounded-lg text-center bg-surface border-dashed"
         >
           <v-avatar color="primary" variant="tonal" size="64" class="mb-4">
             <v-icon icon="mdi-shield-lock-outline" size="36"></v-icon>
@@ -636,7 +636,7 @@ export default {
             </h2>
 
             <!-- SECTION 1: ILR / Settlement Card -->
-            <v-card elevation="2" class="pa-5 rounded-lg">
+            <v-card elevation="2" class="pa-3 rounded-lg">
               <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
                 <div>
                   <div class="d-flex align-center mb-1">
@@ -672,7 +672,7 @@ export default {
               <v-row density="compact">
                 <!-- 180-Day Rolling Rule -->
                 <v-col cols="12" xl="6">
-                  <v-card variant="outlined" class="pa-3 rounded-lg bg-surface">
+                  <v-card variant="outlined" class="pa-2 rounded-lg bg-surface">
                     <div class="d-flex align-center justify-space-between mb-2">
                       <span class="text-caption font-weight-bold">180-Day Rolling Rule</span>
                       <v-chip
@@ -699,7 +699,7 @@ export default {
 
                 <!-- 5-Year Total Absences -->
                 <v-col cols="12" xl="6">
-                  <v-card variant="outlined" class="pa-3 rounded-lg bg-surface">
+                  <v-card variant="outlined" class="pa-2 rounded-lg bg-surface">
                     <div class="d-flex align-center justify-space-between mb-2">
                       <span class="text-caption font-weight-bold">Total 5-Year Absences</span>
                       <v-chip
@@ -720,7 +720,7 @@ export default {
             </v-card>
 
             <!-- SECTION 2: Naturalisation / Citizenship Card -->
-            <v-card elevation="2" class="pa-5 rounded-lg">
+            <v-card elevation="2" class="pa-3 rounded-lg">
               <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
                 <div>
                   <div class="d-flex align-center mb-1">
@@ -764,7 +764,7 @@ export default {
               <v-row density="compact">
                 <!-- 5-Year Citizenship Limit (Max 450 Days) -->
                 <v-col cols="12" xl="6">
-                  <v-card variant="outlined" class="pa-3 rounded-lg bg-surface">
+                  <v-card variant="outlined" class="pa-2 rounded-lg bg-surface">
                     <div class="d-flex align-center justify-space-between mb-2">
                       <span class="text-caption font-weight-bold">5-Year Limit</span>
                       <v-chip
@@ -790,7 +790,7 @@ export default {
 
                 <!-- Final 12-Month Limit (Max 90 Days) -->
                 <v-col cols="12" xl="6">
-                  <v-card variant="outlined" class="pa-3 rounded-lg bg-surface">
+                  <v-card variant="outlined" class="pa-2 rounded-lg bg-surface">
                     <div class="d-flex align-center justify-space-between mb-2">
                       <span class="text-caption font-weight-bold">Final 12-Month Limit</span>
                       <v-chip
@@ -818,7 +818,7 @@ export default {
           </div>
 
           <!-- 2. Custom Date Range Calculator Card -->
-          <v-card elevation="2" class="pa-5 rounded-lg">
+          <v-card elevation="2" class="pa-3 rounded-lg">
             <v-card-title
               class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
             >
@@ -871,7 +871,7 @@ export default {
                   <v-card
                     variant="flat"
                     color="primary"
-                    class="pa-3 text-center rounded-lg d-flex align-center justify-space-between"
+                    class="pa-2 text-center rounded-lg d-flex align-center justify-space-between"
                   >
                     <span class="text-subtitle-2 font-weight-medium">Queried Range Absences:</span>
                     <span class="text-h5 font-weight-bold">{{ queriedRangeDays }} day(s)</span>
@@ -886,7 +886,7 @@ export default {
 
     <!-- Delete Single Confirmation Dialog -->
     <v-dialog v-model="deleteDialog.show" max-width="450">
-      <v-card class="rounded-lg pa-4">
+      <v-card class="rounded-lg pa-3">
         <v-card-title class="d-flex align-center">
           <v-icon icon="mdi-alert-circle-outline" color="error" class="mr-2"></v-icon>
           Confirm Deletion
@@ -904,7 +904,7 @@ export default {
 
     <!-- Clear All Confirmation Dialog -->
     <v-dialog v-model="clearAllDialog" max-width="450">
-      <v-card class="rounded-lg pa-4">
+      <v-card class="rounded-lg pa-3">
         <v-card-title class="d-flex align-center">
           <v-icon icon="mdi-alert-triangle" color="warning" class="mr-2"></v-icon>
           Clear All Records?
@@ -921,7 +921,7 @@ export default {
 
     <!-- Set / Edit Key Travel & Visa Dates Dialog -->
     <v-dialog v-model="visaDateDialog" max-width="540">
-      <v-card class="rounded-lg pa-6">
+      <v-card class="rounded-lg pa-3">
         <v-card-title class="px-0 pt-0 d-flex align-center">
           <v-icon icon="mdi-calendar-edit" color="primary" class="mr-2"></v-icon>
           <span class="text-h6 font-weight-bold">Set Key Travel & Visa Dates</span>

@@ -17,6 +17,9 @@ function toggleTheme() {
       </template>
       <v-app-bar-title class="font-weight-bold">BNO 5+1 Tracker</v-app-bar-title>
       <v-spacer></v-spacer>
+      <v-chip size="small" color="secondary" class="mr-3 font-weight-bold" variant="flat" prepend-icon="mdi-crown-outline">
+        UK BNO Path
+      </v-chip>
       <v-btn to="/" prepend-icon="mdi-home" variant="text">Home</v-btn>
       <v-btn
         :icon="theme.global.current.value.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'"

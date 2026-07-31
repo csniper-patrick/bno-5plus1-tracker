@@ -12,6 +12,11 @@ const STORAGE_KEY = 'bno_absences'
 const STORAGE_VISA_KEY = 'bno_visa_start_date'
 
 /**
+ * LocalStorage key used to persist user UK Arrival Date across browser sessions.
+ */
+const STORAGE_ARRIVAL_KEY = 'bno_uk_arrival_date'
+
+/**
  * Segment Tree data structure for efficient O(log N) range sum queries over a 10-year period (day-by-day).
  * Supports O(log N) point updates for incremental tree modifications when records are added/updated/removed.
  */
@@ -163,11 +168,103 @@ export const useAbsentsStore = defineStore('absents', () => {
    */
   const visaStartDate = ref(storedVisaDate)
 
+  // Restore saved UK Arrival Date
+  const storedArrivalDate = localStorage.getItem(STORAGE_ARRIVAL_KEY) || ''
+
+  /**
+   * The UK arrival date of the user (YYYY-MM-DD format).
+   */
+  const ukArrivalDate = ref(storedArrivalDate)
+
   // Persistent Segment Tree & Coverage Tracking State
   const segmentTree = ref(null)
   const segmentTreeVersion = ref(0)
   let coverageCount = null
   let segmentTreeSize = 0
+
+  // ---------------------------------------------------------------------------
+  // Auto UK Arrival Absence Record Sync
+  // ---------------------------------------------------------------------------
+
+  const AUTO_ARRIVAL_ID = 'auto_uk_arrival_record'
+
+  /**
+   * Returns a 'YYYY-MM-DD' date string corresponding to 1 day before the given date string.
+   */
+  function getOneDayBefore(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return ''
+    const parts = dateStr.split('-').map(Number)
+    if (parts.length !== 3 || parts.some(isNaN)) return ''
+    const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]))
+    date.setUTCDate(date.getUTCDate() - 1)
+    const y = date.getUTCFullYear()
+    const m = String(date.getUTCMonth() + 1).padStart(2, '0')
+    const d = String(date.getUTCDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }
+
+  /**
+   * Synchronizes the automatic initial UK arrival absence record.
+   * If ukArrivalDate > visaStartDate, initializes/updates an arrival record
+   * starting 1 day before visaStartDate to ukArrivalDate.
+   */
+  function syncArrivalRecord() {
+    if (!visaStartDate.value || !ukArrivalDate.value) {
+      const existingIdx = absences.value.findIndex(
+        (item) => item.id === AUTO_ARRIVAL_ID || item.isAutoArrival,
+      )
+      if (existingIdx !== -1) {
+        removeRecordFromSegmentTree(absences.value[existingIdx])
+        absences.value.splice(existingIdx, 1)
+      }
+      return
+    }
+
+    const vStart = visaStartDate.value
+    const uArrival = ukArrivalDate.value
+
+    if (uArrival !== vStart && uArrival > vStart) {
+      const oneDayBeforeVisa = getOneDayBefore(vStart)
+      const index = absences.value.findIndex(
+        (item) => item.id === AUTO_ARRIVAL_ID || item.isAutoArrival,
+      )
+
+      if (index !== -1) {
+        const oldRecord = { ...absences.value[index] }
+        absences.value[index] = {
+          ...oldRecord,
+          id: AUTO_ARRIVAL_ID,
+          startDate: oneDayBeforeVisa,
+          endDate: uArrival,
+          dest: 'Initial Entry to UK (Arrival)',
+          isAutoArrival: true,
+        }
+        sortAbsencesArray(absences.value)
+        removeRecordFromSegmentTree(oldRecord)
+        addRecordToSegmentTree(absences.value[index])
+      } else {
+        const arrivalRecord = {
+          id: AUTO_ARRIVAL_ID,
+          startDate: oneDayBeforeVisa,
+          endDate: uArrival,
+          dest: 'Initial Entry to UK (Arrival)',
+          isAutoArrival: true,
+          createdAt: new Date().toISOString(),
+        }
+        absences.value.push(arrivalRecord)
+        sortAbsencesArray(absences.value)
+        addRecordToSegmentTree(arrivalRecord)
+      }
+    } else {
+      const index = absences.value.findIndex(
+        (item) => item.id === AUTO_ARRIVAL_ID || item.isAutoArrival,
+      )
+      if (index !== -1) {
+        removeRecordFromSegmentTree(absences.value[index])
+        absences.value.splice(index, 1)
+      }
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Segment Tree Management (Incremental Point Updates)
@@ -303,7 +400,8 @@ export const useAbsentsStore = defineStore('absents', () => {
     segmentTreeVersion.value++
   }
 
-  // Initialize Segment Tree on store setup
+  // Initialize Segment Tree and Auto Arrival Record on store setup
+  syncArrivalRecord()
   rebuildSegmentTree()
 
   // ---------------------------------------------------------------------------
@@ -326,6 +424,18 @@ export const useAbsentsStore = defineStore('absents', () => {
     } else {
       localStorage.removeItem(STORAGE_VISA_KEY)
     }
+    syncArrivalRecord()
+    rebuildSegmentTree()
+  })
+
+  // Sync UK arrival date to localStorage and rebuild tree if changed
+  watch(ukArrivalDate, (newVal) => {
+    if (newVal) {
+      localStorage.setItem(STORAGE_ARRIVAL_KEY, newVal)
+    } else {
+      localStorage.removeItem(STORAGE_ARRIVAL_KEY)
+    }
+    syncArrivalRecord()
     rebuildSegmentTree()
   })
 
@@ -337,6 +447,11 @@ export const useAbsentsStore = defineStore('absents', () => {
    * Boolean indicating whether the Visa Start Date has been set.
    */
   const isVisaDateSet = computed(() => Boolean(visaStartDate.value))
+
+  /**
+   * Boolean indicating whether the UK Arrival Date has been set.
+   */
+  const isArrivalDateSet = computed(() => Boolean(ukArrivalDate.value))
 
   /**
    * Computed array of absences sorted chronologically by start date (ascending).
@@ -539,6 +654,28 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
+   * Sets or updates the UK Arrival Date.
+   *
+   * @param {string} dateStr - Date string in 'YYYY-MM-DD' format.
+   */
+  function setUkArrivalDate(dateStr) {
+    ukArrivalDate.value = dateStr || ''
+  }
+
+  /**
+   * Sets or updates both the BNO Visa start date and UK Arrival Date.
+   *
+   * @param {Object} payload
+   * @param {string} payload.visaStartDate
+   * @param {string} payload.ukArrivalDate
+   */
+  function setVisaAndArrivalDates({ visaStartDate: vStart, ukArrivalDate: uArrival }) {
+    visaStartDate.value = vStart || ''
+    ukArrivalDate.value = uArrival || ''
+    rebuildSegmentTree()
+  }
+
+  /**
    * Efficiently queries the number of absent days in any date range within 10 years of visaStartDate
    * using the Segment Tree in O(log N) time.
    *
@@ -652,6 +789,10 @@ export const useAbsentsStore = defineStore('absents', () => {
     visaStartDate,
     isVisaDateSet,
     setVisaStartDate,
+    ukArrivalDate,
+    isArrivalDateSet,
+    setUkArrivalDate,
+    setVisaAndArrivalDates,
     segmentTree,
     queryAbsentDaysInRange,
     max12MonthAbsence,

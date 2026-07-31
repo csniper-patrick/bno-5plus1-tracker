@@ -31,6 +31,7 @@ export default {
       clearAllDialog: false,
       visaDateDialog: false,
       visaDateInput: '',
+      arrivalDateInput: '',
       queryForm: {
         startDate: '',
         endDate: '',
@@ -87,14 +88,18 @@ export default {
 
     openVisaDateDialog() {
       this.visaDateInput = this.absentsStore.visaStartDate || ''
+      this.arrivalDateInput = this.absentsStore.ukArrivalDate || ''
       this.visaDateDialog = true
     },
 
-    saveVisaStartDate() {
+    saveVisaAndArrivalDates() {
       if (!this.visaDateInput) return
-      this.absentsStore.setVisaStartDate(this.visaDateInput)
+      this.absentsStore.setVisaAndArrivalDates({
+        visaStartDate: this.visaDateInput,
+        ukArrivalDate: this.arrivalDateInput,
+      })
       this.visaDateDialog = false
-      this.showSnackbar('Visa Start Date saved successfully!', 'success')
+      this.showSnackbar('Key Travel & Visa Dates saved successfully!', 'success')
     },
 
     handleSave() {
@@ -237,7 +242,7 @@ export default {
       <!-- LEFT COLUMN (Takes up more space: 7 cols on desktop) -->
       <v-col cols="12" md="7" class="pa-3 d-flex flex-column ga-6">
 
-        <!-- 1. BNO Visa Start Date -->
+        <!-- 1. BNO Visa & UK Arrival Dates -->
         <div>
           <!-- Prompt Alert if missing -->
           <v-alert
@@ -250,9 +255,9 @@ export default {
           >
             <div class="d-flex align-center justify-space-between flex-wrap ga-4 pa-2">
               <div>
-                <h3 class="text-h6 font-weight-bold">BNO Visa Start Date Required</h3>
+                <h3 class="text-h6 font-weight-bold">BNO Visa & UK Arrival Dates Required</h3>
                 <p class="text-body-2 mb-0">
-                  Please set your BNO Visa Start Date to calculate your 5-year residency path and settlement milestones accurately.
+                  Please set your BNO Visa Start Date and UK Arrival Date to calculate your 5-year residency path and settlement milestones accurately.
                 </p>
               </div>
               <v-btn
@@ -261,23 +266,39 @@ export default {
                 prepend-icon="mdi-calendar-plus"
                 @click="openVisaDateDialog"
               >
-                Set Visa Start Date
+                Set Key Dates
               </v-btn>
             </div>
           </v-alert>
 
           <!-- Info Bar Card if set -->
           <v-card v-else elevation="2" class="pa-5 rounded-lg bg-surface">
-            <div class="d-flex align-center justify-space-between flex-wrap ga-3">
-              <div class="d-flex align-center ga-3">
-                <v-icon icon="mdi-calendar-check" color="primary" size="large"></v-icon>
-                <div>
-                  <div class="text-caption text-medium-emphasis">BNO Visa Start Date</div>
-                  <div class="text-subtitle-1 font-weight-bold">
-                    {{ formatDate(absentsStore.visaStartDate) }}
-                    <span class="text-body-2 text-medium-emphasis font-weight-regular ml-2">
-                      (5-Year Target: <strong>{{ settlementTargetDate }}</strong>)
-                    </span>
+            <div class="d-flex align-center justify-space-between flex-wrap ga-4">
+              <div class="d-flex align-center flex-wrap ga-6">
+                <!-- BNO Visa Start Date -->
+                <div class="d-flex align-center ga-3">
+                  <v-icon icon="mdi-calendar-check" color="primary" size="large"></v-icon>
+                  <div>
+                    <div class="text-caption text-medium-emphasis">BNO Visa Start Date</div>
+                    <div class="text-subtitle-1 font-weight-bold">
+                      {{ formatDate(absentsStore.visaStartDate) }}
+                      <span class="text-body-2 text-medium-emphasis font-weight-regular ml-2">
+                        (5-Yr Target: <strong>{{ settlementTargetDate }}</strong>)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <v-divider vertical class="d-none d-sm-flex" style="height: 36px;"></v-divider>
+
+                <!-- UK Arrival Date -->
+                <div class="d-flex align-center ga-3">
+                  <v-icon icon="mdi-airplane-landing" color="success" size="large"></v-icon>
+                  <div>
+                    <div class="text-caption text-medium-emphasis">UK Arrival Date</div>
+                    <div class="text-subtitle-1 font-weight-bold">
+                      {{ absentsStore.ukArrivalDate ? formatDate(absentsStore.ukArrivalDate) : 'Not Set' }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -289,7 +310,7 @@ export default {
                 prepend-icon="mdi-pencil"
                 @click="openVisaDateDialog"
               >
-                Edit Visa Date
+                Edit Key Dates
               </v-btn>
             </div>
           </v-card>
@@ -448,9 +469,9 @@ export default {
                 <td class="font-weight-medium">
                   <div class="d-flex align-center flex-wrap ga-2">
                     <v-icon
-                      :icon="isFutureEvent(item) ? 'mdi-calendar-clock' : (isOngoingEvent(item) ? 'mdi-airplane' : 'mdi-earth')"
+                      :icon="item.isAutoArrival ? 'mdi-airplane-landing' : (isFutureEvent(item) ? 'mdi-calendar-clock' : (isOngoingEvent(item) ? 'mdi-airplane' : 'mdi-earth'))"
                       size="small"
-                      :color="isFutureEvent(item) ? 'info' : (isOngoingEvent(item) ? 'warning' : 'primary')"
+                      :color="item.isAutoArrival ? 'secondary' : (isFutureEvent(item) ? 'info' : (isOngoingEvent(item) ? 'warning' : 'primary'))"
                     ></v-icon>
                     <span :class="{ 'text-medium-emphasis': isFutureEvent(item) }">
                       {{ item.dest || 'Unspecified' }}
@@ -458,7 +479,16 @@ export default {
 
                     <!-- Event Status Chip -->
                     <v-chip
-                      v-if="isFutureEvent(item)"
+                      v-if="item.isAutoArrival"
+                      size="x-small"
+                      color="secondary"
+                      variant="flat"
+                      class="font-weight-bold"
+                    >
+                      Initial Entry
+                    </v-chip>
+                    <v-chip
+                      v-else-if="isFutureEvent(item)"
                       size="x-small"
                       color="info"
                       variant="outlined"
@@ -788,26 +818,41 @@ export default {
       </v-card>
     </v-dialog>
 
-    <!-- Set / Edit Visa Start Date Dialog -->
-    <v-dialog v-model="visaDateDialog" max-width="500">
+    <!-- Set / Edit Key Travel & Visa Dates Dialog -->
+    <v-dialog v-model="visaDateDialog" max-width="540">
       <v-card class="rounded-lg pa-6">
         <v-card-title class="px-0 pt-0 d-flex align-center">
           <v-icon icon="mdi-calendar-edit" color="primary" class="mr-2"></v-icon>
-          <span class="text-h6 font-weight-bold">Set BNO Visa Start Date</span>
+          <span class="text-h6 font-weight-bold">Set Key Travel & Visa Dates</span>
         </v-card-title>
         <v-card-text class="px-0 py-4">
           <p class="text-body-2 text-medium-emphasis mb-4">
-            Enter the start date of your 5-year BNO Visa to enable accurate residency and settlement tracking.
+            Enter your 5-year BNO Visa Start Date and UK Arrival Date to enable accurate residency and settlement tracking.
           </p>
-          <v-text-field
-            v-model="visaDateInput"
-            label="Visa Start Date"
-            type="date"
-            variant="outlined"
-            prepend-inner-icon="mdi-calendar-start"
-            hide-details="auto"
-            required
-          ></v-text-field>
+          <v-row density="comfortable">
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="visaDateInput"
+                label="BNO Visa Start Date"
+                type="date"
+                variant="outlined"
+                prepend-inner-icon="mdi-calendar-start"
+                hide-details="auto"
+                required
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="arrivalDateInput"
+                label="UK Arrival Date"
+                type="date"
+                variant="outlined"
+                prepend-inner-icon="mdi-airplane-landing"
+                hide-details="auto"
+              ></v-text-field>
+            </v-col>
+          </v-row>
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
           <v-btn variant="text" @click="visaDateDialog = false">Cancel</v-btn>
@@ -815,9 +860,9 @@ export default {
             color="primary"
             variant="flat"
             :disabled="!visaDateInput"
-            @click="saveVisaStartDate"
+            @click="saveVisaAndArrivalDates"
           >
-            Save Date
+            Save Dates
           </v-btn>
         </v-card-actions>
       </v-card>

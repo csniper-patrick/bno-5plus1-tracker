@@ -104,7 +104,9 @@ function parseDateUTC(dateInput) {
   if (!dateInput) return null
   if (dateInput instanceof Date) {
     if (isNaN(dateInput.getTime())) return null
-    return new Date(Date.UTC(dateInput.getUTCFullYear(), dateInput.getUTCMonth(), dateInput.getUTCDate()))
+    return new Date(
+      Date.UTC(dateInput.getUTCFullYear(), dateInput.getUTCMonth(), dateInput.getUTCDate()),
+    )
   }
   if (typeof dateInput === 'string') {
     const cleanStr = dateInput.split('T')[0]
@@ -504,7 +506,10 @@ export const useAbsentsStore = defineStore('absents', () => {
       }
     }
 
-    const totalDaysToScan = Math.max(1826, Math.round((lastAbsenceMs - vStart.getTime()) / 86400000))
+    const totalDaysToScan = Math.max(
+      1826,
+      Math.round((lastAbsenceMs - vStart.getTime()) / 86400000),
+    )
     const limit = Math.max(0, totalDaysToScan - 364)
 
     for (let i = 0; i <= limit; i++) {
@@ -622,7 +627,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     if (!naturalizationWindowStartDate.value || !naturalizationTargetDate.value) return 0
     return queryAbsentDaysInRange(
       naturalizationWindowStartDate.value,
-      naturalizationTargetDate.value
+      naturalizationTargetDate.value,
     )
   })
 
@@ -632,10 +637,7 @@ export const useAbsentsStore = defineStore('absents', () => {
    */
   const naturalizationFinal12MoAbsence = computed(() => {
     if (!settlementTargetDate.value || !naturalizationTargetDate.value) return 0
-    return queryAbsentDaysInRange(
-      settlementTargetDate.value,
-      naturalizationTargetDate.value
-    )
+    return queryAbsentDaysInRange(settlementTargetDate.value, naturalizationTargetDate.value)
   })
 
   /**
@@ -707,7 +709,8 @@ export const useAbsentsStore = defineStore('absents', () => {
     let qStart = parseDateUTC(startDate)
     let qEnd = parseDateUTC(endDate)
 
-    if (!qStart || !qEnd || isNaN(qStart.getTime()) || isNaN(qEnd.getTime()) || qEnd < qStart) return 0
+    if (!qStart || !qEnd || isNaN(qStart.getTime()) || isNaN(qEnd.getTime()) || qEnd < qStart)
+      return 0
 
     if (excludeEndpoints) {
       qStart = new Date(qStart.getTime() + 86400000)

@@ -59,11 +59,7 @@ export default {
     },
 
     isFormValid() {
-      return Boolean(
-        this.form.startDate &&
-        this.form.endDate &&
-        !this.dateRangeError
-      )
+      return Boolean(this.form.startDate && this.form.endDate && !this.dateRangeError)
     },
 
     totalDaysColor() {
@@ -78,7 +74,7 @@ export default {
       if (!this.queryForm.startDate || !this.queryForm.endDate) return 0
       return this.absentsStore.queryAbsentDaysInRange(
         this.queryForm.startDate,
-        this.queryForm.endDate
+        this.queryForm.endDate,
       )
     },
   },
@@ -221,7 +217,8 @@ export default {
         <div>
           <h1 class="text-h4 font-weight-bold">BNO 5+1 Absence Tracker</h1>
           <p class="text-subtitle-1 text-medium-emphasis mb-0">
-            Log your trip departure and return dates to keep track of total days absent outside the UK.
+            Log your trip departure and return dates to keep track of total days absent outside the
+            UK.
           </p>
         </div>
       </div>
@@ -233,7 +230,9 @@ export default {
         class="mt-4 text-caption"
         density="compact"
       >
-        <strong>UK Absence Rule Notice:</strong> Under BNO 5+1 guidelines, departure (start) and arrival (end) dates are partially spent in the UK and are <strong>excluded</strong>. Only complete 24-hour days spent abroad are counted.
+        <strong>UK Absence Rule Notice:</strong> Under BNO 5+1 guidelines, departure (start) and
+        arrival (end) dates are partially spent in the UK and are <strong>excluded</strong>. Only
+        complete 24-hour days spent abroad are counted.
       </v-alert>
     </v-card>
 
@@ -241,7 +240,6 @@ export default {
     <v-row class="ma-n2">
       <!-- LEFT COLUMN (Takes up more space: 7 cols on desktop) -->
       <v-col cols="12" md="7" class="pa-3 d-flex flex-column ga-6">
-
         <!-- 1. BNO Visa & UK Arrival Dates -->
         <div>
           <!-- Prompt Alert if missing -->
@@ -257,7 +255,8 @@ export default {
               <div>
                 <h3 class="text-h6 font-weight-bold">BNO Visa & UK Arrival Dates Required</h3>
                 <p class="text-body-2 mb-0">
-                  Please set your BNO Visa Start Date and UK Arrival Date to calculate your 5-year residency path and settlement milestones accurately.
+                  Please set your BNO Visa Start Date and UK Arrival Date to calculate your 5-year
+                  residency path and settlement milestones accurately.
                 </p>
               </div>
               <v-btn
@@ -283,13 +282,14 @@ export default {
                     <div class="text-subtitle-1 font-weight-bold">
                       {{ formatDate(absentsStore.visaStartDate) }}
                       <span class="text-body-2 text-medium-emphasis font-weight-regular ml-2">
-                        (5-Yr Target: <strong>{{ settlementTargetDate }}</strong>)
+                        (5-Yr Target: <strong>{{ settlementTargetDate }}</strong
+                        >)
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <v-divider vertical class="d-none d-sm-flex" style="height: 36px;"></v-divider>
+                <v-divider vertical class="d-none d-sm-flex" style="height: 36px"></v-divider>
 
                 <!-- UK Arrival Date -->
                 <div class="d-flex align-center ga-3">
@@ -297,7 +297,11 @@ export default {
                   <div>
                     <div class="text-caption text-medium-emphasis">UK Arrival Date</div>
                     <div class="text-subtitle-1 font-weight-bold">
-                      {{ absentsStore.ukArrivalDate ? formatDate(absentsStore.ukArrivalDate) : 'Not Set' }}
+                      {{
+                        absentsStore.ukArrivalDate
+                          ? formatDate(absentsStore.ukArrivalDate)
+                          : 'Not Set'
+                      }}
                     </div>
                   </div>
                 </div>
@@ -387,7 +391,7 @@ export default {
                     size="large"
                     class="font-weight-medium"
                   >
-                    Calculated Full Days Absent: 
+                    Calculated Full Days Absent:
                     <strong class="ml-1 text-primary">{{ calculatedDaysForForm }} day(s)</strong>
                   </v-chip>
                   <span v-else class="text-caption text-medium-emphasis">
@@ -424,7 +428,9 @@ export default {
 
         <!-- 3. Absence Record List -->
         <v-card elevation="2" class="rounded-lg">
-          <v-card-title class="pa-4 d-flex align-center justify-space-between flex-wrap ga-2 border-b">
+          <v-card-title
+            class="pa-4 d-flex align-center justify-space-between flex-wrap ga-2 border-b"
+          >
             <div class="d-flex align-center flex-wrap ga-2">
               <v-icon icon="mdi-format-list-bulleted" color="primary" class="mr-1"></v-icon>
               <span class="text-h6 font-weight-bold">Absence Records</span>
@@ -463,15 +469,31 @@ export default {
                 :class="{
                   'bg-action-hover': editingId === item.id,
                   'row-planned-event': isFutureEvent(item) && editingId !== item.id,
-                  'row-ongoing-event': isOngoingEvent(item) && editingId !== item.id
+                  'row-ongoing-event': isOngoingEvent(item) && editingId !== item.id,
                 }"
               >
                 <td class="font-weight-medium">
                   <div class="d-flex align-center flex-wrap ga-2">
                     <v-icon
-                      :icon="item.isAutoArrival ? 'mdi-airplane-landing' : (isFutureEvent(item) ? 'mdi-calendar-clock' : (isOngoingEvent(item) ? 'mdi-airplane' : 'mdi-earth'))"
+                      :icon="
+                        item.isAutoArrival
+                          ? 'mdi-airplane-landing'
+                          : isFutureEvent(item)
+                            ? 'mdi-calendar-clock'
+                            : isOngoingEvent(item)
+                              ? 'mdi-airplane'
+                              : 'mdi-earth'
+                      "
                       size="small"
-                      :color="item.isAutoArrival ? 'secondary' : (isFutureEvent(item) ? 'info' : (isOngoingEvent(item) ? 'warning' : 'primary'))"
+                      :color="
+                        item.isAutoArrival
+                          ? 'secondary'
+                          : isFutureEvent(item)
+                            ? 'info'
+                            : isOngoingEvent(item)
+                              ? 'warning'
+                              : 'primary'
+                      "
                     ></v-icon>
                     <span :class="{ 'text-medium-emphasis': isFutureEvent(item) }">
                       {{ item.dest || 'Unspecified' }}
@@ -524,10 +546,21 @@ export default {
                 </td>
                 <td class="text-center">
                   <v-chip
-                    :color="isFutureEvent(item) ? 'info' : (isOngoingEvent(item) ? 'warning' : (calculateDays(item.startDate, item.endDate) > 0 ? 'primary' : 'grey'))"
+                    :color="
+                      isFutureEvent(item)
+                        ? 'info'
+                        : isOngoingEvent(item)
+                          ? 'warning'
+                          : calculateDays(item.startDate, item.endDate) > 0
+                            ? 'primary'
+                            : 'grey'
+                    "
                     size="small"
                     :variant="isFutureEvent(item) ? 'outlined' : 'tonal'"
-                    :class="{ 'font-weight-bold': !isFutureEvent(item), 'font-weight-medium opacity-90': isFutureEvent(item) }"
+                    :class="{
+                      'font-weight-bold': !isFutureEvent(item),
+                      'font-weight-medium opacity-90': isFutureEvent(item),
+                    }"
                   >
                     {{ calculateDays(item.startDate, item.endDate) }} day(s)
                   </v-chip>
@@ -561,16 +594,15 @@ export default {
             </v-avatar>
             <h3 class="text-h6 font-weight-bold mb-1">No Absence Records</h3>
             <p class="text-body-2 text-medium-emphasis mb-0">
-              You haven't logged any travel absence records yet. Use the form above to add your first entry.
+              You haven't logged any travel absence records yet. Use the form above to add your
+              first entry.
             </p>
           </div>
         </v-card>
-
       </v-col>
 
       <!-- RIGHT COLUMN (Takes up 5 cols on desktop) -->
       <v-col cols="12" md="5" class="pa-3 d-flex flex-column ga-6">
-
         <!-- Locked State Placeholder if Visa Date is Missing -->
         <v-card
           v-if="!absentsStore.isVisaDateSet"
@@ -582,7 +614,8 @@ export default {
           </v-avatar>
           <h3 class="text-h6 font-weight-bold mb-2">Checkers & Query Tool Locked</h3>
           <p class="text-body-2 text-medium-emphasis mb-4">
-            Please set your BNO Visa Start Date on the left to unlock residency & naturalisation compliance checking and custom date range queries.
+            Please set your BNO Visa Start Date on the left to unlock residency & naturalisation
+            compliance checking and custom date range queries.
           </p>
           <v-btn
             color="primary"
@@ -607,16 +640,27 @@ export default {
               <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
                 <div>
                   <div class="d-flex align-center mb-1">
-                    <v-chip color="primary" variant="flat" size="medium" class="font-weight-bold px-4 mb-1">
+                    <v-chip
+                      color="primary"
+                      variant="flat"
+                      size="medium"
+                      class="font-weight-bold px-4 mb-1"
+                    >
                       ILR / Settlement
                     </v-chip>
                   </div>
                   <p class="text-caption text-medium-emphasis mb-0 mt-1">
-                    5 Yrs: {{ formatDate(absentsStore.visaStartDate) }} – {{ formatDate(absentsStore.settlementTargetDate) }}
+                    5 Yrs: {{ formatDate(absentsStore.visaStartDate) }} –
+                    {{ formatDate(absentsStore.settlementTargetDate) }}
                   </p>
                 </div>
 
-                <v-chip :color="absentsStore.ruleStatusColor" size="medium" variant="tonal" class="font-weight-bold my-1 px-3">
+                <v-chip
+                  :color="absentsStore.ruleStatusColor"
+                  size="medium"
+                  variant="tonal"
+                  class="font-weight-bold my-1 px-3"
+                >
                   <v-icon
                     :icon="absentsStore.isRuleExceeded ? 'mdi-alert-circle' : 'mdi-check-circle'"
                     start
@@ -631,15 +675,24 @@ export default {
                   <v-card variant="outlined" class="pa-3 rounded-lg bg-surface">
                     <div class="d-flex align-center justify-space-between mb-2">
                       <span class="text-caption font-weight-bold">180-Day Rolling Rule</span>
-                      <v-chip :color="absentsStore.ruleStatusColor" size="x-small" variant="flat" class="font-weight-bold my-1">
+                      <v-chip
+                        :color="absentsStore.ruleStatusColor"
+                        size="x-small"
+                        variant="flat"
+                        class="font-weight-bold my-1"
+                      >
                         {{ absentsStore.max12MonthAbsence }} / 180 Days
                       </v-chip>
                     </div>
                     <div class="text-caption text-medium-emphasis mb-1">
                       Max absent days in any 365-day rolling window.
                     </div>
-                    <div v-if="absentsStore.max12MonthAbsenceInfo.peakStartDate" class="text-caption text-primary font-weight-medium">
-                      Peak: {{ formatDate(absentsStore.max12MonthAbsenceInfo.peakStartDate) }} – {{ formatDate(absentsStore.max12MonthAbsenceInfo.peakEndDate) }}
+                    <div
+                      v-if="absentsStore.max12MonthAbsenceInfo.peakStartDate"
+                      class="text-caption text-primary font-weight-medium"
+                    >
+                      Peak: {{ formatDate(absentsStore.max12MonthAbsenceInfo.peakStartDate) }} –
+                      {{ formatDate(absentsStore.max12MonthAbsenceInfo.peakEndDate) }}
                     </div>
                   </v-card>
                 </v-col>
@@ -649,7 +702,12 @@ export default {
                   <v-card variant="outlined" class="pa-3 rounded-lg bg-surface">
                     <div class="d-flex align-center justify-space-between mb-2">
                       <span class="text-caption font-weight-bold">Total 5-Year Absences</span>
-                      <v-chip color="info" size="x-small" variant="tonal" class="font-weight-bold my-1">
+                      <v-chip
+                        color="info"
+                        size="x-small"
+                        variant="tonal"
+                        class="font-weight-bold my-1"
+                      >
                         {{ absentsStore.ilr5YearTotalAbsence }} Days Total
                       </v-chip>
                     </div>
@@ -666,21 +724,40 @@ export default {
               <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
                 <div>
                   <div class="d-flex align-center mb-1">
-                    <v-chip color="success" variant="flat" size="medium" class="font-weight-bold px-4 mb-1">
+                    <v-chip
+                      color="success"
+                      variant="flat"
+                      size="medium"
+                      class="font-weight-bold px-4 mb-1"
+                    >
                       British Citizenship
                     </v-chip>
                   </div>
                   <p class="text-caption text-medium-emphasis mb-0 mt-1">
-                    5 Yrs: {{ formatDate(absentsStore.naturalizationWindowStartDate) }} – {{ formatDate(absentsStore.naturalizationTargetDate) }}
+                    5 Yrs: {{ formatDate(absentsStore.naturalizationWindowStartDate) }} –
+                    {{ formatDate(absentsStore.naturalizationTargetDate) }}
                   </p>
                 </div>
 
-                <v-chip :color="absentsStore.naturalizationStatusColor" size="medium" variant="tonal" class="font-weight-bold my-1 px-3">
+                <v-chip
+                  :color="absentsStore.naturalizationStatusColor"
+                  size="medium"
+                  variant="tonal"
+                  class="font-weight-bold my-1 px-3"
+                >
                   <v-icon
-                    :icon="absentsStore.isNaturalizationEligible ? 'mdi-check-decagram' : 'mdi-alert-decagram'"
+                    :icon="
+                      absentsStore.isNaturalizationEligible
+                        ? 'mdi-check-decagram'
+                        : 'mdi-alert-decagram'
+                    "
                     start
                   ></v-icon>
-                  {{ absentsStore.isNaturalizationEligible ? 'Citizenship Compliant' : 'Citizenship Exceeded' }}
+                  {{
+                    absentsStore.isNaturalizationEligible
+                      ? 'Citizenship Compliant'
+                      : 'Citizenship Exceeded'
+                  }}
                 </v-chip>
               </div>
 
@@ -691,7 +768,13 @@ export default {
                     <div class="d-flex align-center justify-space-between mb-2">
                       <span class="text-caption font-weight-bold">5-Year Limit</span>
                       <v-chip
-                        :color="absentsStore.naturalization5YearAbsence > 450 ? 'error' : (absentsStore.naturalization5YearAbsence >= 380 ? 'warning' : 'success')"
+                        :color="
+                          absentsStore.naturalization5YearAbsence > 450
+                            ? 'error'
+                            : absentsStore.naturalization5YearAbsence >= 380
+                              ? 'warning'
+                              : 'success'
+                        "
                         size="x-small"
                         variant="flat"
                         class="font-weight-bold"
@@ -711,7 +794,13 @@ export default {
                     <div class="d-flex align-center justify-space-between mb-2">
                       <span class="text-caption font-weight-bold">Final 12-Month Limit</span>
                       <v-chip
-                        :color="absentsStore.naturalizationFinal12MoAbsence > 90 ? 'error' : (absentsStore.naturalizationFinal12MoAbsence >= 75 ? 'warning' : 'success')"
+                        :color="
+                          absentsStore.naturalizationFinal12MoAbsence > 90
+                            ? 'error'
+                            : absentsStore.naturalizationFinal12MoAbsence >= 75
+                              ? 'warning'
+                              : 'success'
+                        "
                         size="x-small"
                         variant="flat"
                         class="font-weight-bold"
@@ -730,18 +819,26 @@ export default {
 
           <!-- 2. Custom Date Range Calculator Card -->
           <v-card elevation="2" class="pa-5 rounded-lg">
-            <v-card-title class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2">
+            <v-card-title
+              class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
+            >
               <div class="d-flex align-center">
                 <v-icon icon="mdi-calendar-range" color="primary" class="mr-2"></v-icon>
                 <span class="text-h6 font-weight-bold">Custom Date Range Calculator</span>
               </div>
-              <v-chip color="primary" variant="tonal" size="x-small" prepend-icon="mdi-lightning-bolt">
+              <v-chip
+                color="primary"
+                variant="tonal"
+                size="x-small"
+                prepend-icon="mdi-lightning-bolt"
+              >
                 Instant Query
               </v-chip>
             </v-card-title>
 
             <v-card-subtitle class="px-0 text-caption text-medium-emphasis mb-4">
-              Query total absent days within any custom interval across 10 years from Visa Start Date.
+              Query total absent days within any custom interval across 10 years from Visa Start
+              Date.
             </v-card-subtitle>
 
             <v-card-text class="px-0 pb-0">
@@ -771,7 +868,11 @@ export default {
                 </v-col>
 
                 <v-col cols="12" class="mt-2">
-                  <v-card variant="flat" color="primary" class="pa-3 text-center rounded-lg d-flex align-center justify-space-between">
+                  <v-card
+                    variant="flat"
+                    color="primary"
+                    class="pa-3 text-center rounded-lg d-flex align-center justify-space-between"
+                  >
                     <span class="text-subtitle-2 font-weight-medium">Queried Range Absences:</span>
                     <span class="text-h5 font-weight-bold">{{ queriedRangeDays }} day(s)</span>
                   </v-card>
@@ -827,7 +928,8 @@ export default {
         </v-card-title>
         <v-card-text class="px-0 py-4">
           <p class="text-body-2 text-medium-emphasis mb-4">
-            Enter your 5-year BNO Visa Start Date and UK Arrival Date to enable accurate residency and settlement tracking.
+            Enter your 5-year BNO Visa Start Date and UK Arrival Date to enable accurate residency
+            and settlement tracking.
           </p>
           <v-row density="comfortable">
             <v-col cols="12" sm="6">
@@ -878,7 +980,12 @@ export default {
     >
       {{ snackbar.text }}
       <template #actions>
-        <v-btn icon="mdi-close" variant="text" density="compact" @click="snackbar.show = false"></v-btn>
+        <v-btn
+          icon="mdi-close"
+          variant="text"
+          density="compact"
+          @click="snackbar.show = false"
+        ></v-btn>
       </template>
     </v-snackbar>
   </div>

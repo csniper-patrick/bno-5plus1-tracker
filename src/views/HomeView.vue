@@ -182,6 +182,25 @@ export default {
         day: 'numeric',
       })
     },
+
+    getTodayStr() {
+      const now = new Date()
+      const y = now.getFullYear()
+      const m = String(now.getMonth() + 1).padStart(2, '0')
+      const d = String(now.getDate()).padStart(2, '0')
+      return `${y}-${m}-${d}`
+    },
+
+    isFutureEvent(item) {
+      if (!item || !item.startDate) return false
+      return item.startDate > this.getTodayStr()
+    },
+
+    isOngoingEvent(item) {
+      if (!item || !item.startDate || !item.endDate) return false
+      const today = this.getTodayStr()
+      return item.startDate <= today && item.endDate >= today
+    },
   },
 }
 </script>
@@ -385,10 +404,10 @@ export default {
         <!-- 3. Absence Record List -->
         <v-card elevation="2" class="rounded-lg">
           <v-card-title class="pa-4 d-flex align-center justify-space-between flex-wrap ga-2 border-b">
-            <div class="d-flex align-center">
-              <v-icon icon="mdi-format-list-bulleted" color="primary" class="mr-2"></v-icon>
+            <div class="d-flex align-center flex-wrap ga-2">
+              <v-icon icon="mdi-format-list-bulleted" color="primary" class="mr-1"></v-icon>
               <span class="text-h6 font-weight-bold">Absence Records</span>
-              <v-chip size="small" color="primary" variant="tonal" class="ml-3 font-weight-bold">
+              <v-chip size="small" color="primary" variant="tonal" class="font-weight-bold ml-1">
                 {{ absentsStore.sortedAbsences.length }}
               </v-chip>
             </div>
@@ -420,22 +439,65 @@ export default {
               <tr
                 v-for="item in absentsStore.sortedAbsences"
                 :key="item.id"
-                :class="{ 'bg-action-hover': editingId === item.id }"
+                :class="{
+                  'bg-action-hover': editingId === item.id,
+                  'row-planned-event': isFutureEvent(item) && editingId !== item.id,
+                  'row-ongoing-event': isOngoingEvent(item) && editingId !== item.id
+                }"
               >
                 <td class="font-weight-medium">
-                  <div class="d-flex align-center">
-                    <v-icon icon="mdi-earth" size="small" color="primary" class="mr-2"></v-icon>
-                    <span>{{ item.dest || 'Unspecified' }}</span>
+                  <div class="d-flex align-center flex-wrap ga-2">
+                    <v-icon
+                      :icon="isFutureEvent(item) ? 'mdi-calendar-clock' : (isOngoingEvent(item) ? 'mdi-airplane' : 'mdi-earth')"
+                      size="small"
+                      :color="isFutureEvent(item) ? 'info' : (isOngoingEvent(item) ? 'warning' : 'primary')"
+                    ></v-icon>
+                    <span :class="{ 'text-medium-emphasis': isFutureEvent(item) }">
+                      {{ item.dest || 'Unspecified' }}
+                    </span>
+
+                    <!-- Event Status Chip -->
+                    <v-chip
+                      v-if="isFutureEvent(item)"
+                      size="x-small"
+                      color="info"
+                      variant="outlined"
+                      class="font-weight-medium"
+                    >
+                      Planned
+                    </v-chip>
+                    <v-chip
+                      v-else-if="isOngoingEvent(item)"
+                      size="x-small"
+                      color="warning"
+                      variant="flat"
+                      class="font-weight-bold"
+                    >
+                      Ongoing
+                    </v-chip>
+                    <v-chip
+                      v-else
+                      size="x-small"
+                      color="grey"
+                      variant="tonal"
+                      class="font-weight-regular text-caption"
+                    >
+                      Past
+                    </v-chip>
                   </div>
                 </td>
-                <td>{{ formatDate(item.startDate) }}</td>
-                <td>{{ formatDate(item.endDate) }}</td>
+                <td :class="{ 'text-medium-emphasis': isFutureEvent(item) }">
+                  {{ formatDate(item.startDate) }}
+                </td>
+                <td :class="{ 'text-medium-emphasis': isFutureEvent(item) }">
+                  {{ formatDate(item.endDate) }}
+                </td>
                 <td class="text-center">
                   <v-chip
-                    :color="calculateDays(item.startDate, item.endDate) > 0 ? 'primary' : 'grey'"
+                    :color="isFutureEvent(item) ? 'info' : (isOngoingEvent(item) ? 'warning' : (calculateDays(item.startDate, item.endDate) > 0 ? 'primary' : 'grey'))"
                     size="small"
-                    variant="tonal"
-                    class="font-weight-bold"
+                    :variant="isFutureEvent(item) ? 'outlined' : 'tonal'"
+                    :class="{ 'font-weight-bold': !isFutureEvent(item), 'font-weight-medium opacity-90': isFutureEvent(item) }"
                   >
                     {{ calculateDays(item.startDate, item.endDate) }} day(s)
                   </v-chip>
@@ -490,7 +552,7 @@ export default {
           </v-avatar>
           <h3 class="text-h6 font-weight-bold mb-2">Checkers & Query Tool Locked</h3>
           <p class="text-body-2 text-medium-emphasis mb-4">
-            Please set your BNO Visa Start Date on the left to unlock residency & naturalisation compliance checking and segment tree range queries.
+            Please set your BNO Visa Start Date on the left to unlock residency & naturalisation compliance checking and custom date range queries.
           </p>
           <v-btn
             color="primary"
@@ -514,16 +576,17 @@ export default {
             <v-card elevation="2" class="pa-5 rounded-lg">
               <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
                 <div>
-                  <div class="d-flex align-center">
-                    <v-chip color="primary" variant="flat" size="small" class="font-weight-bold mr-3">Section 1</v-chip>
-                    <h3 class="text-subtitle-1 font-weight-bold">ILR / Settlement</h3>
+                  <div class="d-flex align-center mb-1">
+                    <v-chip color="primary" variant="flat" size="medium" class="font-weight-bold px-4 mb-1">
+                      ILR / Settlement
+                    </v-chip>
                   </div>
                   <p class="text-caption text-medium-emphasis mb-0 mt-1">
                     5 Yrs: {{ formatDate(absentsStore.visaStartDate) }} – {{ formatDate(absentsStore.settlementTargetDate) }}
                   </p>
                 </div>
 
-                <v-chip :color="absentsStore.ruleStatusColor" size="medium" variant="tonal" class="font-weight-bold">
+                <v-chip :color="absentsStore.ruleStatusColor" size="medium" variant="tonal" class="font-weight-bold my-1 px-3">
                   <v-icon
                     :icon="absentsStore.isRuleExceeded ? 'mdi-alert-circle' : 'mdi-check-circle'"
                     start
@@ -538,7 +601,7 @@ export default {
                   <v-card variant="outlined" class="pa-3 rounded-lg bg-surface">
                     <div class="d-flex align-center justify-space-between mb-2">
                       <span class="text-caption font-weight-bold">180-Day Rolling Rule</span>
-                      <v-chip :color="absentsStore.ruleStatusColor" size="x-small" variant="flat" class="font-weight-bold">
+                      <v-chip :color="absentsStore.ruleStatusColor" size="x-small" variant="flat" class="font-weight-bold my-1">
                         {{ absentsStore.max12MonthAbsence }} / 180 Days
                       </v-chip>
                     </div>
@@ -556,7 +619,7 @@ export default {
                   <v-card variant="outlined" class="pa-3 rounded-lg bg-surface">
                     <div class="d-flex align-center justify-space-between mb-2">
                       <span class="text-caption font-weight-bold">Total 5-Year Absences</span>
-                      <v-chip color="info" size="x-small" variant="tonal" class="font-weight-bold">
+                      <v-chip color="info" size="x-small" variant="tonal" class="font-weight-bold my-1">
                         {{ absentsStore.ilr5YearTotalAbsence }} Days Total
                       </v-chip>
                     </div>
@@ -572,16 +635,17 @@ export default {
             <v-card elevation="2" class="pa-5 rounded-lg">
               <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
                 <div>
-                  <div class="d-flex align-center">
-                    <v-chip color="success" variant="flat" size="small" class="font-weight-bold mr-3">Section 2</v-chip>
-                    <h3 class="text-subtitle-1 font-weight-bold">British Citizenship</h3>
+                  <div class="d-flex align-center mb-1">
+                    <v-chip color="success" variant="flat" size="medium" class="font-weight-bold px-4 mb-1">
+                      British Citizenship
+                    </v-chip>
                   </div>
                   <p class="text-caption text-medium-emphasis mb-0 mt-1">
                     5 Yrs: {{ formatDate(absentsStore.naturalizationWindowStartDate) }} – {{ formatDate(absentsStore.naturalizationTargetDate) }}
                   </p>
                 </div>
 
-                <v-chip :color="absentsStore.naturalizationStatusColor" size="medium" variant="tonal" class="font-weight-bold">
+                <v-chip :color="absentsStore.naturalizationStatusColor" size="medium" variant="tonal" class="font-weight-bold my-1 px-3">
                   <v-icon
                     :icon="absentsStore.isNaturalizationEligible ? 'mdi-check-decagram' : 'mdi-alert-decagram'"
                     start
@@ -634,15 +698,15 @@ export default {
             </v-card>
           </div>
 
-          <!-- 2. Segment Tree Range Query Tool Card -->
+          <!-- 2. Custom Date Range Calculator Card -->
           <v-card elevation="2" class="pa-5 rounded-lg">
             <v-card-title class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2">
               <div class="d-flex align-center">
-                <v-icon icon="mdi-file-tree" color="primary" class="mr-2"></v-icon>
-                <span class="text-h6 font-weight-bold">Segment Tree Range Query</span>
+                <v-icon icon="mdi-calendar-range" color="primary" class="mr-2"></v-icon>
+                <span class="text-h6 font-weight-bold">Custom Date Range Calculator</span>
               </div>
               <v-chip color="primary" variant="tonal" size="x-small" prepend-icon="mdi-lightning-bolt">
-                O(log N) Fast Query
+                Instant Query
               </v-chip>
             </v-card-title>
 
@@ -778,5 +842,12 @@ export default {
 <style scoped>
 .bg-action-hover {
   background-color: rgba(var(--v-theme-primary), 0.08);
+}
+.row-planned-event {
+  background-color: rgba(var(--v-theme-info), 0.05);
+  opacity: 0.85;
+}
+.row-ongoing-event {
+  background-color: rgba(var(--v-theme-warning), 0.06);
 }
 </style>

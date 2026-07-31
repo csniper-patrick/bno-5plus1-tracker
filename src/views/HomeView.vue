@@ -31,6 +31,10 @@ export default {
       clearAllDialog: false,
       visaDateDialog: false,
       visaDateInput: '',
+      queryForm: {
+        startDate: '',
+        endDate: '',
+      },
     }
   },
 
@@ -62,22 +66,19 @@ export default {
     },
 
     totalDaysColor() {
-      const days = this.absentsStore.totalDaysAbsent
-      if (days > 180) return 'error'
-      if (days >= 150) return 'warning'
-      return 'success'
+      return this.absentsStore.ruleStatusColor
     },
 
     settlementTargetDate() {
-      if (!this.absentsStore.visaStartDate) return '-'
-      const d = new Date(this.absentsStore.visaStartDate)
-      if (isNaN(d.getTime())) return '-'
-      d.setFullYear(d.getFullYear() + 5)
-      return d.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      })
+      return this.formatDate(this.absentsStore.settlementTargetDate)
+    },
+
+    queriedRangeDays() {
+      if (!this.queryForm.startDate || !this.queryForm.endDate) return 0
+      return this.absentsStore.queryAbsentDaysInRange(
+        this.queryForm.startDate,
+        this.queryForm.endDate
+      )
     },
   },
 
@@ -293,14 +294,27 @@ export default {
 
       <v-col cols="12" sm="4">
         <v-card elevation="2" class="pa-4 rounded-lg text-center">
-          <v-icon icon="mdi-shield-check-outline" size="36" color="info" class="mb-2"></v-icon>
+          <v-icon
+            :icon="absentsStore.max12MonthAbsence > 180 ? 'mdi-alert-octagram' : 'mdi-shield-check-outline'"
+            size="36"
+            :color="totalDaysColor"
+            class="mb-2"
+          ></v-icon>
           <div class="text-overline text-medium-emphasis">180-Day Rule Status</div>
           <div class="mt-1">
             <v-chip :color="totalDaysColor" variant="flat" class="font-weight-bold">
-              {{ absentsStore.totalDaysAbsent }} / 180 Days
+              {{ absentsStore.max12MonthAbsence }} / 180 Days
             </v-chip>
           </div>
-          <div class="text-caption text-medium-emphasis mt-2">Max allowed in 12 months</div>
+          <div class="text-caption text-medium-emphasis mt-2">
+            Peak 12-Mo Rolling Period
+          </div>
+          <div
+            v-if="absentsStore.max12MonthAbsenceInfo.peakStartDate"
+            class="text-caption text-medium-emphasis font-weight-medium mt-1"
+          >
+            ({{ formatDate(absentsStore.max12MonthAbsenceInfo.peakStartDate) }} – {{ formatDate(absentsStore.max12MonthAbsenceInfo.peakEndDate) }})
+          </div>
         </v-card>
       </v-col>
     </v-row>
@@ -408,6 +422,58 @@ export default {
             </div>
           </div>
         </v-form>
+      </v-card-text>
+    </v-card>
+
+    <!-- Segment Tree Fast Range Query Tool Card -->
+    <v-card v-if="absentsStore.isVisaDateSet" elevation="3" class="pa-6 rounded-lg mb-8">
+      <v-card-title class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2">
+        <div class="d-flex align-center">
+          <v-icon icon="mdi-file-tree" color="primary" class="mr-2"></v-icon>
+          <span class="text-h5 font-weight-bold">10-Year Segment Tree Range Query</span>
+        </div>
+        <v-chip color="primary" variant="tonal" size="small" prepend-icon="mdi-lightning-bolt">
+          O(log N) Fast Query
+        </v-chip>
+      </v-card-title>
+
+      <v-card-subtitle class="px-0 text-body-2 text-medium-emphasis mb-4">
+        Query total absent days within any custom date interval across 10 years from your Visa Start Date.
+      </v-card-subtitle>
+
+      <v-card-text class="px-0 pb-0">
+        <v-row>
+          <v-col cols="12" sm="6" md="5">
+            <v-text-field
+              v-model="queryForm.startDate"
+              label="Query Range Start Date"
+              type="date"
+              variant="outlined"
+              density="comfortable"
+              prepend-inner-icon="mdi-calendar-start-outline"
+              hide-details="auto"
+            ></v-text-field>
+          </v-col>
+
+          <v-col cols="12" sm="6" md="5">
+            <v-text-field
+              v-model="queryForm.endDate"
+              label="Query Range End Date"
+              type="date"
+              variant="outlined"
+              density="comfortable"
+              prepend-inner-icon="mdi-calendar-end-outline"
+              hide-details="auto"
+            ></v-text-field>
+          </v-col>
+
+          <v-col cols="12" md="2" class="d-flex align-center">
+            <v-card variant="flat" color="primary" class="pa-3 text-center w-100 rounded-lg">
+              <div class="text-caption text-uppercase font-weight-medium">Absent Days</div>
+              <div class="text-h4 font-weight-bold">{{ queriedRangeDays }}</div>
+            </v-card>
+          </v-col>
+        </v-row>
       </v-card-text>
     </v-card>
 

@@ -118,6 +118,24 @@ function parseDateUTC(dateInput) {
 }
 
 /**
+ * Calculates the maximum return date (10 years from visa start date) that the Segment Tree can handle.
+ *
+ * @param {string} visaStartDateStr - The visa start date string in 'YYYY-MM-DD' format.
+ * @returns {string|null} Maximum return date in 'YYYY-MM-DD' format, or null if invalid.
+ */
+export function getMaxSegmentTreeReturnDate(visaStartDateStr) {
+  if (!visaStartDateStr) return null
+  const vStart = parseDateUTC(visaStartDateStr)
+  if (!vStart) return null
+  const maxDate = new Date(vStart)
+  maxDate.setUTCFullYear(maxDate.getUTCFullYear() + 10)
+  const y = maxDate.getUTCFullYear()
+  const m = String(maxDate.getUTCMonth() + 1).padStart(2, '0')
+  const d = String(maxDate.getUTCDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+/**
  * Calculates the number of full days absent for a given period.
  * Departure (start) and return (end) days are partially spent in the UK and are excluded.
  * Only full 24-hour days spent entirely abroad are counted as days absent.
@@ -771,6 +789,47 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
+   * Validates whether an absence record satisfies date boundary constraints:
+   * 1. Departure date must not be earlier than visa start date or UK arrival date.
+   * 2. Return date must be within range segment tree can handle (no later than 10 years from visa start date).
+   *
+   * @param {Object} record
+   * @param {string} record.startDate - Departure date (YYYY-MM-DD).
+   * @param {string} record.endDate - Return date (YYYY-MM-DD).
+   * @returns {{ valid: boolean, error: string }}
+   */
+  function validateAbsence({ startDate, endDate }) {
+    if (!startDate || !endDate) {
+      return { valid: false, error: 'Departure and return dates are required.' }
+    }
+    if (endDate < startDate) {
+      return { valid: false, error: 'Return date cannot be earlier than departure date.' }
+    }
+    if (visaStartDate.value && startDate < visaStartDate.value) {
+      return {
+        valid: false,
+        error: `Departure date cannot be earlier than visa start date (${visaStartDate.value}).`,
+      }
+    }
+    if (ukArrivalDate.value && startDate < ukArrivalDate.value) {
+      return {
+        valid: false,
+        error: `Departure date cannot be earlier than UK arrival date (${ukArrivalDate.value}).`,
+      }
+    }
+    if (visaStartDate.value) {
+      const maxReturn = getMaxSegmentTreeReturnDate(visaStartDate.value)
+      if (maxReturn && endDate > maxReturn) {
+        return {
+          valid: false,
+          error: `Return date cannot be later than 10 years from visa start date (${maxReturn}).`,
+        }
+      }
+    }
+    return { valid: true, error: '' }
+  }
+
+  /**
    * Adds a new absence entry to the store and incrementally updates the segment tree in O(D log N) time.
    *
    * @param {Object} payload - The absence details.
@@ -780,6 +839,11 @@ export const useAbsentsStore = defineStore('absents', () => {
    * @returns {Object} The created absence entry object.
    */
   function addAbsence({ startDate, endDate, dest = '' }) {
+    const validation = validateAbsence({ startDate, endDate })
+    if (!validation.valid) {
+      throw new Error(validation.error)
+    }
+
     const newEntry = {
       id: crypto.randomUUID
         ? crypto.randomUUID()
@@ -808,11 +872,19 @@ export const useAbsentsStore = defineStore('absents', () => {
     const index = absences.value.findIndex((item) => item.id === id)
     if (index !== -1) {
       const oldRecord = { ...absences.value[index] }
-
-      absences.value[index] = {
+      const mergedRecord = {
         ...absences.value[index],
         ...updatedFields,
       }
+
+      if (!mergedRecord.isAutoArrival) {
+        const validation = validateAbsence(mergedRecord)
+        if (!validation.valid) {
+          throw new Error(validation.error)
+        }
+      }
+
+      absences.value[index] = mergedRecord
       sortAbsencesArray(absences.value)
 
       // Incremental segment tree updates: remove old range, add new range (NO full rebuild)
@@ -872,6 +944,8 @@ export const useAbsentsStore = defineStore('absents', () => {
     sortedAbsences,
     totalDaysAbsent,
     calculateDays,
+    validateAbsence,
+    getMaxSegmentTreeReturnDate,
     addAbsence,
     updateAbsence,
     removeAbsence,

@@ -1,6 +1,6 @@
 <script>
 import { mapStores } from 'pinia'
-import { useAbsentsStore, calculateDays } from '../stores/absents'
+import { useAbsentsStore, calculateDays, getMaxSegmentTreeReturnDate } from '../stores/absents'
 
 export default {
   name: 'AbsenceView',
@@ -43,14 +43,48 @@ export default {
     // Generates this.absentsStore mapping to Pinia store
     ...mapStores(useAbsentsStore),
 
-    dateRangeError() {
-      if (!this.form.startDate || !this.form.endDate) return ''
-      const start = new Date(this.form.startDate)
-      const end = new Date(this.form.endDate)
-      if (end < start) {
+    maxSegmentTreeReturnDate() {
+      if (!this.absentsStore.visaStartDate) return ''
+      return getMaxSegmentTreeReturnDate(this.absentsStore.visaStartDate) || ''
+    },
+
+    startDateError() {
+      if (!this.form.startDate) return ''
+
+      const vStart = this.absentsStore.visaStartDate
+      if (vStart && this.form.startDate < vStart) {
+        return `Departure date cannot be earlier than Visa Start Date (${vStart}).`
+      }
+
+      const uArrival = this.absentsStore.ukArrivalDate
+      if (uArrival && this.form.startDate < uArrival) {
+        return `Departure date cannot be earlier than UK Arrival Date (${uArrival}).`
+      }
+
+      if (this.form.endDate && this.form.endDate < this.form.startDate) {
+        return 'Departure date cannot be later than return date.'
+      }
+
+      return ''
+    },
+
+    endDateError() {
+      if (!this.form.endDate) return ''
+
+      if (this.form.startDate && this.form.endDate < this.form.startDate) {
         return 'Return date cannot be earlier than departure date.'
       }
+
+      const maxReturn = this.maxSegmentTreeReturnDate
+      if (maxReturn && this.form.endDate > maxReturn) {
+        return `Return date cannot be later than 10 years from Visa Start Date (${maxReturn}).`
+      }
+
       return ''
+    },
+
+    dateRangeError() {
+      return this.startDateError || this.endDateError
     },
 
     calculatedDaysForForm() {
@@ -59,7 +93,9 @@ export default {
     },
 
     isFormValid() {
-      return Boolean(this.form.startDate && this.form.endDate && !this.dateRangeError)
+      return Boolean(
+        this.form.startDate && this.form.endDate && !this.startDateError && !this.endDateError,
+      )
     },
 
     totalDaysColor() {
@@ -101,22 +137,26 @@ export default {
     handleSave() {
       if (!this.isFormValid) return
 
-      if (this.editingId) {
-        this.absentsStore.updateAbsence(this.editingId, {
-          startDate: this.form.startDate,
-          endDate: this.form.endDate,
-          dest: this.form.dest,
-        })
-        this.showSnackbar('Absence record updated successfully!', 'success')
-        this.resetForm()
-      } else {
-        this.absentsStore.addAbsence({
-          startDate: this.form.startDate,
-          endDate: this.form.endDate,
-          dest: this.form.dest,
-        })
-        this.showSnackbar('Absence record added successfully!', 'success')
-        this.resetForm()
+      try {
+        if (this.editingId) {
+          this.absentsStore.updateAbsence(this.editingId, {
+            startDate: this.form.startDate,
+            endDate: this.form.endDate,
+            dest: this.form.dest,
+          })
+          this.showSnackbar('Absence record updated successfully!', 'success')
+          this.resetForm()
+        } else {
+          this.absentsStore.addAbsence({
+            startDate: this.form.startDate,
+            endDate: this.form.endDate,
+            dest: this.form.dest,
+          })
+          this.showSnackbar('Absence record added successfully!', 'success')
+          this.resetForm()
+        }
+      } catch (err) {
+        this.showSnackbar(err.message || 'Failed to save absence record.', 'error')
       }
     },
 
@@ -358,7 +398,7 @@ export default {
                     prepend-inner-icon="mdi-calendar-export"
                     variant="outlined"
                     density="comfortable"
-                    :error-messages="dateRangeError"
+                    :error-messages="startDateError"
                     required
                     hide-details="auto"
                   ></v-text-field>
@@ -373,7 +413,7 @@ export default {
                     prepend-inner-icon="mdi-calendar-import"
                     variant="outlined"
                     density="comfortable"
-                    :error-messages="dateRangeError"
+                    :error-messages="endDateError"
                     required
                     hide-details="auto"
                   ></v-text-field>

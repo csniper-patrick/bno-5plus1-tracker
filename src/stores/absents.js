@@ -40,12 +40,22 @@ export const useAbsentsStore = defineStore('absents', () => {
   // State Initialization
   // ---------------------------------------------------------------------------
 
+  // Helper function to sort absences array chronologically by start date
+  function sortAbsencesArray(arr) {
+    return arr.sort((a, b) => {
+      const startDiff = (a.startDate || '').localeCompare(b.startDate || '')
+      if (startDiff !== 0) return startDiff
+      return (a.endDate || '').localeCompare(b.endDate || '')
+    })
+  }
+
   // Attempt to restore previously saved absence records from browser storage
   const storedData = localStorage.getItem(STORAGE_KEY)
   const initialAbsences = storedData ? JSON.parse(storedData) : []
+  sortAbsencesArray(initialAbsences)
 
   /**
-   * Primary reactive list of absence records.
+   * Primary reactive list of absence records, maintained in chronological order.
    * Each record contains: id, startDate, endDate, dest, createdAt.
    */
   const absences = ref(initialAbsences)
@@ -71,7 +81,7 @@ export const useAbsentsStore = defineStore('absents', () => {
    * Computed array of absences sorted chronologically by start date (ascending).
    */
   const sortedAbsences = computed(() => {
-    return [...absences.value].sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+    return sortAbsencesArray([...absences.value])
   })
 
   /**
@@ -88,7 +98,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   // ---------------------------------------------------------------------------
 
   /**
-   * Adds a new absence entry to the store.
+   * Adds a new absence entry to the store and maintains chronological sorting by start date.
    *
    * @param {Object} payload - The absence details.
    * @param {string} payload.startDate - Start date string (YYYY-MM-DD).
@@ -107,11 +117,12 @@ export const useAbsentsStore = defineStore('absents', () => {
       createdAt: new Date().toISOString(),
     }
     absences.value.push(newEntry)
+    sortAbsencesArray(absences.value)
     return newEntry
   }
 
   /**
-   * Updates an existing absence record by its ID with the provided fields.
+   * Updates an existing absence record by its ID and maintains chronological sorting.
    *
    * @param {string} id - The unique identifier of the absence entry to update.
    * @param {Object} updatedFields - Object containing the fields to update (e.g. startDate, endDate, dest).
@@ -123,6 +134,7 @@ export const useAbsentsStore = defineStore('absents', () => {
         ...absences.value[index],
         ...updatedFields,
       }
+      sortAbsencesArray(absences.value)
     }
   }
 

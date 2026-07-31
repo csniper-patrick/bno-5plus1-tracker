@@ -18,7 +18,6 @@ function toggleTheme() {
       <v-app-bar-title class="font-weight-bold">BNO 5+1 Tracker</v-app-bar-title>
       <v-spacer></v-spacer>
       <v-btn to="/" prepend-icon="mdi-home" variant="text">Home</v-btn>
-      <v-btn to="/about" prepend-icon="mdi-information" variant="text">About</v-btn>
       <v-btn
         :icon="theme.global.current.value.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
         variant="text"

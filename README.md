@@ -94,7 +94,7 @@ bno-5plus1-tracker/
 │   ├── stores/            # Pinia store state management
 │   │   └── absents.js     # Main store & AbsenceSegmentTree implementation
 │   ├── views/             # Main application views
-│   │   └── HomeView.vue   # Tracker dashboard page
+│   │   └── AbsenceView.vue# Tracker dashboard page
 │   ├── App.vue            # Root component with App Bar & Theme switcher
 │   └── main.js            # Vue app bootstrap
 ├── .antigravity.md        # Workspace context & developer guidelines

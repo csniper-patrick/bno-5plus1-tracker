@@ -3,7 +3,7 @@ import { mapStores } from 'pinia'
 import { useAbsentsStore, calculateDays } from '../stores/absents'
 
 export default {
-  name: 'HomeView',
+  name: 'AbsenceView',
 
   data() {
     return {

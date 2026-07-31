@@ -98,13 +98,21 @@ export class AbsenceSegmentTree {
 }
 
 /**
- * Helper to safely parse a 'YYYY-MM-DD' string to UTC midnight Date.
+ * Helper to safely parse a 'YYYY-MM-DD' string or Date object to UTC midnight Date.
  */
-function parseDateUTC(dateStr) {
-  if (!dateStr || typeof dateStr !== 'string') return null
-  const parts = dateStr.split('-').map(Number)
-  if (parts.length !== 3 || parts.some(isNaN)) return null
-  return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]))
+function parseDateUTC(dateInput) {
+  if (!dateInput) return null
+  if (dateInput instanceof Date) {
+    if (isNaN(dateInput.getTime())) return null
+    return new Date(Date.UTC(dateInput.getUTCFullYear(), dateInput.getUTCMonth(), dateInput.getUTCDate()))
+  }
+  if (typeof dateInput === 'string') {
+    const cleanStr = dateInput.split('T')[0]
+    const parts = cleanStr.split('-').map(Number)
+    if (parts.length !== 3 || parts.some(isNaN)) return null
+    return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]))
+  }
+  return null
 }
 
 /**
@@ -470,14 +478,11 @@ export const useAbsentsStore = defineStore('absents', () => {
   })
 
   /**
-   * Computes the peak rolling 12-month (365-day) absence across the visa period using the Segment Tree.
-   * Scans rolling 365-day windows using Segment Tree range queries and returns { maxDays, peakStartDate, peakEndDate }.
+   * Computes the peak rolling 12-month (365-day) absence across the visa period using queryAbsentDaysInRange.
+   * Scans rolling 365-day windows using the proper query function and returns { maxDays, peakStartDate, peakEndDate }.
    */
   const max12MonthAbsenceInfo = computed(() => {
-    // Track reactive version of Segment Tree for point update re-evaluation
-    const _v = segmentTreeVersion.value
-
-    if (!visaStartDate.value || !segmentTree.value || segmentTreeSize < 365) {
+    if (!visaStartDate.value) {
       return { maxDays: 0, peakStartDate: null, peakEndDate: null }
     }
 
@@ -485,22 +490,34 @@ export const useAbsentsStore = defineStore('absents', () => {
     if (!vStart) return { maxDays: 0, peakStartDate: null, peakEndDate: null }
 
     let maxDays = 0
-    let peakStartIdx = 0
+    let peakStart = vStart
+    let peakEnd = new Date(vStart.getTime() + 364 * 86400000)
 
-    // Evaluate rolling 365-day windows across the 5-year visa path (or up to 10-year window size)
-    const maxSearchWindow = Math.min(segmentTreeSize - 365, 1826 - 365)
-    const limit = Math.max(0, maxSearchWindow >= 0 ? maxSearchWindow : segmentTreeSize - 365)
-
-    for (let i = 0; i <= limit; i++) {
-      const days = segmentTree.value.query(i, i + 364)
-      if (days > maxDays) {
-        maxDays = days
-        peakStartIdx = i
+    // Determine the end of the search window: 5 years (1826 days) or last absence end date
+    let lastAbsenceMs = vStart.getTime() + 1826 * 86400000
+    for (const item of absences.value) {
+      if (item.endDate) {
+        const e = parseDateUTC(item.endDate)
+        if (e && e.getTime() > lastAbsenceMs) {
+          lastAbsenceMs = e.getTime()
+        }
       }
     }
 
-    const peakStart = new Date(vStart.getTime() + peakStartIdx * 86400000)
-    const peakEnd = new Date(vStart.getTime() + (peakStartIdx + 364) * 86400000)
+    const totalDaysToScan = Math.max(1826, Math.round((lastAbsenceMs - vStart.getTime()) / 86400000))
+    const limit = Math.max(0, totalDaysToScan - 364)
+
+    for (let i = 0; i <= limit; i++) {
+      const windowStart = new Date(vStart.getTime() + i * 86400000)
+      const windowEnd = new Date(vStart.getTime() + (i + 364) * 86400000)
+      const days = queryAbsentDaysInRange(windowStart, windowEnd)
+
+      if (days > maxDays) {
+        maxDays = days
+        peakStart = windowStart
+        peakEnd = windowEnd
+      }
+    }
 
     const formatDateStr = (d) => {
       const y = d.getUTCFullYear()
@@ -676,37 +693,78 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
-   * Efficiently queries the number of absent days in any date range within 10 years of visaStartDate
-   * using the Segment Tree in O(log N) time.
+   * Efficiently queries the number of absent days in any date range.
+   * Correctly calculates exact overlap with absence records, excluding departure and return days of each trip.
    *
    * @param {string|Date} startDate - Range start date.
    * @param {string|Date} endDate - Range end date.
-   * @param {boolean} [excludeEndpoints=false] - Whether to exclude start/end dates from the query.
+   * @param {boolean} [excludeEndpoints=false] - Whether to exclude start/end dates from the query range.
    * @returns {number} Total absent days within the range.
    */
   function queryAbsentDaysInRange(startDate, endDate, excludeEndpoints = false) {
     const _v = segmentTreeVersion.value
 
-    if (!visaStartDate.value || !segmentTree.value) return 0
+    let qStart = parseDateUTC(startDate)
+    let qEnd = parseDateUTC(endDate)
 
-    const vStart = parseDateUTC(visaStartDate.value)
-    if (!vStart) return 0
-
-    let s = typeof startDate === 'string' ? parseDateUTC(startDate) : new Date(startDate)
-    let e = typeof endDate === 'string' ? parseDateUTC(endDate) : new Date(endDate)
-
-    if (!s || !e || isNaN(s.getTime()) || isNaN(e.getTime()) || e < s) return 0
+    if (!qStart || !qEnd || isNaN(qStart.getTime()) || isNaN(qEnd.getTime()) || qEnd < qStart) return 0
 
     if (excludeEndpoints) {
-      s = new Date(s.getTime() + 86400000)
-      e = new Date(e.getTime() - 86400000)
-      if (e < s) return 0
+      qStart = new Date(qStart.getTime() + 86400000)
+      qEnd = new Date(qEnd.getTime() - 86400000)
+      if (qEnd < qStart) return 0
     }
 
-    const qStartIdx = Math.round((s.getTime() - vStart.getTime()) / 86400000)
-    const qEndIdx = Math.round((e.getTime() - vStart.getTime()) / 86400000)
+    // Collect all valid absent day intervals [firstAbsentDay, lastAbsentDay] for each record
+    const intervals = []
+    for (const item of absences.value) {
+      if (!item.startDate || !item.endDate) continue
+      const s = parseDateUTC(item.startDate)
+      const e = parseDateUTC(item.endDate)
+      if (!s || !e || e <= s) continue
 
-    return segmentTree.value.query(qStartIdx, qEndIdx)
+      // Full absent days exclude departure (s) and return (e) dates
+      const firstAbsent = new Date(s.getTime() + 86400000)
+      const lastAbsent = new Date(e.getTime() - 86400000)
+      if (lastAbsent < firstAbsent) continue
+
+      // Intersect trip's absent interval [firstAbsent, lastAbsent] with query interval [qStart, qEnd]
+      const intersectStart = firstAbsent > qStart ? firstAbsent : qStart
+      const intersectEnd = lastAbsent < qEnd ? lastAbsent : qEnd
+
+      if (intersectStart <= intersectEnd) {
+        intervals.push({
+          start: intersectStart.getTime(),
+          end: intersectEnd.getTime(),
+        })
+      }
+    }
+
+    if (intervals.length === 0) return 0
+
+    // Merge overlapping intervals to prevent double-counting shared absent days
+    intervals.sort((a, b) => a.start - b.start)
+    const merged = [intervals[0]]
+
+    for (let i = 1; i < intervals.length; i++) {
+      const current = intervals[i]
+      const lastMerged = merged[merged.length - 1]
+
+      if (current.start <= lastMerged.end + 86400000) {
+        lastMerged.end = Math.max(lastMerged.end, current.end)
+      } else {
+        merged.push({ ...current })
+      }
+    }
+
+    // Calculate total days across all merged intervals
+    let totalDays = 0
+    for (const range of merged) {
+      const days = Math.round((range.end - range.start) / 86400000) + 1
+      totalDays += Math.max(0, days)
+    }
+
+    return totalDays
   }
 
   /**
@@ -777,10 +835,11 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
-   * Clears all absence records from the store and resets the segment tree.
+   * Clears all absence records from the store, re-initializes the initial entry to UK record if conditions are met, and resets the segment tree.
    */
   function clearAbsences() {
     absences.value = []
+    syncArrivalRecord()
     rebuildSegmentTree()
   }
 

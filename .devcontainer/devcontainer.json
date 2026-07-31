@@ -1,0 +1,30 @@
+{
+  "name": "bno-5plus1-tracker",
+  "image": "docker.io/library/node:lts",
+
+  "shutdownAction": "stopContainer",
+
+  // 1. Launch container with option "--user root"
+  "runArgs": ["--user=root", "--pull=newer", "--rm"],
+  "appPort": ["5173:5173"],
+
+  // 2. Mount current working directory to /runner
+  "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind",
+  "workspaceFolder": "${localWorkspaceFolder}",
+
+  // 3. Set shell to /bin/bash
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash"
+          }
+        },
+        "ltex.java.path": "/usr"
+      },
+      "extensions": ["vue.volar", "dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+    }
+  }
+}

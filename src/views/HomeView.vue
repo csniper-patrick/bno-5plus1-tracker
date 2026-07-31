@@ -241,7 +241,7 @@ export default {
     </v-alert>
 
     <!-- Visa Start Date Info Bar (If Set) -->
-    <v-card v-else elevation="2" class="pa-4 rounded-lg mb-6 bg-surface-variant">
+    <v-card v-else elevation="3" class="pa-4 rounded-lg mb-6 bg-surface">
       <div class="d-flex align-center justify-space-between flex-wrap ga-3">
         <div class="d-flex align-center ga-3">
           <v-icon icon="mdi-calendar-check" color="primary" size="large"></v-icon>
@@ -268,56 +268,137 @@ export default {
       </div>
     </v-card>
 
-    <!-- Stats Row -->
-    <v-row class="mb-6">
-      <v-col cols="12" sm="4">
-        <v-card elevation="2" class="pa-4 rounded-lg text-center">
-          <v-icon icon="mdi-calendar-clock" size="36" :color="totalDaysColor" class="mb-2"></v-icon>
-          <div class="text-overline text-medium-emphasis">Total Days Absent</div>
-          <div class="text-h3 font-weight-bold" :class="`text-${totalDaysColor}`">
-            {{ absentsStore.totalDaysAbsent }}
-          </div>
-          <div class="text-caption text-medium-emphasis">Full days abroad</div>
-        </v-card>
-      </v-col>
+    <!-- Condition Checker Container (Shown when Visa Date is Set) -->
+    <div v-if="absentsStore.isVisaDateSet" class="mb-8">
+      <!-- Section Header -->
+      <h2 class="text-h5 font-weight-bold mb-4 d-flex align-center">
+        <v-icon icon="mdi-shield-search" color="primary" class="mr-2"></v-icon>
+        Residency Condition Checkers
+      </h2>
 
-      <v-col cols="12" sm="4">
-        <v-card elevation="2" class="pa-4 rounded-lg text-center">
-          <v-icon icon="mdi-airplane-takeoff" size="36" color="primary" class="mb-2"></v-icon>
-          <div class="text-overline text-medium-emphasis">Total Trips Logged</div>
-          <div class="text-h3 font-weight-bold text-primary">
-            {{ absentsStore.absences.length }}
+      <!-- SECTION 1: ILR / Settlement Card -->
+      <v-card elevation="3" class="pa-6 rounded-lg mb-6">
+        <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
+          <div>
+            <div class="d-flex align-center">
+              <v-chip color="primary" variant="flat" size="small" class="font-weight-bold mr-3">Section 1</v-chip>
+              <h3 class="text-h6 font-weight-bold">ILR / Indefinite Leave to Remain (Settlement)</h3>
+            </div>
+            <p class="text-caption text-medium-emphasis mb-0 mt-1">
+              Period of Interest: <strong>5 Years from Visa Start Date</strong> ({{ formatDate(absentsStore.visaStartDate) }} – {{ formatDate(absentsStore.settlementTargetDate) }})
+            </p>
           </div>
-          <div class="text-caption text-medium-emphasis">Records stored</div>
-        </v-card>
-      </v-col>
 
-      <v-col cols="12" sm="4">
-        <v-card elevation="2" class="pa-4 rounded-lg text-center">
-          <v-icon
-            :icon="absentsStore.max12MonthAbsence > 180 ? 'mdi-alert-octagram' : 'mdi-shield-check-outline'"
-            size="36"
-            :color="totalDaysColor"
-            class="mb-2"
-          ></v-icon>
-          <div class="text-overline text-medium-emphasis">180-Day Rule Status</div>
-          <div class="mt-1">
-            <v-chip :color="totalDaysColor" variant="flat" class="font-weight-bold">
-              {{ absentsStore.max12MonthAbsence }} / 180 Days
-            </v-chip>
+          <v-chip :color="absentsStore.ruleStatusColor" size="large" variant="tonal" class="font-weight-bold">
+            <v-icon
+              :icon="absentsStore.isRuleExceeded ? 'mdi-alert-circle' : 'mdi-check-circle'"
+              start
+            ></v-icon>
+            {{ absentsStore.isRuleExceeded ? 'ILR Rule Exceeded' : 'ILR Requirement Compliant' }}
+          </v-chip>
+        </div>
+
+        <v-row>
+          <!-- 180-Day Rolling Rule -->
+          <v-col cols="12" sm="6">
+            <v-card variant="outlined" class="pa-4 rounded-lg bg-surface">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <span class="text-subtitle-2 font-weight-bold">180-Day Rolling Rule</span>
+                <v-chip :color="absentsStore.ruleStatusColor" size="small" variant="flat" class="font-weight-bold">
+                  {{ absentsStore.max12MonthAbsence }} / 180 Days
+                </v-chip>
+              </div>
+              <div class="text-caption text-medium-emphasis mb-1">
+                Max absent days in any 365-day rolling window during 5-year visa duration.
+              </div>
+              <div v-if="absentsStore.max12MonthAbsenceInfo.peakStartDate" class="text-caption text-primary font-weight-medium">
+                Peak 12-Mo Window: {{ formatDate(absentsStore.max12MonthAbsenceInfo.peakStartDate) }} – {{ formatDate(absentsStore.max12MonthAbsenceInfo.peakEndDate) }}
+              </div>
+            </v-card>
+          </v-col>
+
+          <!-- 5-Year Total Absences -->
+          <v-col cols="12" sm="6">
+            <v-card variant="outlined" class="pa-4 rounded-lg bg-surface">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <span class="text-subtitle-2 font-weight-bold">Total 5-Year Absences</span>
+                <v-chip color="info" size="small" variant="tonal" class="font-weight-bold">
+                  {{ absentsStore.ilr5YearTotalAbsence }} Days Total
+                </v-chip>
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                Total cumulative full days absent outside the UK over the entire 5-year visa route.
+              </div>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-card>
+
+      <!-- SECTION 2: Naturalisation / Citizenship Card -->
+      <v-card elevation="3" class="pa-6 rounded-lg">
+        <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
+          <div>
+            <div class="d-flex align-center">
+              <v-chip color="success" variant="flat" size="small" class="font-weight-bold mr-3">Section 2</v-chip>
+              <h3 class="text-h6 font-weight-bold">British Citizenship (Naturalisation & Registration)</h3>
+            </div>
+            <p class="text-caption text-medium-emphasis mb-0 mt-1">
+              Period of Interest: <strong>5-Year Period ending 1 Year after Settlement</strong> ({{ formatDate(absentsStore.naturalizationWindowStartDate) }} – {{ formatDate(absentsStore.naturalizationTargetDate) }})
+            </p>
           </div>
-          <div class="text-caption text-medium-emphasis mt-2">
-            Peak 12-Mo Rolling Period
-          </div>
-          <div
-            v-if="absentsStore.max12MonthAbsenceInfo.peakStartDate"
-            class="text-caption text-medium-emphasis font-weight-medium mt-1"
-          >
-            ({{ formatDate(absentsStore.max12MonthAbsenceInfo.peakStartDate) }} – {{ formatDate(absentsStore.max12MonthAbsenceInfo.peakEndDate) }})
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
+
+          <v-chip :color="absentsStore.naturalizationStatusColor" size="large" variant="tonal" class="font-weight-bold">
+            <v-icon
+              :icon="absentsStore.isNaturalizationEligible ? 'mdi-check-decagram' : 'mdi-alert-decagram'"
+              start
+            ></v-icon>
+            {{ absentsStore.isNaturalizationEligible ? 'Citizenship Requirement Compliant' : 'Citizenship Rule Exceeded' }}
+          </v-chip>
+        </div>
+
+        <v-row>
+          <!-- 5-Year Citizenship Limit (Max 450 Days) -->
+          <v-col cols="12" sm="6">
+            <v-card variant="outlined" class="pa-4 rounded-lg bg-surface">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <span class="text-subtitle-2 font-weight-bold">5-Year Absence Limit</span>
+                <v-chip
+                  :color="absentsStore.naturalization5YearAbsence > 450 ? 'error' : (absentsStore.naturalization5YearAbsence >= 380 ? 'warning' : 'success')"
+                  size="small"
+                  variant="flat"
+                  class="font-weight-bold"
+                >
+                  {{ absentsStore.naturalization5YearAbsence }} / 450 Days
+                </v-chip>
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                Total absent days in the 5 years ending on naturalisation application date (Max 450 days).
+              </div>
+            </v-card>
+          </v-col>
+
+          <!-- Final 12-Month Limit (Max 90 Days) -->
+          <v-col cols="12" sm="6">
+            <v-card variant="outlined" class="pa-4 rounded-lg bg-surface">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <span class="text-subtitle-2 font-weight-bold">Final 12-Month Limit</span>
+                <v-chip
+                  :color="absentsStore.naturalizationFinal12MoAbsence > 90 ? 'error' : (absentsStore.naturalizationFinal12MoAbsence >= 75 ? 'warning' : 'success')"
+                  size="small"
+                  variant="flat"
+                  class="font-weight-bold"
+                >
+                  {{ absentsStore.naturalizationFinal12MoAbsence }} / 90 Days
+                </v-chip>
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                Total absent days in the 12 months between settlement and naturalisation (Max 90 days).
+              </div>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-card>
+    </div>
 
     <!-- Input Form Card -->
     <v-card elevation="3" class="pa-6 rounded-lg mb-8">

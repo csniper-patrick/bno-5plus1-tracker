@@ -437,6 +437,94 @@ export const useAbsentsStore = defineStore('absents', () => {
   const isRuleExceeded = computed(() => max12MonthAbsence.value > 180)
 
   // ---------------------------------------------------------------------------
+  // Section 1: ILR / Settlement (5-Year BNO Route) Getters
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Total absent days across the 5-year BNO visa period [visaStartDate, visaStartDate + 5 years].
+   */
+  const ilr5YearTotalAbsence = computed(() => {
+    if (!visaStartDate.value || !settlementTargetDate.value) return 0
+    return queryAbsentDaysInRange(visaStartDate.value, settlementTargetDate.value)
+  })
+
+  // ---------------------------------------------------------------------------
+  // Section 2: Naturalisation / British Citizenship Getters
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Target date for British Citizenship naturalisation application (6 years from visaStartDate).
+   */
+  const naturalizationTargetDate = computed(() => {
+    if (!visaStartDate.value) return ''
+    const vStart = parseDateUTC(visaStartDate.value)
+    if (!vStart) return ''
+    const target = new Date(vStart)
+    target.setUTCFullYear(target.getUTCFullYear() + 6)
+    const y = target.getUTCFullYear()
+    const m = String(target.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(target.getUTCDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  })
+
+  /**
+   * Start date of the 5-year qualifying window for naturalisation (1 year after visaStartDate).
+   */
+  const naturalizationWindowStartDate = computed(() => {
+    if (!visaStartDate.value) return ''
+    const vStart = parseDateUTC(visaStartDate.value)
+    if (!vStart) return ''
+    const start = new Date(vStart)
+    start.setUTCFullYear(start.getUTCFullYear() + 1)
+    const y = start.getUTCFullYear()
+    const m = String(start.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(start.getUTCDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  })
+
+  /**
+   * Total absent days in the 5 years immediately preceding naturalisation application [Year 1 to Year 6].
+   * Requirement: Must not exceed 450 days.
+   */
+  const naturalization5YearAbsence = computed(() => {
+    if (!naturalizationWindowStartDate.value || !naturalizationTargetDate.value) return 0
+    return queryAbsentDaysInRange(
+      naturalizationWindowStartDate.value,
+      naturalizationTargetDate.value
+    )
+  })
+
+  /**
+   * Total absent days in the final 12 months before naturalisation application [Year 5 to Year 6].
+   * Requirement: Must not exceed 90 days.
+   */
+  const naturalizationFinal12MoAbsence = computed(() => {
+    if (!settlementTargetDate.value || !naturalizationTargetDate.value) return 0
+    return queryAbsentDaysInRange(
+      settlementTargetDate.value,
+      naturalizationTargetDate.value
+    )
+  })
+
+  /**
+   * Overall status color ('success', 'warning', 'error') for Naturalisation eligibility.
+   */
+  const naturalizationStatusColor = computed(() => {
+    const f5 = naturalization5YearAbsence.value
+    const f12 = naturalizationFinal12MoAbsence.value
+    if (f5 > 450 || f12 > 90) return 'error'
+    if (f5 >= 380 || f12 >= 75) return 'warning'
+    return 'success'
+  })
+
+  /**
+   * Boolean indicating if user is eligible for Naturalisation based on absence limits.
+   */
+  const isNaturalizationEligible = computed(() => {
+    return naturalization5YearAbsence.value <= 450 && naturalizationFinal12MoAbsence.value <= 90
+  })
+
+  // ---------------------------------------------------------------------------
   // Actions
   // ---------------------------------------------------------------------------
 
@@ -571,6 +659,13 @@ export const useAbsentsStore = defineStore('absents', () => {
     settlementTargetDate,
     ruleStatusColor,
     isRuleExceeded,
+    ilr5YearTotalAbsence,
+    naturalizationTargetDate,
+    naturalizationWindowStartDate,
+    naturalization5YearAbsence,
+    naturalizationFinal12MoAbsence,
+    naturalizationStatusColor,
+    isNaturalizationEligible,
     sortedAbsences,
     totalDaysAbsent,
     calculateDays,

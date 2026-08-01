@@ -702,12 +702,25 @@ export const useAbsentsStore = defineStore('absents', () => {
   /**
    * Helper to check if a UTC Date object falls on a full absent day outside the UK.
    * Departure and return dates are partially spent in the UK and are NOT absent days.
+   * Utilizes the Segment Tree (O(log N)) when available for fast lookup.
    *
    * @param {Date} dateObj
    * @returns {boolean}
    */
   function isAbsentDay(dateObj) {
     if (!dateObj || isNaN(dateObj.getTime())) return false
+
+    // Fast Path: Utilize Segment Tree leaf query if available
+    if (segmentTree.value && visaStartDate.value && segmentTreeSize > 0) {
+      const vStart = parseDateUTC(visaStartDate.value)
+      if (vStart) {
+        const idx = Math.round((dateObj.getTime() - vStart.getTime()) / 86400000)
+        if (idx >= 0 && idx < segmentTreeSize) {
+          return segmentTree.value.query(idx, idx) === 1
+        }
+      }
+    }
+
     const t = dateObj.getTime()
     for (const item of absences.value) {
       if (!item.startDate || !item.endDate) continue
@@ -903,9 +916,70 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
+   * Helper algorithm to calculate full absent days within [qStart, qEnd]
+   * by intersecting and merging trip intervals. Used as a fallback when segment tree is unavailable
+   * or for query date sub-ranges falling outside segment tree array boundaries.
+   *
+   * @param {Date} qStart - UTC start date.
+   * @param {Date} qEnd - UTC end date.
+   * @returns {number} Total distinct full days absent.
+   */
+  function calculateIntervalAbsences(qStart, qEnd) {
+    if (!qStart || !qEnd || isNaN(qStart.getTime()) || isNaN(qEnd.getTime()) || qEnd < qStart) {
+      return 0
+    }
+
+    const intervals = []
+    for (const item of absences.value) {
+      if (!item.startDate || !item.endDate) continue
+      const s = parseDateUTC(item.startDate)
+      const e = parseDateUTC(item.endDate)
+      if (!s || !e || e <= s) continue
+
+      const firstAbsent = new Date(s.getTime() + 86400000)
+      const lastAbsent = new Date(e.getTime() - 86400000)
+      if (lastAbsent < firstAbsent) continue
+
+      const intersectStart = firstAbsent > qStart ? firstAbsent : qStart
+      const intersectEnd = lastAbsent < qEnd ? lastAbsent : qEnd
+
+      if (intersectStart <= intersectEnd) {
+        intervals.push({
+          start: intersectStart.getTime(),
+          end: intersectEnd.getTime(),
+        })
+      }
+    }
+
+    if (intervals.length === 0) return 0
+
+    intervals.sort((a, b) => a.start - b.start)
+    const merged = [intervals[0]]
+
+    for (let i = 1; i < intervals.length; i++) {
+      const current = intervals[i]
+      const lastMerged = merged[merged.length - 1]
+
+      if (current.start <= lastMerged.end + 86400000) {
+        lastMerged.end = Math.max(lastMerged.end, current.end)
+      } else {
+        merged.push({ ...current })
+      }
+    }
+
+    let totalDays = 0
+    for (const range of merged) {
+      const days = Math.round((range.end - range.start) / 86400000) + 1
+      totalDays += Math.max(0, days)
+    }
+
+    return totalDays
+  }
+
+  /**
    * Efficiently queries the number of absent days within any arbitrary date range [startDate, endDate].
-   * Computes precise intersection with all absence records, excluding departure and return days of each trip
-   * per Home Office full-day absence rules. Sorts and merges overlapping trip intervals to avoid double-counting.
+   * Utilizes the Segment Tree (O(log N)) whenever possible for lightning-fast range sum calculation.
+   * Excludes departure and return days of each trip per Home Office full-day absence rules.
    *
    * @param {string|Date} startDate - Query range start date.
    * @param {string|Date} endDate - Query range end date.
@@ -928,57 +1002,49 @@ export const useAbsentsStore = defineStore('absents', () => {
       if (qEnd < qStart) return 0
     }
 
-    // Step 1: Collect valid absent day intervals [firstAbsentDay, lastAbsentDay] for each trip
-    const intervals = []
-    for (const item of absences.value) {
-      if (!item.startDate || !item.endDate) continue
-      const s = parseDateUTC(item.startDate)
-      const e = parseDateUTC(item.endDate)
-      if (!s || !e || e <= s) continue
+    // Fast Path: Utilize Segment Tree range sum query when available and visaStartDate is set
+    if (segmentTree.value && visaStartDate.value && segmentTreeSize > 0) {
+      const vStart = parseDateUTC(visaStartDate.value)
+      if (vStart) {
+        const qStartIdx = Math.round((qStart.getTime() - vStart.getTime()) / 86400000)
+        const qEndIdx = Math.round((qEnd.getTime() - vStart.getTime()) / 86400000)
 
-      // Full absent days exclude departure (s) and return (e) dates per UK Home Office rules
-      const firstAbsent = new Date(s.getTime() + 86400000)
-      const lastAbsent = new Date(e.getTime() - 86400000)
-      if (lastAbsent < firstAbsent) continue
+        // Case 1: Entire query range falls within segment tree coverage [0, segmentTreeSize - 1]
+        if (qStartIdx >= 0 && qEndIdx < segmentTreeSize) {
+          return segmentTree.value.query(qStartIdx, qEndIdx)
+        }
 
-      // Compute intersection between trip's absent interval [firstAbsent, lastAbsent] and query window [qStart, qEnd]
-      const intersectStart = firstAbsent > qStart ? firstAbsent : qStart
-      const intersectEnd = lastAbsent < qEnd ? lastAbsent : qEnd
+        // Case 2: Query range overlaps segment tree coverage
+        const inStart = Math.max(0, qStartIdx)
+        const inEnd = Math.min(segmentTreeSize - 1, qEndIdx)
 
-      if (intersectStart <= intersectEnd) {
-        intervals.push({
-          start: intersectStart.getTime(),
-          end: intersectEnd.getTime(),
-        })
+        let total = 0
+        if (inStart <= inEnd) {
+          total += segmentTree.value.query(inStart, inEnd)
+        }
+
+        // Add pre-segment tree range absences (before visa start date)
+        if (qStartIdx < 0) {
+          const endBefore = new Date(vStart.getTime() - 86400000)
+          if (qStart <= endBefore) {
+            total += calculateIntervalAbsences(qStart, endBefore)
+          }
+        }
+
+        // Add post-segment tree range absences (after 10 years from visa start date)
+        if (qEndIdx >= segmentTreeSize) {
+          const startAfter = new Date(vStart.getTime() + segmentTreeSize * 86400000)
+          if (startAfter <= qEnd) {
+            total += calculateIntervalAbsences(startAfter, qEnd)
+          }
+        }
+
+        return total
       }
     }
 
-    if (intervals.length === 0) return 0
-
-    // Step 2: Sort intervals by start timestamp and merge overlapping or contiguous ranges
-    intervals.sort((a, b) => a.start - b.start)
-    const merged = [intervals[0]]
-
-    for (let i = 1; i < intervals.length; i++) {
-      const current = intervals[i]
-      const lastMerged = merged[merged.length - 1]
-
-      // Merge if current interval starts within or adjacent to (<= +1 day) the last merged interval
-      if (current.start <= lastMerged.end + 86400000) {
-        lastMerged.end = Math.max(lastMerged.end, current.end)
-      } else {
-        merged.push({ ...current })
-      }
-    }
-
-    // Step 3: Sum the total distinct absent days across all merged non-overlapping intervals
-    let totalDays = 0
-    for (const range of merged) {
-      const days = Math.round((range.end - range.start) / 86400000) + 1
-      totalDays += Math.max(0, days)
-    }
-
-    return totalDays
+    // Fallback: Calculate absences using interval merging when segment tree is unavailable
+    return calculateIntervalAbsences(qStart, qEnd)
   }
 
   /**

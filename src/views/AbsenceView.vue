@@ -827,7 +827,7 @@ export default {
                       title="Initial UK Entry record is managed via Key Dates"
                       class="font-weight-medium"
                     >
-                      Managed by Key Dates
+                      Managed
                     </v-chip>
                   </template>
                   <template v-else>

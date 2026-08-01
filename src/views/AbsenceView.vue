@@ -480,6 +480,15 @@ export default {
               </p>
             </div>
           </div>
+
+          <v-divider class="my-3"></v-divider>
+
+          <div class="d-flex align-center ga-2 text-caption text-medium-emphasis">
+            <v-icon icon="mdi-alert-circle-outline" size="small" color="warning" class="flex-shrink-0"></v-icon>
+            <span>
+              <strong>Disclaimer:</strong> This application is provided for informational and personal tracking purposes only. It does not constitute official legal or immigration advice. Always verify your eligibility and dates against official UK Home Office guidelines before submitting an ILR application.
+            </span>
+          </div>
         </v-card>
 
         <!-- 1. BNO Visa & UK Arrival Dates -->

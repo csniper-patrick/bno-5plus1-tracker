@@ -680,24 +680,24 @@ export default {
         <!-- 3. Absence Record List -->
         <v-card elevation="2" class="rounded-lg">
           <v-card-title
-            class="pa-3 d-flex align-center justify-space-between flex-wrap ga-2 border-b"
+            class="pa-2 px-3 d-flex align-center justify-space-between flex-wrap ga-2 border-b"
           >
             <div class="d-flex align-center flex-wrap ga-2">
               <v-icon icon="mdi-format-list-bulleted" color="primary" class="mr-1"></v-icon>
-              <span class="text-h6 font-weight-bold">Absence Records</span>
-              <v-chip size="small" color="primary" variant="tonal" class="font-weight-bold ml-1">
+              <span class="text-subtitle-1 font-weight-bold">Absence Records</span>
+              <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold ml-1">
                 {{ absentsStore.sortedAbsences.length }}
               </v-chip>
             </div>
           </v-card-title>
 
           <!-- Records Table -->
-          <v-table v-if="absentsStore.sortedAbsences.length > 0" class="rounded-b-lg">
+          <v-table v-if="absentsStore.sortedAbsences.length > 0" density="compact" class="rounded-b-lg">
             <thead>
               <tr>
                 <th class="text-left font-weight-bold">Destination / Purpose</th>
-                <th class="text-left font-weight-bold">Departure Date</th>
-                <th class="text-left font-weight-bold">Return Date</th>
+                <th class="text-right font-weight-bold">Departure Date</th>
+                <th class="text-right font-weight-bold">Return Date</th>
                 <th class="text-center font-weight-bold">Full Days Absent</th>
                 <th class="text-right font-weight-bold">Actions</th>
               </tr>
@@ -778,10 +778,10 @@ export default {
                     </v-chip>
                   </div>
                 </td>
-                <td :class="{ 'text-medium-emphasis': isFutureEvent(item) }">
+                <td class="text-right" :class="{ 'text-medium-emphasis': isFutureEvent(item) }">
                   {{ formatDate(item.startDate) }}
                 </td>
-                <td :class="{ 'text-medium-emphasis': isFutureEvent(item) }">
+                <td class="text-right" :class="{ 'text-medium-emphasis': isFutureEvent(item) }">
                   {{ formatDate(item.endDate) }}
                 </td>
                 <td class="text-center">
@@ -795,7 +795,7 @@ export default {
                             ? 'primary'
                             : 'grey'
                     "
-                    size="small"
+                    size="x-small"
                     :variant="isFutureEvent(item) ? 'outlined' : 'tonal'"
                     :class="{
                       'font-weight-bold': !isFutureEvent(item),
@@ -811,6 +811,7 @@ export default {
                     variant="text"
                     color="primary"
                     size="small"
+                    density="compact"
                     title="Edit Record"
                     @click="startEdit(item)"
                   ></v-btn>
@@ -819,6 +820,7 @@ export default {
                     variant="text"
                     color="error"
                     size="small"
+                    density="compact"
                     title="Delete Record"
                     @click="confirmDelete(item)"
                   ></v-btn>
@@ -828,12 +830,12 @@ export default {
           </v-table>
 
           <!-- Empty State -->
-          <div v-else class="pa-12 text-center">
-            <v-avatar color="surface-variant" size="80" class="mb-4">
-              <v-icon icon="mdi-airplane-off" size="40" color="medium-emphasis"></v-icon>
+          <div v-else class="pa-6 text-center">
+            <v-avatar color="surface-variant" size="56" class="mb-2">
+              <v-icon icon="mdi-airplane-off" size="28" color="medium-emphasis"></v-icon>
             </v-avatar>
-            <h3 class="text-h6 font-weight-bold mb-1">No Absence Records</h3>
-            <p class="text-body-2 text-medium-emphasis mb-0">
+            <h3 class="text-subtitle-1 font-weight-bold mb-1">No Absence Records</h3>
+            <p class="text-caption text-medium-emphasis mb-0">
               You haven't logged any travel absence records yet. Use the form above to add your
               first entry.
             </p>
@@ -841,7 +843,7 @@ export default {
 
           <!-- Bottom Card Actions -->
           <v-divider></v-divider>
-          <v-card-actions class="pa-3 d-flex align-center justify-end flex-wrap ga-2">
+          <v-card-actions class="pa-2 px-3 d-flex align-center justify-end flex-wrap ga-2">
             <input
               ref="yamlFileInput"
               type="file"

@@ -16,7 +16,7 @@ export default defineConfig({
     vueDevTools(),
     vuetify({ autoImport: true }),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png', 'maskable-icon.png'],
       manifest: {
         name: 'BNO 5+1 Tracker - UK Settlement & Absence Tracker',

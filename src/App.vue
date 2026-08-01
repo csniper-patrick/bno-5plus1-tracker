@@ -1,6 +1,7 @@
 <script setup>
 import { RouterView } from 'vue-router'
 import { useTheme } from 'vuetify'
+import ReloadPrompt from './components/ReloadPrompt.vue'
 
 const theme = useTheme()
 
@@ -38,6 +39,9 @@ function toggleTheme() {
         <RouterView />
       </v-container>
     </v-main>
+
+    <!-- PWA New Version Update Prompt -->
+    <ReloadPrompt />
   </v-app>
 </template>
 

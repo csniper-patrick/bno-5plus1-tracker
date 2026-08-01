@@ -1243,7 +1243,7 @@ export default {
               >
                 <div class="d-flex align-center justify-space-between flex-wrap ga-2">
                   <span>
-                    <strong>Earliest ILR Application Date:</strong>
+                    <strong>Earliest Application Date:</strong>
                   </span>
                   <strong class="text-subtitle-2 text-primary font-weight-bold">
                     {{ earliestIlrApplicationDate }} (28 days before 5 years)
@@ -1290,8 +1290,8 @@ export default {
                   <v-icon
                     :icon="
                       absentsStore.isNaturalizationEligible
-                        ? 'mdi-check-decagram'
-                        : 'mdi-alert-decagram'
+                        ? 'mdi-check-circle'
+                        : 'mdi-alert-circle'
                     "
                     start
                   ></v-icon>
@@ -1367,7 +1367,7 @@ export default {
               >
                 <div class="d-flex align-center justify-space-between flex-wrap ga-2">
                   <span>
-                    <strong>Earliest Naturalisation Application Date:</strong>
+                    <strong>Earliest Application Date:</strong>
                   </span>
                   <strong class="text-subtitle-2 text-primary font-weight-bold">
                     {{ formatDate(absentsStore.naturalizationTargetDate) }}

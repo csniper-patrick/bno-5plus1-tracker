@@ -1131,10 +1131,10 @@ export default {
         <template v-else>
           <!-- 1. Residence, ILR, Naturalisation Checker -->
           <div class="d-flex flex-column ga-2">
-            <v-card-title class="px-0 pt-0 d-flex align-center">
+            <h2 class="text-h5 font-weight-bold d-flex align-center">
               <v-icon icon="mdi-shield-search" color="primary" class="mr-2"></v-icon>
-              <span class="text-h5 font-weight-bold">Residency Condition Checkers</span>
-            </v-card-title>
+              Residency Condition Checkers
+            </h2>
 
             <div class="d-flex flex-column ga-5">
               <!-- SECTION 1: ILR / Settlement Card -->

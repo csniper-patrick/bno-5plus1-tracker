@@ -14,6 +14,11 @@ const { offlineReady, needRefresh, updateServiceWorker } = useRegisterSW({
   },
 })
 
+async function handleUpdate() {
+  await updateServiceWorker(true)
+  window.location.reload()
+}
+
 function close() {
   offlineReady.value = false
   needRefresh.value = false
@@ -57,7 +62,7 @@ function close() {
           size="small"
           prepend-icon="mdi-refresh"
           class="font-weight-bold"
-          @click="updateServiceWorker(true)"
+          @click="handleUpdate"
         >
           Refresh & Update
         </v-btn>

@@ -47,7 +47,25 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,ttf,eot}'],
+        cleanupOutdatedCaches: true,
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /\.(?:woff|woff2|eot|ttf|otf)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'static-fonts-cache',
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 24 * 60 * 60, // 60 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
       },
     }),
   ],

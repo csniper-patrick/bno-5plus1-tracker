@@ -1072,24 +1072,29 @@ export default {
                     </v-chip>
                   </template>
                   <template v-else>
-                    <v-btn
-                      icon="mdi-pencil-outline"
-                      variant="text"
-                      color="primary"
-                      size="small"
-                      density="compact"
-                      title="Edit Record"
-                      @click="startEdit(item)"
-                    ></v-btn>
-                    <v-btn
-                      icon="mdi-delete-outline"
-                      variant="text"
-                      color="error"
-                      size="small"
-                      density="compact"
-                      title="Delete Record"
-                      @click="confirmDelete(item)"
-                    ></v-btn>
+                    <v-menu location="bottom end">
+                      <template #activator="{ props }">
+                        <v-btn
+                          icon="mdi-dots-vertical"
+                          variant="text"
+                          size="small"
+                          v-bind="props"
+                          title="Actions menu"
+                        ></v-btn>
+                      </template>
+                      <v-list density="compact" class="rounded-lg elevation-4">
+                        <v-list-item
+                          prepend-icon="mdi-pencil-outline"
+                          title="Edit Record"
+                          @click="startEdit(item)"
+                        ></v-list-item>
+                        <v-list-item
+                          prepend-icon="mdi-delete-outline"
+                          title="Delete Record"
+                          @click="confirmDelete(item)"
+                        ></v-list-item>
+                      </v-list>
+                    </v-menu>
                   </template>
                 </td>
               </tr>

@@ -53,9 +53,17 @@ const unionJackLightTheme = {
   },
 }
 
+/**
+ * Detect user's OS / system preference for dark mode.
+ */
+const prefersDark =
+  typeof window !== 'undefined' &&
+  window.matchMedia &&
+  window.matchMedia('(prefers-color-scheme: dark)').matches
+
 export default createVuetify({
   theme: {
-    defaultTheme: 'light',
+    defaultTheme: prefersDark ? 'dark' : 'light',
     themes: {
       dark: unionJackDarkTheme,
       light: unionJackLightTheme,

@@ -4,12 +4,40 @@
  * Renders top-level Vuetify app container, app bar header with theme toggling,
  * main RouterView, and the PWA ReloadPrompt modal.
  */
+import { onMounted, onUnmounted } from 'vue'
 import { RouterView } from 'vue-router'
 import { useTheme } from 'vuetify'
 import ReloadPrompt from './components/ReloadPrompt.vue'
 
 // Vuetify theme instance for dark/light mode switching
 const theme = useTheme()
+
+let mediaQuery = null
+
+function handleSystemThemeChange(e) {
+  theme.global.name.value = e.matches ? 'dark' : 'light'
+}
+
+onMounted(() => {
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleSystemThemeChange)
+    } else if (mediaQuery.addListener) {
+      mediaQuery.addListener(handleSystemThemeChange)
+    }
+  }
+})
+
+onUnmounted(() => {
+  if (mediaQuery) {
+    if (mediaQuery.removeEventListener) {
+      mediaQuery.removeEventListener('change', handleSystemThemeChange)
+    } else if (mediaQuery.removeListener) {
+      mediaQuery.removeListener(handleSystemThemeChange)
+    }
+  }
+})
 
 /**
  * Toggles current active theme between Union Jack dark and light palettes.

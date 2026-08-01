@@ -1,6 +1,6 @@
 import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
-import { dump, load } from 'js-yaml'
+import { parse, Document } from 'yaml'
 
 /**
  * LocalStorage key used to persist user absence records across browser sessions.
@@ -1206,14 +1206,34 @@ export const useAbsentsStore = defineStore('absents', () => {
         dest: item.dest || '',
       }))
 
-    const dataObj = {
+    const doc = new Document()
+    doc.commentBefore = ' BNO 5+1 Absence Tracker - Data Export\n Format for all date fields: YYYY-MM-DD'
+
+    const contentMap = doc.createNode({
       visa_start_date: visaStartDate.value || '',
       uk_arrival_date: ukArrivalDate.value || '',
       ilr_approved_date: ilrApprovedDate.value || '',
       absences: userAbsences,
+    })
+
+    if (contentMap && contentMap.items) {
+      contentMap.items.forEach((pair) => {
+        const k = pair.key && pair.key.value !== undefined ? pair.key.value : pair.key
+        if (k === 'visa_start_date') {
+          pair.key.commentBefore = ' BNO Visa Start Date (YYYY-MM-DD)'
+        } else if (k === 'uk_arrival_date') {
+          pair.key.commentBefore = ' First UK Arrival Date under BNO Visa (YYYY-MM-DD)'
+        } else if (k === 'ilr_approved_date') {
+          pair.key.commentBefore = ' ILR Approved Date, if applicable (YYYY-MM-DD)'
+        } else if (k === 'absences') {
+          pair.key.commentBefore = ' List of UK Absences (Travel History)'
+        }
+      })
     }
 
-    return dump(dataObj, { indent: 2 })
+    doc.contents = contentMap
+
+    return doc.toString()
   }
 
   /**
@@ -1229,7 +1249,7 @@ export const useAbsentsStore = defineStore('absents', () => {
 
     let parsed
     try {
-      parsed = load(yamlString)
+      parsed = parse(yamlString)
     } catch (e) {
       throw new Error('Failed to parse YAML file: ' + e.message)
     }

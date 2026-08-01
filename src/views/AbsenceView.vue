@@ -336,6 +336,22 @@ export default {
     },
 
     /**
+     * Focuses the destination input field in the absence record form.
+     */
+    focusDestInput() {
+      this.$nextTick(() => {
+        const inputRef = this.$refs.destInput
+        if (!inputRef) return
+        if (typeof inputRef.focus === 'function') {
+          inputRef.focus()
+        } else if (inputRef.$el) {
+          const el = inputRef.$el.querySelector('input')
+          if (el) el.focus()
+        }
+      })
+    },
+
+    /**
      * Handles submission of the absence record form (add or update operation).
      */
     handleSave() {
@@ -359,6 +375,7 @@ export default {
           this.showSnackbar('Absence record added successfully!', 'success')
           this.resetForm()
         }
+        this.focusDestInput()
       } catch (err) {
         this.showSnackbar(err.message || 'Failed to save absence record.', 'error')
       }
@@ -797,6 +814,7 @@ export default {
                 <!-- Destination / Purpose -->
                 <v-col cols="12" sm="12" md="4">
                   <v-text-field
+                    ref="destInput"
                     v-model="form.dest"
                     label="Destination / Notes"
                     placeholder="e.g. Hong Kong, Japan"

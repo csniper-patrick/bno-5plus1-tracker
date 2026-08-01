@@ -1250,8 +1250,11 @@ export default {
                       <strong>Earliest Application Date:</strong>
                     </span>
                     <strong class="text-subtitle-2 text-primary font-weight-bold">
-                      {{ earliestIlrApplicationDate }} (28 days before 5 years)
+                      {{ earliestIlrApplicationDate }}
                     </strong>
+                  </div>
+                  <div class="mt-1 opacity-90 text-caption">
+                    <strong>Notice:</strong> Applications can be submitted up to 28 days before completing the 5-year qualifying period.
                   </div>
                 </v-alert>
               </v-card>

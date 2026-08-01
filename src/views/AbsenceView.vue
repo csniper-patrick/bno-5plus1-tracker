@@ -209,11 +209,95 @@ export default {
     },
 
     /**
+     * Validates custom query start date against Visa Start Date and query end date.
+     * @returns {string} Validation error message or empty string if valid.
+     */
+    queryStartDateError() {
+      if (!this.queryForm.startDate) return ''
+
+      const vStart = this.absentsStore.visaStartDate
+      if (vStart && this.queryForm.startDate < vStart) {
+        return `Start date cannot be earlier than Visa Start Date (${vStart}).`
+      }
+
+      if (this.queryForm.endDate && this.queryForm.endDate < this.queryForm.startDate) {
+        return 'Start date cannot be later than end date.'
+      }
+
+      const maxReturn = this.maxSegmentTreeReturnDate
+      if (maxReturn && this.queryForm.startDate > maxReturn) {
+        return `Start date cannot be later than 10 years from Visa Start Date (${maxReturn}).`
+      }
+
+      return ''
+    },
+
+    /**
+     * Validates custom query end date against start date, Visa Start Date, and 10-year limit.
+     * @returns {string} Validation error message or empty string if valid.
+     */
+    queryEndDateError() {
+      if (!this.queryForm.endDate) return ''
+
+      if (this.queryForm.startDate && this.queryForm.endDate < this.queryForm.startDate) {
+        return 'End date cannot be earlier than start date.'
+      }
+
+      const vStart = this.absentsStore.visaStartDate
+      if (vStart && this.queryForm.endDate < vStart) {
+        return `End date cannot be earlier than Visa Start Date (${vStart}).`
+      }
+
+      const maxReturn = this.maxSegmentTreeReturnDate
+      if (maxReturn && this.queryForm.endDate > maxReturn) {
+        return `End date cannot be later than 10 years from Visa Start Date (${maxReturn}).`
+      }
+
+      return ''
+    },
+
+    /**
+     * Checks if query start date is valid to calculate minimum return date for query end date picker.
+     * @returns {boolean}
+     */
+    isQueryStartDateValid() {
+      if (!this.queryForm.startDate) return false
+      const vStart = this.absentsStore.visaStartDate
+      if (vStart && this.queryForm.startDate < vStart) return false
+      return true
+    },
+
+    /**
+     * Minimum date boundary (YYYY-MM-DD) passed to the Query End Date picker.
+     * @returns {string|undefined}
+     */
+    minQueryEndDate() {
+      return this.isQueryStartDateValid
+        ? this.queryForm.startDate
+        : this.absentsStore.visaStartDate || undefined
+    },
+
+    /**
+     * Minimum date boundary for Query Start Date picker (Visa Start Date).
+     * @returns {string|undefined}
+     */
+    minQueryStartDate() {
+      return this.absentsStore.visaStartDate || undefined
+    },
+
+    /**
      * Total absent days calculated for custom query date range form.
      * @returns {number}
      */
     queriedRangeDays() {
-      if (!this.queryForm.startDate || !this.queryForm.endDate) return 0
+      if (
+        !this.queryForm.startDate ||
+        !this.queryForm.endDate ||
+        this.queryStartDateError ||
+        this.queryEndDateError
+      ) {
+        return 0
+      }
       return this.absentsStore.queryAbsentDaysInRange(
         this.queryForm.startDate,
         this.queryForm.endDate,
@@ -1302,6 +1386,9 @@ export default {
                     variant="outlined"
                     density="comfortable"
                     prepend-inner-icon="mdi-calendar-start-outline"
+                    :min="minQueryStartDate"
+                    :max="maxSegmentTreeReturnDate"
+                    :error-messages="queryStartDateError"
                     hide-details="auto"
                   ></v-text-field>
                 </v-col>
@@ -1314,6 +1401,9 @@ export default {
                     variant="outlined"
                     density="comfortable"
                     prepend-inner-icon="mdi-calendar-end-outline"
+                    :min="minQueryEndDate"
+                    :max="maxSegmentTreeReturnDate"
+                    :error-messages="queryEndDateError"
                     hide-details="auto"
                   ></v-text-field>
                 </v-col>
@@ -1321,7 +1411,7 @@ export default {
                 <v-col cols="12" class="mt-2">
                   <v-card
                     variant="flat"
-                    color="primary"
+                    :color="queryStartDateError || queryEndDateError ? 'error' : 'primary'"
                     class="pa-2 text-center rounded-lg d-flex align-center justify-space-between"
                   >
                     <span class="text-subtitle-2 font-weight-medium">Queried Range Absences:</span>

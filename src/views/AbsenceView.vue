@@ -58,6 +58,9 @@ export default {
       /** Temporary input state for UK Arrival Date in modal */
       arrivalDateInput: '',
 
+      /** Temporary input state for ILR Approved Date in modal */
+      ilrApprovedDateInput: '',
+
       /** Model for custom date range query tool */
       queryForm: {
         startDate: '',
@@ -314,17 +317,19 @@ export default {
     openVisaDateDialog() {
       this.visaDateInput = this.absentsStore.visaStartDate || ''
       this.arrivalDateInput = this.absentsStore.ukArrivalDate || ''
+      this.ilrApprovedDateInput = this.absentsStore.ilrApprovedDate || ''
       this.visaDateDialog = true
     },
 
     /**
-     * Saves updated Visa Start Date and UK Arrival Date to Pinia store.
+     * Saves updated Visa Start Date, UK Arrival Date, and ILR Approved Date to Pinia store.
      */
     saveVisaAndArrivalDates() {
       if (!this.visaDateInput) return
       this.absentsStore.setVisaAndArrivalDates({
         visaStartDate: this.visaDateInput,
         ukArrivalDate: this.arrivalDateInput,
+        ilrApprovedDate: this.ilrApprovedDateInput,
       })
       this.visaDateDialog = false
       this.showSnackbar('Key Travel & Visa Dates saved successfully!', 'success')
@@ -554,18 +559,16 @@ export default {
       <v-col cols="12" md="7" class="pa-3 d-flex flex-column ga-6">
         <!-- Header / Info Card -->
         <v-card elevation="2" class="pa-4 rounded-lg bg-surface">
-          <div class="d-flex align-center flex-wrap ga-4">
-            <v-avatar color="primary" size="56" class="elevation-2">
+          <div class="d-flex align-center ga-3 mb-1">
+            <v-avatar color="primary" size="56" class="elevation-2 flex-shrink-0">
               <v-icon icon="mdi-passport" size="32"></v-icon>
             </v-avatar>
             <h1 class="text-h4 font-weight-bold">Absence Tracker</h1>
-            <div class="flex-grow-1">
-              <p class="text-subtitle-1 text-medium-emphasis mb-0">
-                Log travel dates and monitor continuous residence compliance for UK Indefinite Leave
-                to Remain (ILR) and British Citizenship.
-              </p>
-            </div>
           </div>
+          <p class="text-subtitle-1 text-medium-emphasis mb-0">
+            Log travel dates and monitor continuous residence compliance for UK Indefinite Leave
+            to Remain (ILR) and British Citizenship.
+          </p>
 
           <!-- Feature Breakdown / What is Tracked & Calculated -->
           <v-expansion-panels class="mt-4 border rounded-lg overflow-hidden">
@@ -725,6 +728,23 @@ export default {
                       {{
                         absentsStore.ukArrivalDate
                           ? formatDate(absentsStore.ukArrivalDate)
+                          : 'Not Set'
+                      }}
+                    </div>
+                  </div>
+                </div>
+
+                <v-divider vertical class="d-none d-md-flex" style="height: 36px"></v-divider>
+
+                <!-- ILR Approved Date -->
+                <div class="d-flex align-center ga-3">
+                  <v-icon icon="mdi-certificate-outline" color="purple" size="large"></v-icon>
+                  <div>
+                    <div class="text-caption text-medium-emphasis">ILR Approved Date</div>
+                    <div class="text-subtitle-1 font-weight-bold">
+                      {{
+                        absentsStore.ilrApprovedDate
+                          ? formatDate(absentsStore.ilrApprovedDate)
                           : 'Not Set'
                       }}
                     </div>
@@ -1249,6 +1269,15 @@ export default {
                   <p class="text-caption text-medium-emphasis mb-0 mt-1">
                     5 Yrs: {{ formatDate(absentsStore.naturalizationWindowStartDate) }} –
                     {{ formatDate(absentsStore.naturalizationTargetDate) }}
+                    <v-chip
+                      v-if="absentsStore.ilrApprovedDate"
+                      size="x-small"
+                      color="purple"
+                      variant="tonal"
+                      class="ml-2 font-weight-bold"
+                    >
+                      Based on ILR Approved Date
+                    </v-chip>
                   </p>
                 </div>
 
@@ -1346,8 +1375,15 @@ export default {
                 </div>
                 <div class="mt-1 opacity-90 text-caption">
                   <strong>Notice:</strong> Home Office rules require physical presence in the UK on
-                  the exact date 5 years before naturalisation. Start dates falling on absent days
-                  are automatically shifted forward to the next day present in the UK.
+                  the exact date 5 years before naturalisation.
+                  <span v-if="absentsStore.ilrApprovedDate">
+                    Calculated from ILR Approved Date ({{ formatDate(absentsStore.ilrApprovedDate) }}).
+                  </span>
+                  <span v-else>
+                    Calculated assuming ILR 5 years post-visa start date.
+                  </span>
+                  Start dates falling on absent days are automatically shifted forward to the next day
+                  present in the UK.
                 </div>
               </v-alert>
             </v-card>
@@ -1464,7 +1500,7 @@ export default {
     </v-dialog>
 
     <!-- Set / Edit Key Travel & Visa Dates Dialog -->
-    <v-dialog v-model="visaDateDialog" max-width="540">
+    <v-dialog v-model="visaDateDialog" max-width="640">
       <v-card class="rounded-lg pa-3">
         <v-card-title class="px-0 pt-0 d-flex align-center">
           <v-icon icon="mdi-calendar-edit" color="primary" class="mr-2"></v-icon>
@@ -1472,11 +1508,11 @@ export default {
         </v-card-title>
         <v-card-text class="px-0 py-4">
           <p class="text-body-2 text-medium-emphasis mb-4">
-            Enter your 5-year BNO Visa Start Date and UK Arrival Date to enable accurate residency
-            and settlement tracking.
+            Enter your 5-year BNO Visa Start Date, UK Arrival Date, and optional ILR Approved Date
+            to enable accurate residency, settlement, and naturalisation tracking.
           </p>
           <v-row density="comfortable">
-            <v-col cols="12" sm="6">
+            <v-col cols="12" sm="4">
               <v-text-field
                 v-model="visaDateInput"
                 label="BNO Visa Start Date"
@@ -1488,13 +1524,24 @@ export default {
               ></v-text-field>
             </v-col>
 
-            <v-col cols="12" sm="6">
+            <v-col cols="12" sm="4">
               <v-text-field
                 v-model="arrivalDateInput"
                 label="UK Arrival Date"
                 type="date"
                 variant="outlined"
                 prepend-inner-icon="mdi-airplane-landing"
+                hide-details="auto"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" sm="4">
+              <v-text-field
+                v-model="ilrApprovedDateInput"
+                label="ILR Approved Date (Optional)"
+                type="date"
+                variant="outlined"
+                prepend-inner-icon="mdi-certificate-outline"
                 hide-details="auto"
               ></v-text-field>
             </v-col>

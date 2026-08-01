@@ -18,6 +18,11 @@ const STORAGE_VISA_KEY = 'bno_visa_start_date'
 const STORAGE_ARRIVAL_KEY = 'bno_uk_arrival_date'
 
 /**
+ * LocalStorage key used to persist user ILR Approved Date across browser sessions.
+ */
+const STORAGE_ILR_APPROVED_KEY = 'bno_ilr_approved_date'
+
+/**
  * Segment Tree data structure for efficient O(log N) range sum queries over a 10-year period (day-by-day).
  * Supports O(log N) point updates for incremental tree modifications when records are added/updated/removed.
  */
@@ -246,6 +251,14 @@ export const useAbsentsStore = defineStore('absents', () => {
    * The UK arrival date of the user (YYYY-MM-DD format).
    */
   const ukArrivalDate = ref(storedArrivalDate)
+
+  // Restore saved ILR Approved Date
+  const storedIlrApprovedDate = localStorage.getItem(STORAGE_ILR_APPROVED_KEY) || ''
+
+  /**
+   * The ILR approved date of the user (YYYY-MM-DD format).
+   */
+  const ilrApprovedDate = ref(storedIlrApprovedDate)
 
   // Persistent Segment Tree & Coverage Tracking State
   const segmentTree = ref(null)
@@ -510,6 +523,15 @@ export const useAbsentsStore = defineStore('absents', () => {
     rebuildSegmentTree()
   })
 
+  // Sync ILR approved date to localStorage
+  watch(ilrApprovedDate, (newVal) => {
+    if (newVal) {
+      localStorage.setItem(STORAGE_ILR_APPROVED_KEY, newVal)
+    } else {
+      localStorage.removeItem(STORAGE_ILR_APPROVED_KEY)
+    }
+  })
+
   // ---------------------------------------------------------------------------
   // Getters / Computed Properties
   // ---------------------------------------------------------------------------
@@ -523,6 +545,11 @@ export const useAbsentsStore = defineStore('absents', () => {
    * Boolean indicating whether the UK Arrival Date has been set.
    */
   const isArrivalDateSet = computed(() => Boolean(ukArrivalDate.value))
+
+  /**
+   * Boolean indicating whether the ILR Approved Date has been set.
+   */
+  const isIlrApprovedDateSet = computed(() => Boolean(ilrApprovedDate.value))
 
   /**
    * Computed array of absences sorted chronologically by start date (ascending).
@@ -694,18 +721,27 @@ export const useAbsentsStore = defineStore('absents', () => {
   /**
    * Start date of the 5-year qualifying window for naturalisation.
    * Default start date is 1 year after visaStartDate.
+   * If ilrApprovedDate is defined, start date is 4 years before ilrApprovedDate (target = ilrApprovedDate + 1 year).
    * Extra condition (UK Home Office requirement): The start date of the 5-year naturalisation window
-   * CANNOT be an absent day outside the UK. If 1 year after visaStartDate falls on an absent day,
+   * CANNOT be an absent day outside the UK. If the baseline start date falls on an absent day,
    * the window start date is automatically advanced to the earliest subsequent day when the
    * applicant is physically present in the UK.
    */
   const naturalizationWindowStartDate = computed(() => {
-    if (!visaStartDate.value) return ''
-    const vStart = parseDateUTC(visaStartDate.value)
-    if (!vStart) return ''
+    if (!visaStartDate.value && !ilrApprovedDate.value) return ''
 
-    const start = new Date(vStart)
-    start.setUTCFullYear(start.getUTCFullYear() + 1)
+    let start
+    if (ilrApprovedDate.value) {
+      const ilrDate = parseDateUTC(ilrApprovedDate.value)
+      if (!ilrDate) return ''
+      start = new Date(ilrDate)
+      start.setUTCFullYear(start.getUTCFullYear() - 4)
+    } else {
+      const vStart = parseDateUTC(visaStartDate.value)
+      if (!vStart) return ''
+      start = new Date(vStart)
+      start.setUTCFullYear(start.getUTCFullYear() + 1)
+    }
 
     // Ensure the qualifying window start date is NOT an absent day outside the UK
     let safetyCounter = 0
@@ -741,11 +777,21 @@ export const useAbsentsStore = defineStore('absents', () => {
    * Boolean indicating if the naturalisation window start date was shifted due to an absent day.
    */
   const isNaturalizationWindowShifted = computed(() => {
-    if (!visaStartDate.value || !naturalizationWindowStartDate.value) return false
-    const vStart = parseDateUTC(visaStartDate.value)
-    if (!vStart) return false
-    const unadjusted = new Date(vStart)
-    unadjusted.setUTCFullYear(unadjusted.getUTCFullYear() + 1)
+    if ((!visaStartDate.value && !ilrApprovedDate.value) || !naturalizationWindowStartDate.value)
+      return false
+
+    let unadjusted
+    if (ilrApprovedDate.value) {
+      const ilrDate = parseDateUTC(ilrApprovedDate.value)
+      if (!ilrDate) return false
+      unadjusted = new Date(ilrDate)
+      unadjusted.setUTCFullYear(unadjusted.getUTCFullYear() - 4)
+    } else {
+      const vStart = parseDateUTC(visaStartDate.value)
+      if (!vStart) return false
+      unadjusted = new Date(vStart)
+      unadjusted.setUTCFullYear(unadjusted.getUTCFullYear() + 1)
+    }
     const y = unadjusted.getUTCFullYear()
     const m = String(unadjusted.getUTCMonth() + 1).padStart(2, '0')
     const day = String(unadjusted.getUTCDate()).padStart(2, '0')
@@ -824,15 +870,30 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
-   * Sets or updates both the BNO Visa start date and UK Arrival Date.
+   * Sets or updates the ILR Approved Date.
+   *
+   * @param {string} dateStr - Date string in 'YYYY-MM-DD' format.
+   */
+  function setIlrApprovedDate(dateStr) {
+    ilrApprovedDate.value = dateStr || ''
+  }
+
+  /**
+   * Sets or updates key travel, visa, and settlement dates.
    *
    * @param {Object} payload
    * @param {string} payload.visaStartDate
-   * @param {string} payload.ukArrivalDate
+   * @param {string} [payload.ukArrivalDate]
+   * @param {string} [payload.ilrApprovedDate]
    */
-  function setVisaAndArrivalDates({ visaStartDate: vStart, ukArrivalDate: uArrival }) {
+  function setVisaAndArrivalDates({
+    visaStartDate: vStart,
+    ukArrivalDate: uArrival,
+    ilrApprovedDate: iApproved,
+  }) {
     visaStartDate.value = vStart || ''
     ukArrivalDate.value = uArrival || ''
+    ilrApprovedDate.value = iApproved || ''
     rebuildSegmentTree()
   }
 
@@ -1046,12 +1107,13 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
-   * Clears all absence records from the store, resets visa start date and UK arrival date, and resets the segment tree.
+   * Resets all absence data, key travel/visa dates, and segment tree.
    */
   function clearAbsences() {
     absences.value = []
     visaStartDate.value = ''
     ukArrivalDate.value = ''
+    ilrApprovedDate.value = ''
     syncArrivalRecord()
     rebuildSegmentTree()
   }
@@ -1059,7 +1121,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   /**
    * Exports key travel/visa dates and user absence records to a YAML string.
    *
-   * @returns {string} YAML formatted string containing visa_start_date, uk_arrival_date, and absences.
+   * @returns {string} YAML formatted string containing visa_start_date, uk_arrival_date, ilr_approved_date, and absences.
    */
   function exportYAML() {
     const userAbsences = absences.value
@@ -1073,6 +1135,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     const dataObj = {
       visa_start_date: visaStartDate.value || '',
       uk_arrival_date: ukArrivalDate.value || '',
+      ilr_approved_date: ilrApprovedDate.value || '',
       absences: userAbsences,
     }
 
@@ -1083,7 +1146,7 @@ export const useAbsentsStore = defineStore('absents', () => {
    * Imports absence records and visa/arrival dates from a YAML string.
    *
    * @param {string} yamlString - Raw YAML text content to import.
-   * @returns {{ count: number, visaStartDate: string, ukArrivalDate: string }} Summary of imported data.
+   * @returns {{ count: number, visaStartDate: string, ukArrivalDate: string, ilrApprovedDate: string }} Summary of imported data.
    */
   function importYAML(yamlString) {
     if (!yamlString || typeof yamlString !== 'string') {
@@ -1108,6 +1171,12 @@ export const useAbsentsStore = defineStore('absents', () => {
       parsed.ukArrivalDate ||
       parsed.arrival_date ||
       parsed.arrivalDate ||
+      ''
+    const importedIlrApprovedDate =
+      parsed.ilr_approved_date ||
+      parsed.ilrApprovedDate ||
+      parsed.ilr_date ||
+      parsed.ilrDate ||
       ''
 
     const rawAbsences = Array.isArray(parsed.absences)
@@ -1138,6 +1207,7 @@ export const useAbsentsStore = defineStore('absents', () => {
 
     visaStartDate.value = importedVisaDate
     ukArrivalDate.value = importedArrivalDate
+    ilrApprovedDate.value = importedIlrApprovedDate
     absences.value = validNewEntries
 
     sortAbsencesArray(absences.value)
@@ -1148,6 +1218,7 @@ export const useAbsentsStore = defineStore('absents', () => {
       count: validNewEntries.length,
       visaStartDate: importedVisaDate,
       ukArrivalDate: importedArrivalDate,
+      ilrApprovedDate: importedIlrApprovedDate,
     }
   }
 
@@ -1159,6 +1230,9 @@ export const useAbsentsStore = defineStore('absents', () => {
     ukArrivalDate,
     isArrivalDateSet,
     setUkArrivalDate,
+    ilrApprovedDate,
+    isIlrApprovedDateSet,
+    setIlrApprovedDate,
     setVisaAndArrivalDates,
     segmentTree,
     queryAbsentDaysInRange,

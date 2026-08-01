@@ -558,8 +558,8 @@ export default {
             <v-avatar color="primary" size="56" class="elevation-2">
               <v-icon icon="mdi-passport" size="32"></v-icon>
             </v-avatar>
+            <h1 class="text-h4 font-weight-bold">Absence Tracker</h1>
             <div class="flex-grow-1">
-              <h1 class="text-h4 font-weight-bold">Absence Tracker</h1>
               <p class="text-subtitle-1 text-medium-emphasis mb-0">
                 Log travel dates and monitor continuous residence compliance for UK Indefinite Leave
                 to Remain (ILR) and British Citizenship.

@@ -323,18 +323,6 @@ export default {
               </p>
             </div>
           </div>
-
-          <v-alert
-            type="info"
-            variant="tonal"
-            icon="mdi-information-outline"
-            class="mt-4 text-caption"
-            density="compact"
-          >
-            <strong>UK Absence Rule Notice:</strong> Under BNO 5+1 guidelines, departure (start) and
-            arrival (end) dates are partially spent in the UK and are <strong>excluded</strong>.
-            Only complete 24-hour days spent abroad are counted.
-          </v-alert>
         </v-card>
 
         <!-- 1. BNO Visa & UK Arrival Dates -->
@@ -473,8 +461,20 @@ export default {
                 </v-col>
               </v-row>
 
+              <v-alert
+                type="info"
+                variant="tonal"
+                icon="mdi-information-outline"
+                class="mt-3 text-caption"
+                density="compact"
+              >
+                <strong>UK Absence Rule Notice:</strong> Departure (start) and
+                arrival (end) dates are partially spent in the UK and are <strong>excluded</strong>.
+                Only complete 24-hour days spent abroad are counted.
+              </v-alert>
+
               <!-- Form Days Calculation Badge & Actions -->
-              <div class="d-flex align-center justify-space-between flex-wrap ga-4 mt-6">
+              <div class="d-flex align-center justify-space-between flex-wrap ga-4 mt-4">
                 <div class="d-flex align-center">
                   <v-chip
                     v-if="form.startDate && form.endDate && !dateRangeError"
@@ -701,7 +701,7 @@ export default {
               :disabled="!hasExportData"
               @click="exportYamlFile"
             >
-              Export YAML
+              Download
             </v-btn>
 
             <v-btn
@@ -712,7 +712,7 @@ export default {
               prepend-icon="mdi-file-upload-outline"
               @click="triggerYamlImport"
             >
-              Import YAML
+              Import
             </v-btn>
 
             <v-btn

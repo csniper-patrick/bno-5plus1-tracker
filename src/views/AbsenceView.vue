@@ -537,13 +537,13 @@ export default {
     },
 
     /**
-     * Checks if an absence record departure date is in the future.
+     * Checks if an absence record return date is in the future.
      * @param {Object} item - Absence record.
      * @returns {boolean}
      */
     isFutureEvent(item) {
-      if (!item || !item.startDate) return false
-      return item.startDate > this.getTodayStr()
+      if (!item || !item.endDate) return false
+      return item.endDate > this.getTodayStr()
     },
 
     /**
@@ -932,7 +932,8 @@ export default {
                 :key="item.id"
                 :class="{
                   'bg-action-hover': editingId === item.id,
-                  'row-planned-event': isFutureEvent(item) && editingId !== item.id,
+                  'row-planned-event':
+                    isFutureEvent(item) && !isOngoingEvent(item) && editingId !== item.id,
                   'row-ongoing-event': isOngoingEvent(item) && editingId !== item.id,
                 }"
               >
@@ -942,24 +943,28 @@ export default {
                       :icon="
                         item.isAutoArrival
                           ? 'mdi-airplane-landing'
-                          : isFutureEvent(item)
-                            ? 'mdi-calendar-clock'
-                            : isOngoingEvent(item)
-                              ? 'mdi-airplane'
+                          : isOngoingEvent(item)
+                            ? 'mdi-airplane'
+                            : isFutureEvent(item)
+                              ? 'mdi-calendar-clock'
                               : 'mdi-earth'
                       "
                       size="small"
                       :color="
                         item.isAutoArrival
                           ? 'secondary'
-                          : isFutureEvent(item)
-                            ? 'info'
-                            : isOngoingEvent(item)
-                              ? 'warning'
+                          : isOngoingEvent(item)
+                            ? 'warning'
+                            : isFutureEvent(item)
+                              ? 'info'
                               : 'primary'
                       "
                     ></v-icon>
-                    <span :class="{ 'text-medium-emphasis': isFutureEvent(item) }">
+                    <span
+                      :class="{
+                        'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item),
+                      }"
+                    >
                       {{ item.dest || 'Unspecified' }}
                     </span>
 
@@ -974,15 +979,6 @@ export default {
                       Initial Entry
                     </v-chip>
                     <v-chip
-                      v-else-if="isFutureEvent(item)"
-                      size="x-small"
-                      color="info"
-                      variant="outlined"
-                      class="font-weight-medium"
-                    >
-                      Planned
-                    </v-chip>
-                    <v-chip
                       v-else-if="isOngoingEvent(item)"
                       size="x-small"
                       color="warning"
@@ -990,6 +986,15 @@ export default {
                       class="font-weight-bold"
                     >
                       Ongoing
+                    </v-chip>
+                    <v-chip
+                      v-else-if="isFutureEvent(item)"
+                      size="x-small"
+                      color="info"
+                      variant="outlined"
+                      class="font-weight-medium"
+                    >
+                      Planned
                     </v-chip>
                     <v-chip
                       v-else
@@ -1002,28 +1007,34 @@ export default {
                     </v-chip>
                   </div>
                 </td>
-                <td class="text-right" :class="{ 'text-medium-emphasis': isFutureEvent(item) }">
+                <td
+                  class="text-right"
+                  :class="{ 'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item) }"
+                >
                   {{ formatDate(item.startDate) }}
                 </td>
-                <td class="text-right" :class="{ 'text-medium-emphasis': isFutureEvent(item) }">
+                <td
+                  class="text-right"
+                  :class="{ 'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item) }"
+                >
                   {{ formatDate(item.endDate) }}
                 </td>
                 <td class="text-center">
                   <v-chip
                     :color="
-                      isFutureEvent(item)
-                        ? 'info'
-                        : isOngoingEvent(item)
-                          ? 'warning'
+                      isOngoingEvent(item)
+                        ? 'warning'
+                        : isFutureEvent(item)
+                          ? 'info'
                           : calculateDays(item.startDate, item.endDate) > 0
                             ? 'primary'
                             : 'grey'
                     "
                     size="x-small"
-                    :variant="isFutureEvent(item) ? 'outlined' : 'tonal'"
+                    :variant="isFutureEvent(item) && !isOngoingEvent(item) ? 'outlined' : 'tonal'"
                     :class="{
-                      'font-weight-bold': !isFutureEvent(item),
-                      'font-weight-medium opacity-90': isFutureEvent(item),
+                      'font-weight-bold': !isFutureEvent(item) || isOngoingEvent(item),
+                      'font-weight-medium opacity-90': isFutureEvent(item) && !isOngoingEvent(item),
                     }"
                   >
                     {{ calculateDays(item.startDate, item.endDate) }} day(s)

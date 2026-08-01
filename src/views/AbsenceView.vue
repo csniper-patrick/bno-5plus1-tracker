@@ -1123,14 +1123,15 @@ export default {
 
         <template v-else>
           <!-- 1. Residence, ILR, Naturalisation Checker -->
-          <div class="d-flex flex-column ga-5">
+          <div class="d-flex flex-column ga-2">
             <h2 class="text-h5 font-weight-bold d-flex align-center">
               <v-icon icon="mdi-shield-search" color="primary" class="mr-2"></v-icon>
               Residency Condition Checkers
             </h2>
 
-            <!-- SECTION 1: ILR / Settlement Card -->
-            <v-card elevation="2" class="pa-3 rounded-lg">
+            <div class="d-flex flex-column ga-5">
+              <!-- SECTION 1: ILR / Settlement Card -->
+              <v-card elevation="2" class="pa-3 rounded-lg">
               <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
                 <div>
                   <div class="d-flex align-center mb-1">
@@ -1351,6 +1352,7 @@ export default {
               </v-alert>
             </v-card>
           </div>
+        </div>
 
           <!-- 2. Custom Date Range Calculator Card -->
           <v-card elevation="2" class="pa-3 rounded-lg">

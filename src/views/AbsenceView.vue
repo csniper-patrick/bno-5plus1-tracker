@@ -2,36 +2,63 @@
 import { mapStores } from 'pinia'
 import { useAbsentsStore, calculateDays, getMaxSegmentTreeReturnDate } from '../stores/absents'
 
+/**
+ * AbsenceView Component
+ *
+ * Primary dashboard view for managing BNO 5+1 visa absence records.
+ * Provides interactive forms for adding/editing trip entries, key dates setup (Visa Start & UK Arrival),
+ * real-time compliance status indicators (180-day rolling rule & Naturalisation checks),
+ * custom date range query tools, and YAML data export/import capabilities.
+ */
 export default {
   name: 'AbsenceView',
 
   data() {
     return {
+      /** Default empty form structure for resetting inputs */
       defaultForm: {
         startDate: '',
         endDate: '',
         dest: '',
       },
+
+      /** Active record form model for add/edit operations */
       form: {
         startDate: '',
         endDate: '',
         dest: '',
       },
+
+      /** ID of record currently being edited; null when adding a new record */
       editingId: null,
+
+      /** Global snackbar notification state */
       snackbar: {
         show: false,
         text: '',
         color: 'success',
       },
+
+      /** Single record deletion confirmation dialog state */
       deleteDialog: {
         show: false,
         id: null,
         dest: '',
       },
+
+      /** Clear all records confirmation dialog toggle */
       clearAllDialog: false,
+
+      /** Key dates (Visa Start Date / UK Arrival Date) dialog toggle */
       visaDateDialog: false,
+
+      /** Temporary input state for Visa Start Date in modal */
       visaDateInput: '',
+
+      /** Temporary input state for UK Arrival Date in modal */
       arrivalDateInput: '',
+
+      /** Model for custom date range query tool */
       queryForm: {
         startDate: '',
         endDate: '',
@@ -43,11 +70,19 @@ export default {
     // Generates this.absentsStore mapping to Pinia store
     ...mapStores(useAbsentsStore),
 
+    /**
+     * Maximum return date string (YYYY-MM-DD) supported by the Segment Tree (10 years from visa start).
+     * @returns {string}
+     */
     maxSegmentTreeReturnDate() {
       if (!this.absentsStore.visaStartDate) return ''
       return getMaxSegmentTreeReturnDate(this.absentsStore.visaStartDate) || ''
     },
 
+    /**
+     * Validates form departure date against Visa Start Date, UK Arrival Date, and return date.
+     * @returns {string} Validation error message or empty string if valid.
+     */
     startDateError() {
       if (!this.form.startDate) return ''
 
@@ -68,6 +103,10 @@ export default {
       return ''
     },
 
+    /**
+     * Validates form return date against departure date and 10-year Segment Tree limit.
+     * @returns {string} Validation error message or empty string if valid.
+     */
     endDateError() {
       if (!this.form.endDate) return ''
 
@@ -83,10 +122,19 @@ export default {
       return ''
     },
 
+    /**
+     * Aggregates date range errors from start and end date fields.
+     * @returns {string}
+     */
     dateRangeError() {
       return this.startDateError || this.endDateError
     },
 
+    /**
+     * Checks if departure date is non-empty and satisfies Visa Start Date & UK Arrival Date limits.
+     * Used to dynamically set minimum date boundary on return date picker.
+     * @returns {boolean}
+     */
     isStartDateValid() {
       if (!this.form.startDate) return false
       const vStart = this.absentsStore.visaStartDate
@@ -96,33 +144,62 @@ export default {
       return true
     },
 
+    /**
+     * Minimum date boundary (YYYY-MM-DD) passed to the Return Date picker.
+     * Equals form.startDate when valid, or undefined otherwise.
+     * @returns {string|undefined}
+     */
     minReturnDate() {
       return this.isStartDateValid ? this.form.startDate : undefined
     },
 
+    /**
+     * Calculates the full days absent preview for current form values.
+     * @returns {number}
+     */
     calculatedDaysForForm() {
       if (!this.form.startDate || !this.form.endDate || this.dateRangeError) return 0
       return calculateDays(this.form.startDate, this.form.endDate)
     },
 
+    /**
+     * Returns true if both dates are present and free of validation errors.
+     * @returns {boolean}
+     */
     isFormValid() {
       return Boolean(
         this.form.startDate && this.form.endDate && !this.startDateError && !this.endDateError,
       )
     },
 
+    /**
+     * Theme color corresponding to 180-day rolling rule compliance status.
+     * @returns {string}
+     */
     totalDaysColor() {
       return this.absentsStore.ruleStatusColor
     },
 
+    /**
+     * Formatted Target ILR Settlement Date string for display.
+     * @returns {string}
+     */
     settlementTargetDate() {
       return this.formatDate(this.absentsStore.settlementTargetDate)
     },
 
+    /**
+     * Formatted Earliest ILR Application Date string (28 days prior to 5 years).
+     * @returns {string}
+     */
     earliestIlrApplicationDate() {
       return this.formatDate(this.absentsStore.earliestIlrApplicationDate)
     },
 
+    /**
+     * Determines whether export button should be enabled based on stored data presence.
+     * @returns {boolean}
+     */
     hasExportData() {
       return (
         this.absentsStore.absences.length > 0 ||
@@ -131,6 +208,10 @@ export default {
       )
     },
 
+    /**
+     * Total absent days calculated for custom query date range form.
+     * @returns {number}
+     */
     queriedRangeDays() {
       if (!this.queryForm.startDate || !this.queryForm.endDate) return 0
       return this.absentsStore.queryAbsentDaysInRange(
@@ -143,12 +224,18 @@ export default {
   methods: {
     calculateDays,
 
+    /**
+     * Opens the Key Visa & Arrival Dates edit dialog and initializes form fields.
+     */
     openVisaDateDialog() {
       this.visaDateInput = this.absentsStore.visaStartDate || ''
       this.arrivalDateInput = this.absentsStore.ukArrivalDate || ''
       this.visaDateDialog = true
     },
 
+    /**
+     * Saves updated Visa Start Date and UK Arrival Date to Pinia store.
+     */
     saveVisaAndArrivalDates() {
       if (!this.visaDateInput) return
       this.absentsStore.setVisaAndArrivalDates({
@@ -159,6 +246,9 @@ export default {
       this.showSnackbar('Key Travel & Visa Dates saved successfully!', 'success')
     },
 
+    /**
+     * Handles submission of the absence record form (add or update operation).
+     */
     handleSave() {
       if (!this.isFormValid) return
 
@@ -185,6 +275,10 @@ export default {
       }
     },
 
+    /**
+     * Populates form with an existing absence record's values to initiate edit mode.
+     * @param {Object} item - Absence record object.
+     */
     startEdit(item) {
       this.editingId = item.id
       this.form = {
@@ -195,15 +289,25 @@ export default {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     },
 
+    /**
+     * Cancels edit mode and resets record form.
+     */
     cancelEdit() {
       this.resetForm()
     },
 
+    /**
+     * Resets form model to default empty state and clears edit ID.
+     */
     resetForm() {
       this.editingId = null
       this.form = { ...this.defaultForm }
     },
 
+    /**
+     * Displays deletion confirmation modal for a specific record.
+     * @param {Object} item - Absence record object.
+     */
     confirmDelete(item) {
       this.deleteDialog = {
         show: true,
@@ -212,6 +316,9 @@ export default {
       }
     },
 
+    /**
+     * Confirms and executes record removal in store.
+     */
     executeDelete() {
       if (this.deleteDialog.id) {
         this.absentsStore.removeAbsence(this.deleteDialog.id)
@@ -223,6 +330,9 @@ export default {
       }
     },
 
+    /**
+     * Confirms and executes clear-all action for all absence records and key dates.
+     */
     executeClearAll() {
       this.absentsStore.clearAbsences()
       this.clearAllDialog = false
@@ -230,6 +340,9 @@ export default {
       this.showSnackbar('All absence records and key dates cleared', 'info')
     },
 
+    /**
+     * Generates and downloads a YAML file containing all user absence records and key dates.
+     */
     exportYamlFile() {
       try {
         const yamlContent = this.absentsStore.exportYAML()
@@ -248,6 +361,9 @@ export default {
       }
     },
 
+    /**
+     * Programmatically triggers hidden YAML file input click event.
+     */
     triggerYamlImport() {
       if (this.$refs.yamlFileInput) {
         this.$refs.yamlFileInput.value = ''
@@ -255,6 +371,10 @@ export default {
       }
     },
 
+    /**
+     * Handles file selection event and imports YAML content into Pinia store.
+     * @param {Event} event - HTML file input change event.
+     */
     handleYamlFileSelect(event) {
       const file = event.target.files && event.target.files[0]
       if (!file) return
@@ -275,6 +395,11 @@ export default {
       reader.readAsText(file)
     },
 
+    /**
+     * Displays a snackbar notification with custom text and color.
+     * @param {string} text - Message text.
+     * @param {string} [color='success'] - Vuetify color theme.
+     */
     showSnackbar(text, color = 'success') {
       this.snackbar = {
         show: true,
@@ -283,6 +408,11 @@ export default {
       }
     },
 
+    /**
+     * Formats a 'YYYY-MM-DD' date string into localized short date format (e.g., 'Jan 15, 2026').
+     * @param {string} dateStr - Date string.
+     * @returns {string} Formatted date string or '-' if null/empty.
+     */
     formatDate(dateStr) {
       if (!dateStr) return '-'
       const date = new Date(dateStr)
@@ -294,6 +424,10 @@ export default {
       })
     },
 
+    /**
+     * Gets today's date in local system time as a 'YYYY-MM-DD' string.
+     * @returns {string}
+     */
     getTodayStr() {
       const now = new Date()
       const y = now.getFullYear()
@@ -302,11 +436,21 @@ export default {
       return `${y}-${m}-${d}`
     },
 
+    /**
+     * Checks if an absence record departure date is in the future.
+     * @param {Object} item - Absence record.
+     * @returns {boolean}
+     */
     isFutureEvent(item) {
       if (!item || !item.startDate) return false
       return item.startDate > this.getTodayStr()
     },
 
+    /**
+     * Checks if today falls within an absence record's departure and return date interval.
+     * @param {Object} item - Absence record.
+     * @returns {boolean}
+     */
     isOngoingEvent(item) {
       if (!item || !item.startDate || !item.endDate) return false
       const today = this.getTodayStr()

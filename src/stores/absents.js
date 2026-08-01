@@ -22,17 +22,38 @@ const STORAGE_ARRIVAL_KEY = 'bno_uk_arrival_date'
  * Supports O(log N) point updates for incremental tree modifications when records are added/updated/removed.
  */
 export class AbsenceSegmentTree {
+  /**
+   * Constructs an AbsenceSegmentTree with a fixed maximum leaf capacity.
+   * Allocates an Int32Array of size 4 * size to store segment sum tree nodes.
+   *
+   * @param {number} size - Number of leaves (days in the 10-year tracking window).
+   */
   constructor(size) {
     this.n = size
     this.tree = new Int32Array(4 * size)
   }
 
+  /**
+   * Initializes and constructs the Segment Tree from a daily binary array (0 = present, 1 = absent).
+   * Runs in O(N) time where N is the length of the input array.
+   *
+   * @param {Uint8Array|number[]} arr - Daily array where index i represents day offset from visa start date.
+   */
   build(arr) {
     this.n = arr.length
     if (this.n === 0) return
     this._build(arr, 0, 0, this.n - 1)
   }
 
+  /**
+   * Recursive helper function to construct tree nodes.
+   *
+   * @private
+   * @param {Uint8Array|number[]} arr - Source daily absence array.
+   * @param {number} node - Index of current tree node in the 1D tree array.
+   * @param {number} start - Segment start leaf index.
+   * @param {number} end - Segment end leaf index.
+   */
   _build(arr, node, start, end) {
     if (start === end) {
       this.tree[node] = arr[start]
@@ -57,6 +78,16 @@ export class AbsenceSegmentTree {
     this._updatePoint(0, 0, this.n - 1, idx, val)
   }
 
+  /**
+   * Recursive helper function for point updates.
+   *
+   * @private
+   * @param {number} node - Index of current tree node.
+   * @param {number} start - Segment start leaf index.
+   * @param {number} end - Segment end leaf index.
+   * @param {number} idx - Target leaf index.
+   * @param {number} val - New leaf value.
+   */
   _updatePoint(node, start, end, idx, val) {
     if (start === end) {
       this.tree[node] = val
@@ -88,6 +119,17 @@ export class AbsenceSegmentTree {
     return this._query(0, 0, this.n - 1, clampedStart, clampedEnd)
   }
 
+  /**
+   * Recursive helper function for range sum queries.
+   *
+   * @private
+   * @param {number} node - Index of current tree node.
+   * @param {number} start - Node segment start index.
+   * @param {number} end - Node segment end index.
+   * @param {number} l - Query range start index.
+   * @param {number} r - Query range end index.
+   * @returns {number} Sum of absent days in intersection [start, end] ∩ [l, r].
+   */
   _query(node, start, end, l, r) {
     if (r < start || end < l) return 0
     if (l <= start && end <= r) return this.tree[node]

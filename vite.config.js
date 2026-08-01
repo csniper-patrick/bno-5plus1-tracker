@@ -23,7 +23,14 @@ export default defineConfig({
     // Progressive Web App (PWA) configuration with Workbox offline caching
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png', 'maskable-icon.png'],
+      includeAssets: [
+        'favicon.ico',
+        'favicon.svg',
+        'apple-touch-icon.png',
+        'maskable-icon.png',
+        'pwa-192x192.png',
+        'pwa-512x512.png',
+      ],
       manifest: {
         name: 'BNO 5+1 Tracker - UK Settlement & Absence Tracker',
         short_name: 'BNO Tracker',
@@ -54,17 +61,45 @@ export default defineConfig({
       },
       workbox: {
         cleanupOutdatedCaches: true,
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,ttf,eot,webmanifest}'],
         runtimeCaching: [
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|tiff|bmp|webp|ico)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'images-cache',
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
           {
             urlPattern: /\.(?:woff|woff2|eot|ttf|otf)$/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'static-fonts-cache',
               expiration: {
-                maxEntries: 20,
+                maxEntries: 30,
                 maxAgeSeconds: 60 * 24 * 60 * 60, // 60 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/(?:cdn\.jsdelivr\.net|fonts\.gstatic\.com|cdnjs\.cloudflare\.com)\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'external-cdn-assets',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 24 * 60 * 60,
               },
               cacheableResponse: {
                 statuses: [0, 200],

@@ -87,6 +87,19 @@ export default {
       return this.startDateError || this.endDateError
     },
 
+    isStartDateValid() {
+      if (!this.form.startDate) return false
+      const vStart = this.absentsStore.visaStartDate
+      if (vStart && this.form.startDate < vStart) return false
+      const uArrival = this.absentsStore.ukArrivalDate
+      if (uArrival && this.form.startDate < uArrival) return false
+      return true
+    },
+
+    minReturnDate() {
+      return this.isStartDateValid ? this.form.startDate : undefined
+    },
+
     calculatedDaysForForm() {
       if (!this.form.startDate || !this.form.endDate || this.dateRangeError) return 0
       return calculateDays(this.form.startDate, this.form.endDate)
@@ -454,6 +467,7 @@ export default {
                     prepend-inner-icon="mdi-calendar-import"
                     variant="outlined"
                     density="comfortable"
+                    :min="minReturnDate"
                     :error-messages="endDateError"
                     required
                     hide-details="auto"

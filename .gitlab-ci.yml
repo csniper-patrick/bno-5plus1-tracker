@@ -1,5 +1,5 @@
 # GitLab CI/CD Pipeline for deploying Vue 3 + Vite app to GitLab Pages
-image: node:22-alpine
+image: docker.io/library/node:lts
 
 cache:
   key:

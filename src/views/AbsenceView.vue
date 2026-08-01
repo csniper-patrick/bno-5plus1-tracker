@@ -857,10 +857,10 @@ export default {
               >
                 <div class="d-flex align-center justify-space-between flex-wrap ga-2">
                   <span>
-                    <strong>Earliest ILR Application Date:</strong> (28 days before 5 years)
+                    <strong>Earliest ILR Application Date:</strong>
                   </span>
                   <strong class="text-subtitle-2 text-primary font-weight-bold">
-                    {{ earliestIlrApplicationDate }}
+                    {{ earliestIlrApplicationDate }} (28 days before 5 years)
                   </strong>
                 </div>
               </v-alert>

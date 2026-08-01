@@ -500,19 +500,28 @@ export default {
     },
 
     /**
-     * Formats a 'YYYY-MM-DD' date string into localized short date format (e.g., 'Jan 15, 2026').
-     * @param {string} dateStr - Date string.
-     * @returns {string} Formatted date string or '-' if null/empty.
+     * Formats a date string or Date object into 'YYYY-MM-DD' format with leading zeros.
+     * @param {string|Date} dateInput - Date string or Date object.
+     * @returns {string} Formatted date string in YYYY-MM-DD format or '-' if null/empty.
      */
-    formatDate(dateStr) {
-      if (!dateStr) return '-'
-      const date = new Date(dateStr)
-      if (isNaN(date.getTime())) return dateStr
-      return date.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      })
+    formatDate(dateInput) {
+      if (!dateInput) return '-'
+      if (typeof dateInput === 'string') {
+        const cleanStr = dateInput.split('T')[0]
+        const parts = cleanStr.split('-')
+        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+          const y = parts[0].padStart(4, '0')
+          const m = String(parts[1]).padStart(2, '0')
+          const d = String(parts[2]).padStart(2, '0')
+          return `${y}-${m}-${d}`
+        }
+      }
+      const date = dateInput instanceof Date ? dateInput : new Date(dateInput)
+      if (isNaN(date.getTime())) return String(dateInput)
+      const y = date.getUTCFullYear()
+      const m = String(date.getUTCMonth() + 1).padStart(2, '0')
+      const d = String(date.getUTCDate()).padStart(2, '0')
+      return `${y}-${m}-${d}`
     },
 
     /**
@@ -1254,7 +1263,8 @@ export default {
                     </strong>
                   </div>
                   <div class="mt-1 opacity-90 text-caption">
-                    <strong>Notice:</strong> Applications can be submitted up to 28 days before completing the 5-year qualifying period.
+                    <strong>Notice:</strong> Applications can be submitted up to 28 days before
+                    completing the 5-year qualifying period.
                   </div>
                 </v-alert>
               </v-card>
@@ -1381,7 +1391,8 @@ export default {
                     </strong>
                   </div>
                   <div class="mt-1 opacity-90 text-caption">
-                    <strong>Notice:</strong> Requires physical presence in the UK exactly 5 years before naturalisation.
+                    <strong>Notice:</strong> Requires physical presence in the UK exactly 5 years
+                    before naturalisation.
                     <span v-if="absentsStore.ilrApprovedDate">
                       Calculated from ILR Approved Date ({{
                         formatDate(absentsStore.ilrApprovedDate)

@@ -1238,16 +1238,41 @@ export const useAbsentsStore = defineStore('absents', () => {
       throw new Error('Parsed YAML content is empty or invalid.')
     }
 
-    const importedVisaDate =
-      parsed.visa_start_date || parsed.visaStartDate || parsed.visa_date || parsed.visaDate || ''
-    const importedArrivalDate =
+    function normalizeYYYYMMDD(val) {
+      if (!val) return ''
+      if (val instanceof Date) {
+        if (isNaN(val.getTime())) return ''
+        const y = val.getUTCFullYear()
+        const m = String(val.getUTCMonth() + 1).padStart(2, '0')
+        const d = String(val.getUTCDate()).padStart(2, '0')
+        return `${y}-${m}-${d}`
+      }
+      if (typeof val === 'string') {
+        const cleanStr = val.split('T')[0]
+        const parts = cleanStr.split('-')
+        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+          const y = parts[0].padStart(4, '0')
+          const m = String(parts[1]).padStart(2, '0')
+          const d = String(parts[2]).padStart(2, '0')
+          return `${y}-${m}-${d}`
+        }
+      }
+      return String(val)
+    }
+
+    const importedVisaDate = normalizeYYYYMMDD(
+      parsed.visa_start_date || parsed.visaStartDate || parsed.visa_date || parsed.visaDate || '',
+    )
+    const importedArrivalDate = normalizeYYYYMMDD(
       parsed.uk_arrival_date ||
-      parsed.ukArrivalDate ||
-      parsed.arrival_date ||
-      parsed.arrivalDate ||
-      ''
-    const importedIlrApprovedDate =
-      parsed.ilr_approved_date || parsed.ilrApprovedDate || parsed.ilr_date || parsed.ilrDate || ''
+        parsed.ukArrivalDate ||
+        parsed.arrival_date ||
+        parsed.arrivalDate ||
+        '',
+    )
+    const importedIlrApprovedDate = normalizeYYYYMMDD(
+      parsed.ilr_approved_date || parsed.ilrApprovedDate || parsed.ilr_date || parsed.ilrDate || '',
+    )
 
     const rawAbsences = Array.isArray(parsed.absences)
       ? parsed.absences
@@ -1258,8 +1283,8 @@ export const useAbsentsStore = defineStore('absents', () => {
     const validNewEntries = []
     for (const item of rawAbsences) {
       if (!item || typeof item !== 'object') continue
-      const startDate = item.startDate || item.start_date || ''
-      const endDate = item.endDate || item.end_date || ''
+      const startDate = normalizeYYYYMMDD(item.startDate || item.start_date || '')
+      const endDate = normalizeYYYYMMDD(item.endDate || item.end_date || '')
       const dest = item.dest || item.destination || item.notes || ''
 
       if (startDate && endDate) {

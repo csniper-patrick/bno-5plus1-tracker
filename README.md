@@ -25,10 +25,10 @@ A modern, high-performance web application designed for **British National (Over
   - Calculates your exact **Target ILR Settlement Date**.
   - Displays structured breakdown for Year 1, Year 2, Year 3, Year 4, and Year 5 absence totals with visual warning indicators (Compliant / Caution / Non-Compliant).
 - **🎨 Modern Responsive Vuetify 3 UI**
-  - Beautiful dashboard cards, status chips, responsive tables, and seamless **Dark / Light Mode** theme toggling.
+  - Beautiful dashboard cards, status chips, responsive tables, context-aware absence record editor with smart departure-to-return date constraints (`min` date picker bound), and seamless **Dark / Light Mode** theme toggling.
 - **💾 Local Persistence & Data Export/Import**
   - Data persists automatically in `localStorage`.
-  - Supports **JSON Export/Import** for backups and **CSV Export** for easy record-keeping.
+  - Supports **YAML Export/Import** for backups.
   - One-click sample data loading to preview app capabilities instantly.
 
 ---

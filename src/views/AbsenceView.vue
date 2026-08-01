@@ -110,6 +110,14 @@ export default {
       return this.formatDate(this.absentsStore.earliestIlrApplicationDate)
     },
 
+    hasExportData() {
+      return (
+        this.absentsStore.absences.length > 0 ||
+        this.absentsStore.isVisaDateSet ||
+        this.absentsStore.isArrivalDateSet
+      )
+    },
+
     queriedRangeDays() {
       if (!this.queryForm.startDate || !this.queryForm.endDate) return 0
       return this.absentsStore.queryAbsentDaysInRange(
@@ -207,6 +215,51 @@ export default {
       this.clearAllDialog = false
       this.resetForm()
       this.showSnackbar('All absence records and key dates cleared', 'info')
+    },
+
+    exportYamlFile() {
+      try {
+        const yamlContent = this.absentsStore.exportYAML()
+        const blob = new Blob([yamlContent], { type: 'text/yaml;charset=utf-8;' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', 'bno-absences-data.yaml')
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        this.showSnackbar('YAML data exported successfully!', 'success')
+      } catch (err) {
+        this.showSnackbar('Failed to export YAML data: ' + err.message, 'error')
+      }
+    },
+
+    triggerYamlImport() {
+      if (this.$refs.yamlFileInput) {
+        this.$refs.yamlFileInput.value = ''
+        this.$refs.yamlFileInput.click()
+      }
+    },
+
+    handleYamlFileSelect(event) {
+      const file = event.target.files && event.target.files[0]
+      if (!file) return
+
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        try {
+          const content = e.target.result
+          const res = this.absentsStore.importYAML(content)
+          this.showSnackbar(
+            `Imported ${res.count} record(s) and key dates successfully!`,
+            'success',
+          )
+        } catch (err) {
+          this.showSnackbar(err.message || 'Failed to import YAML file.', 'error')
+        }
+      }
+      reader.readAsText(file)
     },
 
     showSnackbar(text, color = 'success') {
@@ -478,17 +531,6 @@ export default {
                 {{ absentsStore.sortedAbsences.length }}
               </v-chip>
             </div>
-
-            <v-btn
-              v-if="absentsStore.absences.length > 0"
-              color="error"
-              variant="text"
-              density="comfortable"
-              prepend-icon="mdi-delete-sweep-outline"
-              @click="clearAllDialog = true"
-            >
-              Clear All Records
-            </v-btn>
           </v-card-title>
 
           <!-- Records Table -->
@@ -638,6 +680,53 @@ export default {
               first entry.
             </p>
           </div>
+
+          <!-- Bottom Card Actions -->
+          <v-divider></v-divider>
+          <v-card-actions class="pa-3 d-flex align-center justify-end flex-wrap ga-2">
+            <input
+              ref="yamlFileInput"
+              type="file"
+              accept=".yaml,.yml"
+              style="display: none"
+              @change="handleYamlFileSelect"
+            />
+
+            <v-btn
+              color="primary"
+              variant="outlined"
+              density="comfortable"
+              size="small"
+              prepend-icon="mdi-file-download-outline"
+              :disabled="!hasExportData"
+              @click="exportYamlFile"
+            >
+              Export YAML
+            </v-btn>
+
+            <v-btn
+              color="primary"
+              variant="tonal"
+              density="comfortable"
+              size="small"
+              prepend-icon="mdi-file-upload-outline"
+              @click="triggerYamlImport"
+            >
+              Import YAML
+            </v-btn>
+
+            <v-btn
+              v-if="absentsStore.absences.length > 0"
+              color="error"
+              variant="text"
+              density="comfortable"
+              size="small"
+              prepend-icon="mdi-delete-sweep-outline"
+              @click="clearAllDialog = true"
+            >
+              Clear All
+            </v-btn>
+          </v-card-actions>
         </v-card>
       </v-col>
 

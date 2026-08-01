@@ -1,5 +1,6 @@
 import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
+import { dump, load } from 'js-yaml'
 
 /**
  * LocalStorage key used to persist user absence records across browser sessions.
@@ -937,6 +938,101 @@ export const useAbsentsStore = defineStore('absents', () => {
     rebuildSegmentTree()
   }
 
+  /**
+   * Exports key travel/visa dates and user absence records to a YAML string.
+   *
+   * @returns {string} YAML formatted string containing visa_start_date, uk_arrival_date, and absences.
+   */
+  function exportYAML() {
+    const userAbsences = absences.value
+      .filter((item) => !item.isAutoArrival && item.id !== 'auto_uk_arrival_record')
+      .map((item) => ({
+        startDate: item.startDate,
+        endDate: item.endDate,
+        dest: item.dest || '',
+      }))
+
+    const dataObj = {
+      visa_start_date: visaStartDate.value || '',
+      uk_arrival_date: ukArrivalDate.value || '',
+      absences: userAbsences,
+    }
+
+    return dump(dataObj, { indent: 2 })
+  }
+
+  /**
+   * Imports absence records and visa/arrival dates from a YAML string.
+   *
+   * @param {string} yamlString - Raw YAML text content to import.
+   * @returns {{ count: number, visaStartDate: string, ukArrivalDate: string }} Summary of imported data.
+   */
+  function importYAML(yamlString) {
+    if (!yamlString || typeof yamlString !== 'string') {
+      throw new Error('Invalid YAML file input.')
+    }
+
+    let parsed
+    try {
+      parsed = load(yamlString)
+    } catch (e) {
+      throw new Error('Failed to parse YAML file: ' + e.message)
+    }
+
+    if (!parsed || typeof parsed !== 'object') {
+      throw new Error('Parsed YAML content is empty or invalid.')
+    }
+
+    const importedVisaDate =
+      parsed.visa_start_date || parsed.visaStartDate || parsed.visa_date || parsed.visaDate || ''
+    const importedArrivalDate =
+      parsed.uk_arrival_date ||
+      parsed.ukArrivalDate ||
+      parsed.arrival_date ||
+      parsed.arrivalDate ||
+      ''
+
+    const rawAbsences = Array.isArray(parsed.absences)
+      ? parsed.absences
+      : Array.isArray(parsed.records)
+        ? parsed.records
+        : []
+
+    const validNewEntries = []
+    for (const item of rawAbsences) {
+      if (!item || typeof item !== 'object') continue
+      const startDate = item.startDate || item.start_date || ''
+      const endDate = item.endDate || item.end_date || ''
+      const dest = item.dest || item.destination || item.notes || ''
+
+      if (startDate && endDate) {
+        validNewEntries.push({
+          id: crypto.randomUUID
+            ? crypto.randomUUID()
+            : Date.now().toString(36) + Math.random().toString(36).substring(2),
+          startDate,
+          endDate,
+          dest,
+          createdAt: new Date().toISOString(),
+        })
+      }
+    }
+
+    visaStartDate.value = importedVisaDate
+    ukArrivalDate.value = importedArrivalDate
+    absences.value = validNewEntries
+
+    sortAbsencesArray(absences.value)
+    syncArrivalRecord()
+    rebuildSegmentTree()
+
+    return {
+      count: validNewEntries.length,
+      visaStartDate: importedVisaDate,
+      ukArrivalDate: importedArrivalDate,
+    }
+  }
+
   return {
     absences,
     visaStartDate,
@@ -970,5 +1066,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     updateAbsence,
     removeAbsence,
     clearAbsences,
+    exportYAML,
+    importYAML,
   }
 })

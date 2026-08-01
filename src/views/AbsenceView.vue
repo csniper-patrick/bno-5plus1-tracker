@@ -1378,16 +1378,14 @@ export default {
                     </strong>
                   </div>
                   <div class="mt-1 opacity-90 text-caption">
-                    <strong>Notice:</strong> Home Office rules require physical presence in the UK
-                    on the exact date 5 years before naturalisation.
+                    <strong>Notice:</strong> Requires physical presence in the UK exactly 5 years before naturalisation.
                     <span v-if="absentsStore.ilrApprovedDate">
                       Calculated from ILR Approved Date ({{
                         formatDate(absentsStore.ilrApprovedDate)
                       }}).
                     </span>
-                    <span v-else> Calculated assuming ILR 5 years post-visa start date. </span>
-                    Start dates falling on absent days are automatically shifted forward to the next
-                    day present in the UK.
+                    <span v-else> Calculated assuming ILR 5 years post-visa start. </span>
+                    Dates on absent days automatically shift forward to the next present UK day.
                   </div>
                 </v-alert>
               </v-card>

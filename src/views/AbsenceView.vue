@@ -1242,6 +1242,29 @@ export default {
                   </v-card>
                 </v-col>
               </v-row>
+
+              <!-- Earliest Naturalisation Application Banner -->
+              <v-alert
+                type="info"
+                variant="tonal"
+                icon="mdi-clock-start"
+                class="mt-3 text-caption"
+                density="compact"
+              >
+                <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+                  <span>
+                    <strong>Earliest Naturalisation Application Date:</strong>
+                  </span>
+                  <strong class="text-subtitle-2 text-primary font-weight-bold">
+                    {{ formatDate(absentsStore.naturalizationTargetDate) }}
+                  </strong>
+                </div>
+                <div class="mt-1 opacity-90 text-caption">
+                  <strong>Notice:</strong> Home Office rules require physical presence in the UK on
+                  the exact date 5 years before naturalisation. Start dates falling on absent days
+                  are automatically shifted forward to the next day present in the UK.
+                </div>
+              </v-alert>
             </v-card>
           </div>
 

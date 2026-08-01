@@ -668,29 +668,52 @@ export const useAbsentsStore = defineStore('absents', () => {
   // ---------------------------------------------------------------------------
 
   /**
-   * Target date for British Citizenship naturalisation application (6 years from visaStartDate).
+   * Helper to check if a UTC Date object falls on a full absent day outside the UK.
+   * Departure and return dates are partially spent in the UK and are NOT absent days.
+   *
+   * @param {Date} dateObj
+   * @returns {boolean}
    */
-  const naturalizationTargetDate = computed(() => {
-    if (!visaStartDate.value) return ''
-    const vStart = parseDateUTC(visaStartDate.value)
-    if (!vStart) return ''
-    const target = new Date(vStart)
-    target.setUTCFullYear(target.getUTCFullYear() + 6)
-    const y = target.getUTCFullYear()
-    const m = String(target.getUTCMonth() + 1).padStart(2, '0')
-    const day = String(target.getUTCDate()).padStart(2, '0')
-    return `${y}-${m}-${day}`
-  })
+  function isAbsentDay(dateObj) {
+    if (!dateObj || isNaN(dateObj.getTime())) return false
+    const t = dateObj.getTime()
+    for (const item of absences.value) {
+      if (!item.startDate || !item.endDate) continue
+      const s = parseDateUTC(item.startDate)
+      const e = parseDateUTC(item.endDate)
+      if (!s || !e || e <= s) continue
+      const firstAbsentMs = s.getTime() + 86400000
+      const lastAbsentMs = e.getTime() - 86400000
+      if (t >= firstAbsentMs && t <= lastAbsentMs) {
+        return true
+      }
+    }
+    return false
+  }
 
   /**
-   * Start date of the 5-year qualifying window for naturalisation (1 year after visaStartDate).
+   * Start date of the 5-year qualifying window for naturalisation.
+   * Default start date is 1 year after visaStartDate.
+   * Extra condition (UK Home Office requirement): The start date of the 5-year naturalisation window
+   * CANNOT be an absent day outside the UK. If 1 year after visaStartDate falls on an absent day,
+   * the window start date is automatically advanced to the earliest subsequent day when the
+   * applicant is physically present in the UK.
    */
   const naturalizationWindowStartDate = computed(() => {
     if (!visaStartDate.value) return ''
     const vStart = parseDateUTC(visaStartDate.value)
     if (!vStart) return ''
+
     const start = new Date(vStart)
     start.setUTCFullYear(start.getUTCFullYear() + 1)
+
+    // Ensure the qualifying window start date is NOT an absent day outside the UK
+    let safetyCounter = 0
+    while (isAbsentDay(start) && safetyCounter < 3650) {
+      start.setUTCDate(start.getUTCDate() + 1)
+      safetyCounter++
+    }
+
     const y = start.getUTCFullYear()
     const m = String(start.getUTCMonth() + 1).padStart(2, '0')
     const day = String(start.getUTCDate()).padStart(2, '0')
@@ -698,7 +721,40 @@ export const useAbsentsStore = defineStore('absents', () => {
   })
 
   /**
-   * Total absent days in the 5 years immediately preceding naturalisation application [Year 1 to Year 6].
+   * Target date for British Citizenship naturalisation application.
+   * Exactly 5 years after the adjusted naturalizationWindowStartDate (ensuring the applicant
+   * was present in the UK exactly 5 years prior to the application date).
+   */
+  const naturalizationTargetDate = computed(() => {
+    if (!naturalizationWindowStartDate.value) return ''
+    const start = parseDateUTC(naturalizationWindowStartDate.value)
+    if (!start) return ''
+    const target = new Date(start)
+    target.setUTCFullYear(target.getUTCFullYear() + 5)
+    const y = target.getUTCFullYear()
+    const m = String(target.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(target.getUTCDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  })
+
+  /**
+   * Boolean indicating if the naturalisation window start date was shifted due to an absent day.
+   */
+  const isNaturalizationWindowShifted = computed(() => {
+    if (!visaStartDate.value || !naturalizationWindowStartDate.value) return false
+    const vStart = parseDateUTC(visaStartDate.value)
+    if (!vStart) return false
+    const unadjusted = new Date(vStart)
+    unadjusted.setUTCFullYear(unadjusted.getUTCFullYear() + 1)
+    const y = unadjusted.getUTCFullYear()
+    const m = String(unadjusted.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(unadjusted.getUTCDate()).padStart(2, '0')
+    const unadjustedStr = `${y}-${m}-${day}`
+    return naturalizationWindowStartDate.value !== unadjustedStr
+  })
+
+  /**
+   * Total absent days in the 5 years immediately preceding naturalisation application.
    * Requirement: Must not exceed 450 days.
    */
   const naturalization5YearAbsence = computed(() => {
@@ -710,12 +766,20 @@ export const useAbsentsStore = defineStore('absents', () => {
   })
 
   /**
-   * Total absent days in the final 12 months before naturalisation application [Year 5 to Year 6].
+   * Total absent days in the final 12 months before naturalisation application.
    * Requirement: Must not exceed 90 days.
    */
   const naturalizationFinal12MoAbsence = computed(() => {
-    if (!settlementTargetDate.value || !naturalizationTargetDate.value) return 0
-    return queryAbsentDaysInRange(settlementTargetDate.value, naturalizationTargetDate.value)
+    if (!naturalizationTargetDate.value) return 0
+    const target = parseDateUTC(naturalizationTargetDate.value)
+    if (!target) return 0
+    const oneYearPrior = new Date(target)
+    oneYearPrior.setUTCFullYear(oneYearPrior.getUTCFullYear() - 1)
+    const y = oneYearPrior.getUTCFullYear()
+    const m = String(oneYearPrior.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(oneYearPrior.getUTCDate()).padStart(2, '0')
+    const startStr = `${y}-${m}-${day}`
+    return queryAbsentDaysInRange(startStr, naturalizationTargetDate.value)
   })
 
   /**
@@ -1107,6 +1171,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     ilr5YearTotalAbsence,
     naturalizationTargetDate,
     naturalizationWindowStartDate,
+    isNaturalizationWindowShifted,
     naturalization5YearAbsence,
     naturalizationFinal12MoAbsence,
     naturalizationStatusColor,

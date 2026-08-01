@@ -469,19 +469,107 @@ export default {
       <!-- LEFT COLUMN (Takes up more space: 7 cols on desktop) -->
       <v-col cols="12" md="7" class="pa-3 d-flex flex-column ga-6">
         <!-- Header / Info Card -->
-        <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
+        <v-card elevation="2" class="pa-4 rounded-lg bg-surface">
           <div class="d-flex align-center flex-wrap ga-4">
             <v-avatar color="primary" size="56" class="elevation-2">
               <v-icon icon="mdi-passport" size="32"></v-icon>
             </v-avatar>
-            <div>
-              <h1 class="text-h4 font-weight-bold">BNO 5+1 Absence Tracker</h1>
+            <div class="flex-grow-1">
+              <h1 class="text-h4 font-weight-bold">Absence Tracker</h1>
               <p class="text-subtitle-1 text-medium-emphasis mb-0">
-                Log your trip departure and return dates to keep track of total days absent outside
-                the UK.
+                Log travel dates and monitor continuous residence compliance for UK Indefinite Leave
+                to Remain (ILR) and British Citizenship.
               </p>
             </div>
           </div>
+
+          <!-- Feature Breakdown / What is Tracked & Calculated -->
+          <v-expansion-panels class="mt-4 border rounded-lg overflow-hidden">
+            <v-expansion-panel elevation="0">
+              <v-expansion-panel-title class="text-subtitle-2 font-weight-bold py-2 px-3">
+                <v-icon icon="mdi-information-outline" color="primary" class="mr-2"></v-icon>
+                What is tracked and calculated in this view?
+              </v-expansion-panel-title>
+              <v-expansion-panel-text class="text-caption pt-2">
+                <v-row density="comfortable">
+                  <v-col cols="12" sm="6">
+                    <div class="d-flex ga-2">
+                      <v-icon
+                        icon="mdi-calendar-sync"
+                        color="primary"
+                        size="small"
+                        class="mt-1"
+                      ></v-icon>
+                      <div>
+                        <strong class="text-body-2">180-Day Rolling Rule (ILR)</strong>
+                        <p class="text-caption text-medium-emphasis mb-0">
+                          Calculates peak absences in any 365-day rolling window across your 5-year
+                          continuous residence route to ensure you stay within the 180-day UK Home
+                          Office limit.
+                        </p>
+                      </div>
+                    </div>
+                  </v-col>
+
+                  <v-col cols="12" sm="6">
+                    <div class="d-flex ga-2">
+                      <v-icon
+                        icon="mdi-flag-checkered"
+                        color="success"
+                        size="small"
+                        class="mt-1"
+                      ></v-icon>
+                      <div>
+                        <strong class="text-body-2">British Citizenship Limits</strong>
+                        <p class="text-caption text-medium-emphasis mb-0">
+                          Monitors naturalisation eligibility, tracking both the 5-year cumulative
+                          limit (max 450 days absent) and the final 12-month post-settlement limit
+                          (max 90 days absent).
+                        </p>
+                      </div>
+                    </div>
+                  </v-col>
+
+                  <v-col cols="12" sm="6">
+                    <div class="d-flex ga-2">
+                      <v-icon
+                        icon="mdi-clock-start"
+                        color="info"
+                        size="small"
+                        class="mt-1"
+                      ></v-icon>
+                      <div>
+                        <strong class="text-body-2">Settlement Timeline & Application Date</strong>
+                        <p class="text-caption text-medium-emphasis mb-0">
+                          Computes your 5-year ILR target date and earliest allowable application
+                          date (28 days prior to 5 years from Visa Start or UK Arrival).
+                        </p>
+                      </div>
+                    </div>
+                  </v-col>
+
+                  <v-col cols="12" sm="6">
+                    <div class="d-flex ga-2">
+                      <v-icon
+                        icon="mdi-calculator-variant"
+                        color="secondary"
+                        size="small"
+                        class="mt-1"
+                      ></v-icon>
+                      <div>
+                        <strong class="text-body-2">Full-Day UK Absence Rule</strong>
+                        <p class="text-caption text-medium-emphasis mb-0">
+                          Travel departure and arrival days are partially spent in the UK and
+                          excluded from absent counts. Only complete 24-hour days spent abroad
+                          count.
+                        </p>
+                      </div>
+                    </div>
+                  </v-col>
+                </v-row>
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
 
           <v-alert
             type="warning"
@@ -490,7 +578,10 @@ export default {
             class="mt-4 text-caption"
             density="compact"
           >
-            <strong>Disclaimer:</strong> This application is provided for informational and personal tracking purposes only. It does not constitute official legal or immigration advice. Always verify your eligibility and dates against official UK Home Office guidelines before submitting an ILR application.
+            <strong>Disclaimer:</strong> This application is provided for informational and personal
+            tracking purposes only. It does not constitute official legal or immigration advice.
+            Always verify your eligibility and dates against official UK Home Office guidelines
+            before submitting an ILR application.
           </v-alert>
         </v-card>
 
@@ -638,9 +729,9 @@ export default {
                 class="mt-3 text-caption"
                 density="compact"
               >
-                <strong>UK Absence Rule Notice:</strong> Departure (start) and
-                arrival (end) dates are partially spent in the UK and are <strong>excluded</strong>.
-                Only complete 24-hour days spent abroad are counted.
+                <strong>UK Absence Rule Notice:</strong> Departure (start) and arrival (end) dates
+                are partially spent in the UK and are <strong>excluded</strong>. Only complete
+                24-hour days spent abroad are counted.
               </v-alert>
 
               <!-- Form Days Calculation Badge & Actions -->
@@ -704,7 +795,11 @@ export default {
           </v-card-title>
 
           <!-- Records Table -->
-          <v-table v-if="absentsStore.sortedAbsences.length > 0" density="compact" class="rounded-b-lg">
+          <v-table
+            v-if="absentsStore.sortedAbsences.length > 0"
+            density="compact"
+            class="rounded-b-lg"
+          >
             <thead>
               <tr>
                 <th class="text-left font-weight-bold">Destination / Purpose</th>

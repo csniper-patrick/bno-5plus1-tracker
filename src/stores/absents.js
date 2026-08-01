@@ -932,7 +932,9 @@ export const useAbsentsStore = defineStore('absents', () => {
     const index = absences.value.findIndex((item) => item.id === id)
     if (index !== -1) {
       if (absences.value[index].isAutoArrival || id === AUTO_ARRIVAL_ID) {
-        throw new Error('Initial UK Entry record is automatically managed by Key Dates and cannot be manually edited.')
+        throw new Error(
+          'Initial UK Entry record is automatically managed by Key Dates and cannot be manually edited.',
+        )
       }
 
       const oldRecord = { ...absences.value[index] }
@@ -966,7 +968,9 @@ export const useAbsentsStore = defineStore('absents', () => {
     const index = absences.value.findIndex((item) => item.id === id)
     if (index !== -1) {
       if (absences.value[index].isAutoArrival || id === AUTO_ARRIVAL_ID) {
-        throw new Error('Initial UK Entry record is automatically managed by Key Dates and cannot be manually removed.')
+        throw new Error(
+          'Initial UK Entry record is automatically managed by Key Dates and cannot be manually removed.',
+        )
       }
 
       const targetRecord = absences.value[index]

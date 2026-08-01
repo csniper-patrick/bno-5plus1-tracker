@@ -931,6 +931,10 @@ export const useAbsentsStore = defineStore('absents', () => {
   function updateAbsence(id, updatedFields) {
     const index = absences.value.findIndex((item) => item.id === id)
     if (index !== -1) {
+      if (absences.value[index].isAutoArrival || id === AUTO_ARRIVAL_ID) {
+        throw new Error('Initial UK Entry record is automatically managed by Key Dates and cannot be manually edited.')
+      }
+
       const oldRecord = { ...absences.value[index] }
       const mergedRecord = {
         ...absences.value[index],
@@ -961,6 +965,10 @@ export const useAbsentsStore = defineStore('absents', () => {
   function removeAbsence(id) {
     const index = absences.value.findIndex((item) => item.id === id)
     if (index !== -1) {
+      if (absences.value[index].isAutoArrival || id === AUTO_ARRIVAL_ID) {
+        throw new Error('Initial UK Entry record is automatically managed by Key Dates and cannot be manually removed.')
+      }
+
       const targetRecord = absences.value[index]
       // Incremental segment tree update (NO full rebuild)
       removeRecordFromSegmentTree(targetRecord)

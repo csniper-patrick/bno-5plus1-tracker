@@ -280,6 +280,7 @@ export default {
      * @param {Object} item - Absence record object.
      */
     startEdit(item) {
+      if (item.isAutoArrival || item.id === 'auto_uk_arrival_record') return
       this.editingId = item.id
       this.form = {
         startDate: item.startDate,
@@ -309,6 +310,7 @@ export default {
      * @param {Object} item - Absence record object.
      */
     confirmDelete(item) {
+      if (item.isAutoArrival || item.id === 'auto_uk_arrival_record') return
       this.deleteDialog = {
         show: true,
         id: item.id,
@@ -816,24 +818,38 @@ export default {
                   </v-chip>
                 </td>
                 <td class="text-right">
-                  <v-btn
-                    icon="mdi-pencil-outline"
-                    variant="text"
-                    color="primary"
-                    size="small"
-                    density="compact"
-                    title="Edit Record"
-                    @click="startEdit(item)"
-                  ></v-btn>
-                  <v-btn
-                    icon="mdi-delete-outline"
-                    variant="text"
-                    color="error"
-                    size="small"
-                    density="compact"
-                    title="Delete Record"
-                    @click="confirmDelete(item)"
-                  ></v-btn>
+                  <template v-if="item.isAutoArrival || item.id === 'auto_uk_arrival_record'">
+                    <v-chip
+                      size="x-small"
+                      color="secondary"
+                      variant="tonal"
+                      prepend-icon="mdi-lock-outline"
+                      title="Initial UK Entry record is managed via Key Dates"
+                      class="font-weight-medium"
+                    >
+                      Managed by Key Dates
+                    </v-chip>
+                  </template>
+                  <template v-else>
+                    <v-btn
+                      icon="mdi-pencil-outline"
+                      variant="text"
+                      color="primary"
+                      size="small"
+                      density="compact"
+                      title="Edit Record"
+                      @click="startEdit(item)"
+                    ></v-btn>
+                    <v-btn
+                      icon="mdi-delete-outline"
+                      variant="text"
+                      color="error"
+                      size="small"
+                      density="compact"
+                      title="Delete Record"
+                      @click="confirmDelete(item)"
+                    ></v-btn>
+                  </template>
                 </td>
               </tr>
             </tbody>

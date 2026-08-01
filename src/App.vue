@@ -1,10 +1,19 @@
 <script setup>
+/**
+ * Root Application Component
+ * Renders top-level Vuetify app container, app bar header with theme toggling,
+ * main RouterView, and the PWA ReloadPrompt modal.
+ */
 import { RouterView } from 'vue-router'
 import { useTheme } from 'vuetify'
 import ReloadPrompt from './components/ReloadPrompt.vue'
 
+// Vuetify theme instance for dark/light mode switching
 const theme = useTheme()
 
+/**
+ * Toggles current active theme between Union Jack dark and light palettes.
+ */
 function toggleTheme() {
   theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
 }
@@ -13,7 +22,7 @@ function toggleTheme() {
 <template>
   <v-app>
     <v-app-bar color="primary" elevation="2" class="px-2 px-sm-4">
-      <div class="w-100 mx-auto d-flex align-center" style="max-width: 1600px;">
+      <div class="w-100 mx-auto d-flex align-center" style="max-width: 1600px">
         <v-icon icon="mdi-passport" size="large" class="ml-2 ml-sm-3 mr-2"></v-icon>
         <v-app-bar-title class="font-weight-bold text-truncate flex-shrink-1">
           BNO 5+1 Tracker
@@ -40,7 +49,7 @@ function toggleTheme() {
     </v-app-bar>
 
     <v-main>
-      <v-container class="mx-auto py-6 px-4 px-md-8" style="max-width: 1600px;">
+      <v-container class="mx-auto py-6 px-4 px-md-8" style="max-width: 1600px">
         <RouterView />
       </v-container>
     </v-main>

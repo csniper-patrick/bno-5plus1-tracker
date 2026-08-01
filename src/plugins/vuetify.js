@@ -1,7 +1,16 @@
+/**
+ * Vuetify 3 Plugin Setup
+ * Configures Vuetify themes with custom Union Jack inspired color palettes
+ * for official British Royal Navy dark and light modes.
+ */
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
 import { createVuetify } from 'vuetify'
 
+/**
+ * Union Jack Dark Theme
+ * Palette: Deep Royal Navy Dark Background, Slate Navy Surfaces, Royal Blue Accent, Crimson Red.
+ */
 const unionJackDarkTheme = {
   dark: true,
   colors: {
@@ -21,6 +30,10 @@ const unionJackDarkTheme = {
   },
 }
 
+/**
+ * Union Jack Light Theme
+ * Palette: Crisp Off-White Background, Pure White Surfaces, Official Union Jack Pantone 280 C Royal Blue & 186 C Crimson Red.
+ */
 const unionJackLightTheme = {
   dark: false,
   colors: {

@@ -1,3 +1,7 @@
+/**
+ * Vue Router Configuration
+ * Maps route paths to views for single-page navigation.
+ */
 import { createRouter, createWebHistory } from 'vue-router'
 import AbsenceView from '../views/AbsenceView.vue'
 

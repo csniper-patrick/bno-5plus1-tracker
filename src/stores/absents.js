@@ -146,7 +146,12 @@ export class AbsenceSegmentTree {
 }
 
 /**
- * Helper to safely parse a 'YYYY-MM-DD' string or Date object to UTC midnight Date.
+ * Helper to safely parse a 'YYYY-MM-DD' string or Date object to a UTC midnight Date object.
+ * Standardizes date calculations to UTC to prevent local timezone offsets (e.g. BST/GMT daylight savings shifts)
+ * from altering day index calculations or calendar day count precision.
+ *
+ * @param {string|Date} dateInput - Input date string ('YYYY-MM-DD' or ISO string) or JS Date object.
+ * @returns {Date|null} UTC midnight Date object or null if invalid.
  */
 function parseDateUTC(dateInput) {
   if (!dateInput) return null
@@ -898,13 +903,14 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
-   * Efficiently queries the number of absent days in any date range.
-   * Correctly calculates exact overlap with absence records, excluding departure and return days of each trip.
+   * Efficiently queries the number of absent days within any arbitrary date range [startDate, endDate].
+   * Computes precise intersection with all absence records, excluding departure and return days of each trip
+   * per Home Office full-day absence rules. Sorts and merges overlapping trip intervals to avoid double-counting.
    *
-   * @param {string|Date} startDate - Range start date.
-   * @param {string|Date} endDate - Range end date.
-   * @param {boolean} [excludeEndpoints=false] - Whether to exclude start/end dates from the query range.
-   * @returns {number} Total absent days within the range.
+   * @param {string|Date} startDate - Query range start date.
+   * @param {string|Date} endDate - Query range end date.
+   * @param {boolean} [excludeEndpoints=false] - Optional flag to trim boundary start/end days from the query range.
+   * @returns {number} Total distinct full absent days spent outside the UK within the queried range.
    */
   function queryAbsentDaysInRange(startDate, endDate, excludeEndpoints = false) {
     const _v = segmentTreeVersion.value
@@ -915,13 +921,14 @@ export const useAbsentsStore = defineStore('absents', () => {
     if (!qStart || !qEnd || isNaN(qStart.getTime()) || isNaN(qEnd.getTime()) || qEnd < qStart)
       return 0
 
+    // Optionally exclude query range endpoint dates (used for strict interior window queries)
     if (excludeEndpoints) {
       qStart = new Date(qStart.getTime() + 86400000)
       qEnd = new Date(qEnd.getTime() - 86400000)
       if (qEnd < qStart) return 0
     }
 
-    // Collect all valid absent day intervals [firstAbsentDay, lastAbsentDay] for each record
+    // Step 1: Collect valid absent day intervals [firstAbsentDay, lastAbsentDay] for each trip
     const intervals = []
     for (const item of absences.value) {
       if (!item.startDate || !item.endDate) continue
@@ -929,12 +936,12 @@ export const useAbsentsStore = defineStore('absents', () => {
       const e = parseDateUTC(item.endDate)
       if (!s || !e || e <= s) continue
 
-      // Full absent days exclude departure (s) and return (e) dates
+      // Full absent days exclude departure (s) and return (e) dates per UK Home Office rules
       const firstAbsent = new Date(s.getTime() + 86400000)
       const lastAbsent = new Date(e.getTime() - 86400000)
       if (lastAbsent < firstAbsent) continue
 
-      // Intersect trip's absent interval [firstAbsent, lastAbsent] with query interval [qStart, qEnd]
+      // Compute intersection between trip's absent interval [firstAbsent, lastAbsent] and query window [qStart, qEnd]
       const intersectStart = firstAbsent > qStart ? firstAbsent : qStart
       const intersectEnd = lastAbsent < qEnd ? lastAbsent : qEnd
 
@@ -948,7 +955,7 @@ export const useAbsentsStore = defineStore('absents', () => {
 
     if (intervals.length === 0) return 0
 
-    // Merge overlapping intervals to prevent double-counting shared absent days
+    // Step 2: Sort intervals by start timestamp and merge overlapping or contiguous ranges
     intervals.sort((a, b) => a.start - b.start)
     const merged = [intervals[0]]
 
@@ -956,6 +963,7 @@ export const useAbsentsStore = defineStore('absents', () => {
       const current = intervals[i]
       const lastMerged = merged[merged.length - 1]
 
+      // Merge if current interval starts within or adjacent to (<= +1 day) the last merged interval
       if (current.start <= lastMerged.end + 86400000) {
         lastMerged.end = Math.max(lastMerged.end, current.end)
       } else {
@@ -963,7 +971,7 @@ export const useAbsentsStore = defineStore('absents', () => {
       }
     }
 
-    // Calculate total days across all merged intervals
+    // Step 3: Sum the total distinct absent days across all merged non-overlapping intervals
     let totalDays = 0
     for (const range of merged) {
       const days = Math.round((range.end - range.start) / 86400000) + 1
@@ -1173,11 +1181,7 @@ export const useAbsentsStore = defineStore('absents', () => {
       parsed.arrivalDate ||
       ''
     const importedIlrApprovedDate =
-      parsed.ilr_approved_date ||
-      parsed.ilrApprovedDate ||
-      parsed.ilr_date ||
-      parsed.ilrDate ||
-      ''
+      parsed.ilr_approved_date || parsed.ilrApprovedDate || parsed.ilr_date || parsed.ilrDate || ''
 
     const rawAbsences = Array.isArray(parsed.absences)
       ? parsed.absences

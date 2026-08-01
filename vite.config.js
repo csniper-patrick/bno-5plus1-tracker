@@ -7,14 +7,20 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 import vuetify from 'vite-plugin-vuetify'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// https://vite.dev/config/
+/**
+ * Vite Configuration for BNO 5+1 Tracker
+ * Configures Vue 3, Vuetify 3 auto-import, PWA service worker with offline caching, and path aliases.
+ */
 export default defineConfig({
+  // Use relative base path for maximum compatibility across static hosts (GitHub Pages, GitLab Pages)
   base: './',
   plugins: [
     vue(),
     vueJsx(),
     vueDevTools(),
+    // Auto-import Vuetify components and styles as needed
     vuetify({ autoImport: true }),
+    // Progressive Web App (PWA) configuration with Workbox offline caching
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png', 'maskable-icon.png'],
@@ -75,4 +81,5 @@ export default defineConfig({
     },
   },
 })
+
 

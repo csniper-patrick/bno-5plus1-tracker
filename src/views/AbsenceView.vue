@@ -832,7 +832,6 @@ export default {
               </div>
 
               <v-btn
-                variant="outlined"
                 color="primary"
                 size="small"
                 prepend-icon="mdi-pencil"
@@ -995,8 +994,8 @@ export default {
               <thead>
                 <tr>
                   <th class="text-left font-weight-bold">Destination / Purpose</th>
-                  <th class="text-right font-weight-bold">Departure Date</th>
-                  <th class="text-right font-weight-bold">Return Date</th>
+                  <th class="text-right font-weight-bold">Departure</th>
+                  <th class="text-right font-weight-bold">Return</th>
                   <th class="text-center font-weight-bold">Full Days Absent</th>
                   <th class="text-right font-weight-bold">Actions</th>
                 </tr>
@@ -1014,27 +1013,6 @@ export default {
                 >
                   <td class="font-weight-medium">
                     <div class="d-flex align-center flex-wrap ga-2">
-                      <v-icon
-                        :icon="
-                          item.isAutoArrival
-                            ? 'mdi-airplane-landing'
-                            : isOngoingEvent(item)
-                              ? 'mdi-airplane'
-                              : isFutureEvent(item)
-                                ? 'mdi-calendar-clock'
-                                : 'mdi-earth'
-                        "
-                        size="small"
-                        :color="
-                          item.isAutoArrival
-                            ? 'secondary'
-                            : isOngoingEvent(item)
-                              ? 'warning'
-                              : isFutureEvent(item)
-                                ? 'info'
-                                : 'primary'
-                        "
-                      ></v-icon>
                       <span
                         :class="{
                           'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item),
@@ -1093,7 +1071,7 @@ export default {
                             ? 'info'
                             : 'primary'
                       "
-                      prepend-icon="mdi-calendar-export"
+                      prepend-icon="mdi-airplane-takeoff"
                       class="font-weight-medium"
                     >
                       {{ formatDate(item.startDate) }}
@@ -1110,7 +1088,7 @@ export default {
                             ? 'info'
                             : 'primary'
                       "
-                      prepend-icon="mdi-calendar-import"
+                      prepend-icon="mdi-airplane-landing"
                       class="font-weight-medium"
                     >
                       {{ formatDate(item.endDate) }}
@@ -1538,20 +1516,19 @@ export default {
                   </v-card>
                 </v-col>
               </v-row>
-            </v-card-text>
 
-            <v-card-actions class="px-0 pb-0 pt-3 justify-end">
-              <v-btn
-                variant="outlined"
-                color="primary"
-                size="small"
-                prepend-icon="mdi-restore"
-                title="Reset query range to maximum 10-year period"
-                @click="resetQueryDateRangeToMax"
-              >
-                Reset to Max Range
-              </v-btn>
-            </v-card-actions>
+              <div class="d-flex justify-end mt-3">
+                <v-btn
+                  color="primary"
+                  size="small"
+                  prepend-icon="mdi-restore"
+                  title="Reset query range to maximum 10-year period"
+                  @click="resetQueryDateRangeToMax"
+                >
+                  Reset to Max Range
+                </v-btn>
+              </div>
+            </v-card-text>
           </v-card>
         </template>
       </v-col>

@@ -30,13 +30,13 @@ const STORAGE_ILR_APPROVED_KEY = 'bno_ilr_approved_date'
 export class AbsenceSegmentTree {
   /**
    * Constructs an AbsenceSegmentTree with a fixed maximum leaf capacity.
-   * Allocates an Int32Array of size 4 * size to store segment sum tree nodes.
+   * Allocates an Int32Array of size 4 * size + 1 to store segment sum tree nodes (1-indexed, 0th index unused).
    *
    * @param {number} size - Number of leaves (days in the 10-year tracking window).
    */
   constructor(size) {
     this.n = size
-    this.tree = new Int32Array(4 * size)
+    this.tree = new Int32Array(4 * size + 1)
   }
 
   /**
@@ -48,7 +48,10 @@ export class AbsenceSegmentTree {
   build(arr) {
     this.n = arr.length
     if (this.n === 0) return
-    this._build(arr, 0, 0, this.n - 1)
+    if (this.tree.length < 4 * this.n + 1) {
+      this.tree = new Int32Array(4 * this.n + 1)
+    }
+    this._build(arr, 1, 0, this.n - 1)
   }
 
   /**
@@ -66,8 +69,8 @@ export class AbsenceSegmentTree {
       return
     }
     const mid = Math.floor((start + end) / 2)
-    const leftNode = 2 * node + 1
-    const rightNode = 2 * node + 2
+    const leftNode = 2 * node
+    const rightNode = 2 * node + 1
     this._build(arr, leftNode, start, mid)
     this._build(arr, rightNode, mid + 1, end)
     this.tree[node] = this.tree[leftNode] + this.tree[rightNode]
@@ -81,7 +84,7 @@ export class AbsenceSegmentTree {
    */
   updatePoint(idx, val) {
     if (idx < 0 || idx >= this.n) return
-    this._updatePoint(0, 0, this.n - 1, idx, val)
+    this._updatePoint(1, 0, this.n - 1, idx, val)
   }
 
   /**
@@ -100,8 +103,8 @@ export class AbsenceSegmentTree {
       return
     }
     const mid = Math.floor((start + end) / 2)
-    const leftNode = 2 * node + 1
-    const rightNode = 2 * node + 2
+    const leftNode = 2 * node
+    const rightNode = 2 * node + 1
     if (idx <= mid) {
       this._updatePoint(leftNode, start, mid, idx, val)
     } else {
@@ -122,7 +125,7 @@ export class AbsenceSegmentTree {
     const clampedStart = Math.max(0, qstart)
     const clampedEnd = Math.min(this.n - 1, qend)
     if (clampedStart > clampedEnd) return 0
-    return this._query(0, 0, this.n - 1, clampedStart, clampedEnd)
+    return this._query(1, 0, this.n - 1, clampedStart, clampedEnd)
   }
 
   /**
@@ -140,8 +143,10 @@ export class AbsenceSegmentTree {
     if (r < start || end < l) return 0
     if (l <= start && end <= r) return this.tree[node]
     const mid = Math.floor((start + end) / 2)
-    const leftSum = this._query(2 * node + 1, start, mid, l, r)
-    const rightSum = this._query(2 * node + 2, mid + 1, end, l, r)
+    const leftNode = 2 * node
+    const rightNode = 2 * node + 1
+    const leftSum = this._query(leftNode, start, mid, l, r)
+    const rightSum = this._query(rightNode, mid + 1, end, l, r)
     return leftSum + rightSum
   }
 }

@@ -1307,7 +1307,7 @@ export default {
             <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
               <v-card-title class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2">
                 <div class="d-flex align-center ga-2">
-                  <v-icon icon="mdi-flag-checkered" color="success"></v-icon>
+                  <v-icon icon="mdi-flag-checkered" :color="absentsStore.naturalizationStatusColor"></v-icon>
                   <span class="text-h5 font-weight-bold">British Citizenship</span>
                 </div>
 
@@ -1319,16 +1319,20 @@ export default {
                 >
                   <v-icon
                     :icon="
-                      absentsStore.isNaturalizationEligible
-                        ? 'mdi-check-circle'
-                        : 'mdi-alert-circle'
+                      absentsStore.isNaturalization10YearExceeded
+                        ? 'mdi-alert-circle'
+                        : absentsStore.isNaturalizationWindowShifted
+                          ? 'mdi-clock-alert-outline'
+                          : 'mdi-check-circle'
                     "
                     start
                   ></v-icon>
                   {{
-                    absentsStore.isNaturalizationEligible
-                      ? 'Within Citizenship Limit'
-                      : 'Citizenship Limit Exceeded'
+                    absentsStore.isNaturalization10YearExceeded
+                      ? 'Period Exceeds 10-Yr Tracker Range'
+                      : absentsStore.isNaturalizationWindowShifted
+                        ? 'Within Citizenship Limit (Shifted)'
+                        : 'Within Citizenship Limit'
                   }}
                 </v-chip>
               </v-card-title>
@@ -1339,6 +1343,9 @@ export default {
                   {{ formatDate(absentsStore.naturalizationTargetDate) }}
                   <span v-if="absentsStore.ilrApprovedDate" class="ml-1 font-weight-bold">
                     (Based on ILR Approved Date: {{ formatDate(absentsStore.ilrApprovedDate) }})
+                  </span>
+                  <span v-else class="ml-1 font-weight-bold">
+                    (Based on BNO Visa Start Date: {{ formatDate(absentsStore.visaStartDate) }})
                   </span>
                 </p>
 
@@ -1374,7 +1381,7 @@ export default {
                         </v-chip>
                       </div>
                       <div class="text-caption opacity-90">
-                        Total absent days in 5 yrs ending on naturalisation date.
+                        Total absent days in qualifying 5-year period.
                       </div>
                     </v-card>
                   </v-col>
@@ -1410,14 +1417,63 @@ export default {
                         </v-chip>
                       </div>
                       <div class="text-caption opacity-90">
-                        Total absent days in 12 months post-settlement.
+                        Total absent days in final 12 months pre-application.
                       </div>
                     </v-card>
                   </v-col>
                 </v-row>
 
-                <!-- Earliest Naturalisation Application Banner -->
+                <!-- Earliest Naturalisation Application Banners -->
                 <v-alert
+                  v-if="absentsStore.isNaturalization10YearExceeded"
+                  type="error"
+                  variant="tonal"
+                  icon="mdi-alert-circle"
+                  class="mt-3 text-caption"
+                  density="compact"
+                >
+                  <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+                    <span>
+                      <strong>Out of Tracker Range:</strong>
+                    </span>
+                    <strong class="text-subtitle-2 font-weight-bold">
+                      Cannot Track Period
+                    </strong>
+                  </div>
+                  <div class="mt-1 opacity-90 text-caption">
+                    <strong>Tracking Limit Reached:</strong> The earliest qualifying period satisfying physical presence and absence limits extends beyond 10 years from your visa start date
+                    <span v-if="absentsStore.naturalizationQualifyingPeriod?.tenYearDeadlineDate">
+                      (Tracker Limit: {{ formatDate(absentsStore.naturalizationQualifyingPeriod.tenYearDeadlineDate) }}).
+                    </span>
+                    This application cannot track date ranges past 10 years. This does not mean you are legally disqualified; please evaluate periods beyond 10 years manually.
+                  </div>
+                </v-alert>
+
+                <v-alert
+                  v-else-if="absentsStore.isNaturalizationWindowShifted"
+                  type="warning"
+                  variant="tonal"
+                  icon="mdi-clock-alert-outline"
+                  class="mt-3 text-caption"
+                  density="compact"
+                >
+                  <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+                    <span>
+                      <strong>Earliest Shifted Application Date:</strong>
+                    </span>
+                    <strong class="text-subtitle-2 font-weight-bold">
+                      {{ formatDate(absentsStore.naturalizationTargetDate) }}
+                    </strong>
+                  </div>
+                  <div class="mt-1 opacity-90 text-caption">
+                    <strong>Qualifying Period Shifted:</strong> Baseline calculated earliest date was
+                    <strong>{{ formatDate(absentsStore.naturalizationCalculatedEarliestDate) }}</strong>.
+                    Due to rule criteria (physical presence on start date, 5-year absence limit ≤ 450 days, or final 12-month limit ≤ 90 days), the 5-year period was automatically shifted to the earliest compliant period.
+                  </div>
+                </v-alert>
+
+                <v-alert
+                  v-else
                   type="info"
                   variant="tonal"
                   icon="mdi-clock-start"
@@ -1434,7 +1490,7 @@ export default {
                   </div>
                   <div class="mt-1 opacity-90 text-caption">
                     <strong>Notice:</strong> Requires physical presence in the UK exactly 5 years
-                    before naturalisation.
+                    before naturalisation application.
                     <span v-if="absentsStore.ilrApprovedDate">
                       Calculated from ILR Approved Date ({{
                         formatDate(absentsStore.ilrApprovedDate)

@@ -177,6 +177,20 @@ function parseDateUTC(dateInput) {
 }
 
 /**
+ * Formats a Date object to 'YYYY-MM-DD' in UTC.
+ *
+ * @param {Date} dateObj - UTC Date object.
+ * @returns {string} Date string in 'YYYY-MM-DD' format or empty string.
+ */
+function formatDateUTC(dateObj) {
+  if (!dateObj || isNaN(dateObj.getTime())) return ''
+  const y = dateObj.getUTCFullYear()
+  const m = String(dateObj.getUTCMonth() + 1).padStart(2, '0')
+  const d = String(dateObj.getUTCDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+/**
  * Calculates the maximum return date (10 years from visa start date) that the Segment Tree can handle.
  *
  * @param {string} visaStartDateStr - The visa start date string in 'YYYY-MM-DD' format.
@@ -743,122 +757,181 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
-   * Start date of the 5-year qualifying window for naturalisation.
-   * Default start date is 1 year after visaStartDate.
-   * If ilrApprovedDate is defined, start date is 4 years before ilrApprovedDate (target = ilrApprovedDate + 1 year).
-   * Extra condition (UK Home Office requirement): The start date of the 5-year naturalisation window
-   * CANNOT be an absent day outside the UK. If the baseline start date falls on an absent day,
-   * the window start date is automatically advanced to the earliest subsequent day when the
-   * applicant is physically present in the UK.
+   * Comprehensive validation and calculation of the 5-year qualifying period for British Citizenship.
+   *
+   * 1. Baseline Earliest Date calculation:
+   *    - If ilrApprovedDate is set: baseline target date = ilrApprovedDate + 1 year (window start = ilrApprovedDate - 4 years).
+   *    - Else (from visaStartDate): baseline target date = visaStartDate + 6 years (window start = visaStartDate + 1 year).
+   *
+   * 2. Automatic Shifting:
+   *    - Evaluates candidate 5-year qualifying period [D, D + 5 years] day-by-day starting from baseline window start.
+   *    - Must satisfy 3 criteria:
+   *      a) Applicant must be physically present in the UK on window start date D (!isAbsentDay(D)).
+   *      b) Total absent days in [D, D + 5 years] <= 450 days.
+   *      c) Total absent days in final 12 months [(D + 5 years) - 1 year, D + 5 years] <= 90 days.
+   *    - Shifts forward day-by-day to find the earliest valid period [D*, T*].
+   *
+   * 3. 10-Year Deadline Check:
+   *    - Deadline = visaStartDate + 10 years.
+   *    - If T* > deadline (or no valid window exists within 10 years), is10YearExceeded = true.
    */
-  const naturalizationWindowStartDate = computed(() => {
-    if (!visaStartDate.value && !ilrApprovedDate.value) return ''
-
-    let start
-    if (ilrApprovedDate.value) {
-      const ilrDate = parseDateUTC(ilrApprovedDate.value)
-      if (!ilrDate) return ''
-      start = new Date(ilrDate)
-      start.setUTCFullYear(start.getUTCFullYear() - 4)
-    } else {
-      const vStart = parseDateUTC(visaStartDate.value)
-      if (!vStart) return ''
-      start = new Date(vStart)
-      start.setUTCFullYear(start.getUTCFullYear() + 1)
+  const naturalizationQualifyingPeriod = computed(() => {
+    if (!visaStartDate.value && !ilrApprovedDate.value) {
+      return {
+        baselineTargetDate: '',
+        baselineWindowStartDate: '',
+        windowStartDate: '',
+        targetDate: '',
+        isShifted: false,
+        is10YearExceeded: false,
+        fiveYearAbsence: 0,
+        final12MoAbsence: 0,
+        tenYearDeadlineDate: '',
+        initialViolations: [],
+      }
     }
 
-    // Ensure the qualifying window start date is NOT an absent day outside the UK
+    let baselineStart
+    if (ilrApprovedDate.value) {
+      const ilrDate = parseDateUTC(ilrApprovedDate.value)
+      if (!ilrDate) return null
+      baselineStart = new Date(ilrDate)
+      baselineStart.setUTCFullYear(baselineStart.getUTCFullYear() - 4)
+    } else {
+      const vStart = parseDateUTC(visaStartDate.value)
+      if (!vStart) return null
+      baselineStart = new Date(vStart)
+      baselineStart.setUTCFullYear(baselineStart.getUTCFullYear() + 1)
+    }
+
+    const baselineStartStr = formatDateUTC(baselineStart)
+    const baselineTarget = new Date(baselineStart)
+    baselineTarget.setUTCFullYear(baselineTarget.getUTCFullYear() + 5)
+    const baselineTargetStr = formatDateUTC(baselineTarget)
+
+    let tenYearDeadline = null
+    if (visaStartDate.value) {
+      const vStart = parseDateUTC(visaStartDate.value)
+      if (vStart) {
+        tenYearDeadline = new Date(vStart)
+        tenYearDeadline.setUTCFullYear(tenYearDeadline.getUTCFullYear() + 10)
+      }
+    } else if (ilrApprovedDate.value) {
+      const ilrDate = parseDateUTC(ilrApprovedDate.value)
+      if (ilrDate) {
+        tenYearDeadline = new Date(ilrDate)
+        tenYearDeadline.setUTCFullYear(tenYearDeadline.getUTCFullYear() + 5)
+      }
+    }
+    const tenYearDeadlineStr = tenYearDeadline ? formatDateUTC(tenYearDeadline) : ''
+
+    // Day-by-day search for earliest valid 5-year qualifying window
+    let currentStart = new Date(baselineStart)
     let safetyCounter = 0
-    while (isAbsentDay(start) && safetyCounter < 3650) {
-      start.setUTCDate(start.getUTCDate() + 1)
+    let foundValid = false
+
+    let finalStartStr = baselineStartStr
+    let finalTargetStr = baselineTargetStr
+    let fiveYearAbs = 0
+    let final12MoAbs = 0
+    const initialViolations = []
+
+    while (safetyCounter < 3650) {
+      const targetDate = new Date(currentStart)
+      targetDate.setUTCFullYear(targetDate.getUTCFullYear() + 5)
+
+      const final12MoStartDate = new Date(targetDate)
+      final12MoStartDate.setUTCFullYear(final12MoStartDate.getUTCFullYear() - 1)
+
+      const cStartStr = formatDateUTC(currentStart)
+      const cTargetStr = formatDateUTC(targetDate)
+      const c12MoStartStr = formatDateUTC(final12MoStartDate)
+
+      const isAbsentOnStart = isAbsentDay(currentStart)
+      const f5 = queryAbsentDaysInRange(cStartStr, cTargetStr)
+      const f12 = queryAbsentDaysInRange(c12MoStartStr, cTargetStr)
+
+      if (safetyCounter === 0) {
+        if (isAbsentOnStart) initialViolations.push('Physical presence requirement on window start date')
+        if (f5 > 450) initialViolations.push('5-year absence limit (> 450 days)')
+        if (f12 > 90) initialViolations.push('Final 12-month absence limit (> 90 days)')
+      }
+
+      if (!isAbsentOnStart && f5 <= 450 && f12 <= 90) {
+        foundValid = true
+        finalStartStr = cStartStr
+        finalTargetStr = cTargetStr
+        fiveYearAbs = f5
+        final12MoAbs = f12
+        break
+      }
+
+      // If we've passed the 10-year deadline and still haven't found a valid window, stop search
+      if (tenYearDeadline && targetDate > tenYearDeadline) {
+        finalStartStr = cStartStr
+        finalTargetStr = cTargetStr
+        fiveYearAbs = f5
+        final12MoAbs = f12
+        break
+      }
+
+      currentStart.setUTCDate(currentStart.getUTCDate() + 1)
       safetyCounter++
     }
 
-    const y = start.getUTCFullYear()
-    const m = String(start.getUTCMonth() + 1).padStart(2, '0')
-    const day = String(start.getUTCDate()).padStart(2, '0')
-    return `${y}-${m}-${day}`
-  })
-
-  /**
-   * Target date for British Citizenship naturalisation application.
-   * Exactly 5 years after the adjusted naturalizationWindowStartDate (ensuring the applicant
-   * was present in the UK exactly 5 years prior to the application date).
-   */
-  const naturalizationTargetDate = computed(() => {
-    if (!naturalizationWindowStartDate.value) return ''
-    const start = parseDateUTC(naturalizationWindowStartDate.value)
-    if (!start) return ''
-    const target = new Date(start)
-    target.setUTCFullYear(target.getUTCFullYear() + 5)
-    const y = target.getUTCFullYear()
-    const m = String(target.getUTCMonth() + 1).padStart(2, '0')
-    const day = String(target.getUTCDate()).padStart(2, '0')
-    return `${y}-${m}-${day}`
-  })
-
-  /**
-   * Boolean indicating if the naturalisation window start date was shifted due to an absent day.
-   */
-  const isNaturalizationWindowShifted = computed(() => {
-    if ((!visaStartDate.value && !ilrApprovedDate.value) || !naturalizationWindowStartDate.value)
-      return false
-
-    let unadjusted
-    if (ilrApprovedDate.value) {
-      const ilrDate = parseDateUTC(ilrApprovedDate.value)
-      if (!ilrDate) return false
-      unadjusted = new Date(ilrDate)
-      unadjusted.setUTCFullYear(unadjusted.getUTCFullYear() - 4)
-    } else {
-      const vStart = parseDateUTC(visaStartDate.value)
-      if (!vStart) return false
-      unadjusted = new Date(vStart)
-      unadjusted.setUTCFullYear(unadjusted.getUTCFullYear() + 1)
+    const isShifted = finalTargetStr !== baselineTargetStr
+    let is10YearExceeded = false
+    if (tenYearDeadline && finalTargetStr) {
+      const finalTargetDateObj = parseDateUTC(finalTargetStr)
+      if (finalTargetDateObj && finalTargetDateObj > tenYearDeadline) {
+        is10YearExceeded = true
+      }
     }
-    const y = unadjusted.getUTCFullYear()
-    const m = String(unadjusted.getUTCMonth() + 1).padStart(2, '0')
-    const day = String(unadjusted.getUTCDate()).padStart(2, '0')
-    const unadjustedStr = `${y}-${m}-${day}`
-    return naturalizationWindowStartDate.value !== unadjustedStr
+
+    return {
+      baselineTargetDate: baselineTargetStr,
+      baselineWindowStartDate: baselineStartStr,
+      windowStartDate: finalStartStr,
+      targetDate: finalTargetStr,
+      isShifted,
+      is10YearExceeded,
+      fiveYearAbsence: fiveYearAbs,
+      final12MoAbsence: final12MoAbs,
+      tenYearDeadlineDate: tenYearDeadlineStr,
+      initialViolations,
+    }
   })
 
-  /**
-   * Total absent days in the 5 years immediately preceding naturalisation application.
-   * Requirement: Must not exceed 450 days.
-   */
-  const naturalization5YearAbsence = computed(() => {
-    if (!naturalizationWindowStartDate.value || !naturalizationTargetDate.value) return 0
-    return queryAbsentDaysInRange(
-      naturalizationWindowStartDate.value,
-      naturalizationTargetDate.value,
-    )
-  })
-
-  /**
-   * Total absent days in the final 12 months before naturalisation application.
-   * Requirement: Must not exceed 90 days.
-   */
-  const naturalizationFinal12MoAbsence = computed(() => {
-    if (!naturalizationTargetDate.value) return 0
-    const target = parseDateUTC(naturalizationTargetDate.value)
-    if (!target) return 0
-    const oneYearPrior = new Date(target)
-    oneYearPrior.setUTCFullYear(oneYearPrior.getUTCFullYear() - 1)
-    const y = oneYearPrior.getUTCFullYear()
-    const m = String(oneYearPrior.getUTCMonth() + 1).padStart(2, '0')
-    const day = String(oneYearPrior.getUTCDate()).padStart(2, '0')
-    const startStr = `${y}-${m}-${day}`
-    return queryAbsentDaysInRange(startStr, naturalizationTargetDate.value)
-  })
+  const naturalizationWindowStartDate = computed(
+    () => naturalizationQualifyingPeriod.value?.windowStartDate || '',
+  )
+  const naturalizationTargetDate = computed(
+    () => naturalizationQualifyingPeriod.value?.targetDate || '',
+  )
+  const naturalizationCalculatedEarliestDate = computed(
+    () => naturalizationQualifyingPeriod.value?.baselineTargetDate || '',
+  )
+  const isNaturalizationWindowShifted = computed(
+    () => naturalizationQualifyingPeriod.value?.isShifted || false,
+  )
+  const isNaturalization10YearExceeded = computed(
+    () => naturalizationQualifyingPeriod.value?.is10YearExceeded || false,
+  )
+  const naturalization5YearAbsence = computed(
+    () => naturalizationQualifyingPeriod.value?.fiveYearAbsence || 0,
+  )
+  const naturalizationFinal12MoAbsence = computed(
+    () => naturalizationQualifyingPeriod.value?.final12MoAbsence || 0,
+  )
 
   /**
    * Overall status color ('success', 'warning', 'error') for Naturalisation eligibility.
    */
   const naturalizationStatusColor = computed(() => {
+    if (isNaturalization10YearExceeded.value) return 'error'
+    if (isNaturalizationWindowShifted.value) return 'warning'
     const f5 = naturalization5YearAbsence.value
     const f12 = naturalizationFinal12MoAbsence.value
-    if (f5 > 450 || f12 > 90) return 'error'
     if (f5 >= 380 || f12 >= 75) return 'warning'
     return 'success'
   })
@@ -866,9 +939,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   /**
    * Boolean indicating if user is eligible for Naturalisation based on absence limits.
    */
-  const isNaturalizationEligible = computed(() => {
-    return naturalization5YearAbsence.value <= 450 && naturalizationFinal12MoAbsence.value <= 90
-  })
+  const isNaturalizationEligible = computed(() => !isNaturalization10YearExceeded.value)
 
   // ---------------------------------------------------------------------------
   // Actions
@@ -1379,9 +1450,12 @@ export const useAbsentsStore = defineStore('absents', () => {
     ruleStatusColor,
     isRuleExceeded,
     ilr5YearTotalAbsence,
+    naturalizationQualifyingPeriod,
     naturalizationTargetDate,
     naturalizationWindowStartDate,
+    naturalizationCalculatedEarliestDate,
     isNaturalizationWindowShifted,
+    isNaturalization10YearExceeded,
     naturalization5YearAbsence,
     naturalizationFinal12MoAbsence,
     naturalizationStatusColor,

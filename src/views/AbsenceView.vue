@@ -863,7 +863,7 @@ export default {
                 class="mt-3 text-caption"
                 density="compact"
               >
-                <strong>UK Absence Rule Notice:</strong> Departure (start) and arrival (end) dates
+                <strong>UK Absence Rule Notice:</strong> Departure (start) and return (end) dates
                 are partially spent in the UK and are <strong>excluded</strong>. Only complete
                 24-hour days spent abroad are counted.
               </v-alert>
@@ -1489,7 +1489,7 @@ export default {
     <v-dialog v-model="clearAllDialog" max-width="450">
       <v-card elevation="2" class="rounded-lg pa-3" color="surface">
         <v-card-title class="px-0 pt-0 d-flex align-center text-h6 font-weight-bold">
-          <v-icon icon="mdi-alert-triangle" color="warning" class="mr-2"></v-icon>
+          <v-icon icon="mdi-alert" color="warning" class="mr-2"></v-icon>
           Clear All Records?
         </v-card-title>
         <v-card-text class="px-0 py-2">

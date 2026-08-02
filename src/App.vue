@@ -262,7 +262,7 @@ function confirmClearAll() {
             size="x-small"
             color="amber-darken-2"
             variant="flat"
-            class="d-none d-sm-inline-flex ml-2 font-weight-bold d-none d-sm-inline-flex"
+            class="d-none d-sm-inline-flex ml-2 font-weight-bold"
             style="vertical-align: middle;"
           >
             Unofficial 3rd-Party App

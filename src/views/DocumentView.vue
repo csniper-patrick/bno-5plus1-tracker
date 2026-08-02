@@ -840,7 +840,7 @@ export default {
 
       <v-card-text class="px-0 pb-0">
         <p class="text-caption text-medium-emphasis mb-4">
-          Rroof of presence in the UK for every year of the 5-year qualifying period.
+          Proof of presence in the UK for every year of the 5-year qualifying period.
         </p>
         <v-expansion-panels v-model="activeYearPanel" multiple class="mt-3 border rounded-lg overflow-hidden">
           <v-expansion-panel

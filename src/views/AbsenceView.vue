@@ -659,7 +659,7 @@ export default {
                           >180-Day Rolling Rule (ILR)</strong
                         >
                         <p class="text-caption text-medium-emphasis mb-0">
-                          Tracks peak absences in any 365-day rolling window (max 180 days for ILR).
+                          Tracks peak absences in any 365-day rolling window strictly within qualifying period (max 180 days for ILR).
                         </p>
                       </div>
                     </div>
@@ -1246,7 +1246,7 @@ export default {
                         </v-chip>
                       </div>
                       <div class="text-caption opacity-90 mb-1">
-                        Max absent days in any 365-day rolling window.
+                        Max absent days in any 365-day rolling window within qualifying period.
                       </div>
                       <div
                         v-if="absentsStore.max12MonthAbsenceInfo.peakStartDate"

@@ -593,42 +593,37 @@ export const useAbsentsStore = defineStore('absents', () => {
   })
 
   /**
-   * Computes the peak rolling 12-month (365-day) absence across the visa period using queryAbsentDaysInRange.
-   * Scans rolling 365-day windows using the proper query function and returns { maxDays, peakStartDate, peakEndDate }.
+   * Computes the peak rolling 12-month (365-day) absence across the 5-year ILR qualifying period [visaStartDate, settlementTargetDate].
+   * Scans rolling 365-day windows strictly within the 5-year qualifying period and returns { maxDays, peakStartDate, peakEndDate }.
    */
   const max12MonthAbsenceInfo = computed(() => {
-    if (!visaStartDate.value) {
+    if (!visaStartDate.value || !settlementTargetDate.value) {
       return { maxDays: 0, peakStartDate: null, peakEndDate: null }
     }
 
     const vStart = parseDateUTC(visaStartDate.value)
-    if (!vStart) return { maxDays: 0, peakStartDate: null, peakEndDate: null }
+    const targetDate = parseDateUTC(settlementTargetDate.value)
+    if (!vStart || !targetDate || targetDate <= vStart) {
+      return { maxDays: 0, peakStartDate: null, peakEndDate: null }
+    }
 
     let maxDays = 0
     let peakStart = vStart
     let peakEnd = new Date(vStart.getTime() + 364 * 86400000)
 
-    // Determine the end of the search window: 5 years (1826 days) or last absence end date
-    let lastAbsenceMs = vStart.getTime() + 1826 * 86400000
-    for (const item of absences.value) {
-      if (item.endDate) {
-        const e = parseDateUTC(item.endDate)
-        if (e && e.getTime() > lastAbsenceMs) {
-          lastAbsenceMs = e.getTime()
-        }
-      }
-    }
-
-    const totalDaysToScan = Math.max(
-      1826,
-      Math.round((lastAbsenceMs - vStart.getTime()) / 86400000),
-    )
-    const limit = Math.max(0, totalDaysToScan - 364)
+    // The ILR qualifying period is strictly the 5-year window [vStart, targetDate]
+    const totalQualifyingDays = Math.round((targetDate.getTime() - vStart.getTime()) / 86400000)
+    const limit = Math.max(0, totalQualifyingDays - 364)
 
     for (let i = 0; i <= limit; i++) {
       const windowStart = new Date(vStart.getTime() + i * 86400000)
       const windowEnd = new Date(vStart.getTime() + (i + 364) * 86400000)
-      const days = queryAbsentDaysInRange(windowStart, windowEnd)
+
+      // Clamp query range strictly within the 5-year qualifying period [vStart, targetDate]
+      const qStart = windowStart < vStart ? vStart : windowStart
+      const qEnd = windowEnd > targetDate ? targetDate : windowEnd
+
+      const days = queryAbsentDaysInRange(qStart, qEnd)
 
       if (days > maxDays) {
         maxDays = days

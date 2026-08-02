@@ -1,237 +1,30 @@
 import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
-import { parse, Document } from 'yaml'
 import { useDocumentsStore } from './documents.js'
+import { AbsenceSegmentTree } from '../utils/segmentTree.js'
+import {
+  parseDateUTC,
+  formatDateUTC,
+  normalizeDate,
+  getOneDayBefore,
+  calculateDays,
+  getMaxSegmentTreeReturnDate,
+} from '../utils/date.js'
+import { generateId } from '../utils/id.js'
+import { exportAbsencesBackup, parseYAML } from '../services/backupService.js'
+
+// Re-export utilities for backwards compatibility
+export { AbsenceSegmentTree, calculateDays, getMaxSegmentTreeReturnDate }
 
 /**
- * LocalStorage key used to persist user absence records across browser sessions.
+ * LocalStorage keys used to persist user data across browser sessions.
  */
 const STORAGE_KEY = 'bno_absences'
-
-/**
- * LocalStorage key used to persist user BNO Visa Start Date across browser sessions.
- */
 const STORAGE_VISA_KEY = 'bno_visa_start_date'
-
-/**
- * LocalStorage key used to persist user UK Arrival Date across browser sessions.
- */
 const STORAGE_ARRIVAL_KEY = 'bno_uk_arrival_date'
-
-/**
- * LocalStorage key used to persist user ILR Approved Date across browser sessions.
- */
 const STORAGE_ILR_APPROVED_KEY = 'bno_ilr_approved_date'
 
-/**
- * Segment Tree data structure for efficient O(log N) range sum queries over a 10-year period (day-by-day).
- * Supports O(log N) point updates for incremental tree modifications when records are added/updated/removed.
- */
-export class AbsenceSegmentTree {
-  /**
-   * Constructs an AbsenceSegmentTree with a fixed maximum leaf capacity.
-   * Allocates an Int32Array of size 4 * size + 1 to store segment sum tree nodes (1-indexed, 0th index unused).
-   *
-   * @param {number} size - Number of leaves (days in the 10-year tracking window).
-   */
-  constructor(size) {
-    this.n = size
-    this.tree = new Int32Array(4 * size + 1)
-  }
-
-  /**
-   * Initializes and constructs the Segment Tree from a daily binary array (0 = present, 1 = absent).
-   * Runs in O(N) time where N is the length of the input array.
-   *
-   * @param {Uint8Array|number[]} arr - Daily array where index i represents day offset from visa start date.
-   */
-  build(arr) {
-    this.n = arr.length
-    if (this.n === 0) return
-    if (this.tree.length < 4 * this.n + 1) {
-      this.tree = new Int32Array(4 * this.n + 1)
-    }
-    this._build(arr, 1, 0, this.n - 1)
-  }
-
-  /**
-   * Recursive helper function to construct tree nodes.
-   *
-   * @private
-   * @param {Uint8Array|number[]} arr - Source daily absence array.
-   * @param {number} node - Index of current tree node in the 1D tree array.
-   * @param {number} start - Segment start leaf index.
-   * @param {number} end - Segment end leaf index.
-   */
-  _build(arr, node, start, end) {
-    if (start === end) {
-      this.tree[node] = arr[start]
-      return
-    }
-    const mid = Math.floor((start + end) / 2)
-    const leftNode = 2 * node
-    const rightNode = 2 * node + 1
-    this._build(arr, leftNode, start, mid)
-    this._build(arr, rightNode, mid + 1, end)
-    this.tree[node] = this.tree[leftNode] + this.tree[rightNode]
-  }
-
-  /**
-   * Updates a single point (leaf index) in O(log N) time.
-   *
-   * @param {number} idx - Leaf index to update (0 to n - 1).
-   * @param {number} val - New value (0 or 1).
-   */
-  updatePoint(idx, val) {
-    if (idx < 0 || idx >= this.n) return
-    this._updatePoint(1, 0, this.n - 1, idx, val)
-  }
-
-  /**
-   * Recursive helper function for point updates.
-   *
-   * @private
-   * @param {number} node - Index of current tree node.
-   * @param {number} start - Segment start leaf index.
-   * @param {number} end - Segment end leaf index.
-   * @param {number} idx - Target leaf index.
-   * @param {number} val - New leaf value.
-   */
-  _updatePoint(node, start, end, idx, val) {
-    if (start === end) {
-      this.tree[node] = val
-      return
-    }
-    const mid = Math.floor((start + end) / 2)
-    const leftNode = 2 * node
-    const rightNode = 2 * node + 1
-    if (idx <= mid) {
-      this._updatePoint(leftNode, start, mid, idx, val)
-    } else {
-      this._updatePoint(rightNode, mid + 1, end, idx, val)
-    }
-    this.tree[node] = this.tree[leftNode] + this.tree[rightNode]
-  }
-
-  /**
-   * Queries range sum in [qstart, qend] in O(log N) time.
-   *
-   * @param {number} qstart - Start leaf index.
-   * @param {number} qend - End leaf index.
-   * @returns {number} Range sum of absent days.
-   */
-  query(qstart, qend) {
-    if (this.n === 0 || qstart > qend) return 0
-    const clampedStart = Math.max(0, qstart)
-    const clampedEnd = Math.min(this.n - 1, qend)
-    if (clampedStart > clampedEnd) return 0
-    return this._query(1, 0, this.n - 1, clampedStart, clampedEnd)
-  }
-
-  /**
-   * Recursive helper function for range sum queries.
-   *
-   * @private
-   * @param {number} node - Index of current tree node.
-   * @param {number} start - Node segment start index.
-   * @param {number} end - Node segment end index.
-   * @param {number} l - Query range start index.
-   * @param {number} r - Query range end index.
-   * @returns {number} Sum of absent days in intersection [start, end] ∩ [l, r].
-   */
-  _query(node, start, end, l, r) {
-    if (r < start || end < l) return 0
-    if (l <= start && end <= r) return this.tree[node]
-    const mid = Math.floor((start + end) / 2)
-    const leftNode = 2 * node
-    const rightNode = 2 * node + 1
-    const leftSum = this._query(leftNode, start, mid, l, r)
-    const rightSum = this._query(rightNode, mid + 1, end, l, r)
-    return leftSum + rightSum
-  }
-}
-
-/**
- * Helper to safely parse a 'YYYY-MM-DD' string or Date object to a UTC midnight Date object.
- * Standardizes date calculations to UTC to prevent local timezone offsets (e.g. BST/GMT daylight savings shifts)
- * from altering day index calculations or calendar day count precision.
- *
- * @param {string|Date} dateInput - Input date string ('YYYY-MM-DD' or ISO string) or JS Date object.
- * @returns {Date|null} UTC midnight Date object or null if invalid.
- */
-function parseDateUTC(dateInput) {
-  if (!dateInput) return null
-  if (dateInput instanceof Date) {
-    if (isNaN(dateInput.getTime())) return null
-    return new Date(
-      Date.UTC(dateInput.getUTCFullYear(), dateInput.getUTCMonth(), dateInput.getUTCDate()),
-    )
-  }
-  if (typeof dateInput === 'string') {
-    const cleanStr = dateInput.split('T')[0]
-    const parts = cleanStr.split('-').map(Number)
-    if (parts.length !== 3 || parts.some(isNaN)) return null
-    return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]))
-  }
-  return null
-}
-
-/**
- * Formats a Date object to 'YYYY-MM-DD' in UTC.
- *
- * @param {Date} dateObj - UTC Date object.
- * @returns {string} Date string in 'YYYY-MM-DD' format or empty string.
- */
-function formatDateUTC(dateObj) {
-  if (!dateObj || isNaN(dateObj.getTime())) return ''
-  const y = dateObj.getUTCFullYear()
-  const m = String(dateObj.getUTCMonth() + 1).padStart(2, '0')
-  const d = String(dateObj.getUTCDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
-/**
- * Calculates the maximum return date (10 years from visa start date) that the Segment Tree can handle.
- *
- * @param {string} visaStartDateStr - The visa start date string in 'YYYY-MM-DD' format.
- * @returns {string|null} Maximum return date in 'YYYY-MM-DD' format, or null if invalid.
- */
-export function getMaxSegmentTreeReturnDate(visaStartDateStr) {
-  if (!visaStartDateStr) return null
-  const vStart = parseDateUTC(visaStartDateStr)
-  if (!vStart) return null
-  const maxDate = new Date(vStart)
-  maxDate.setUTCFullYear(maxDate.getUTCFullYear() + 10)
-  const y = maxDate.getUTCFullYear()
-  const m = String(maxDate.getUTCMonth() + 1).padStart(2, '0')
-  const d = String(maxDate.getUTCDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
-/**
- * Calculates the number of full days absent for a given period.
- * Departure (start) and return (end) days are partially spent in the UK and are excluded.
- * Only full 24-hour days spent entirely abroad are counted as days absent.
- *
- * @param {string} startDateStr - The start date string in 'YYYY-MM-DD' format (departure date).
- * @param {string} endDateStr - The end date string in 'YYYY-MM-DD' format (return date).
- * @returns {number} Total number of full days absent (returns 0 for invalid ranges or ranges with no full days absent).
- */
-export function calculateDays(startDateStr, endDateStr) {
-  if (!startDateStr || !endDateStr) return 0
-  const start = new Date(startDateStr)
-  const end = new Date(endDateStr)
-
-  // Validate date objects and check if start date comes after end date
-  if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) return 0
-
-  // Calculate difference in calendar days between start and end dates
-  const diffTime = Math.abs(end - start)
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
-
-  // Exclude start date (departure) and end date (arrival); count only complete intermediate days
-  return Math.max(0, diffDays - 1)
-}
+const AUTO_ARRIVAL_ID = 'auto_uk_arrival_record'
 
 /**
  * Pinia store for managing absence records and calculating total days absent.
@@ -239,10 +32,15 @@ export function calculateDays(startDateStr, endDateStr) {
  */
 export const useAbsentsStore = defineStore('absents', () => {
   // ---------------------------------------------------------------------------
-  // State Initialization
+  // Helper Functions
   // ---------------------------------------------------------------------------
 
-  // Helper function to sort absences array chronologically by start date
+  /**
+   * Sorts absences array chronologically by start date (ascending).
+   *
+   * @param {Array} arr - List of absence records.
+   * @returns {Array} Sorted absence array.
+   */
   function sortAbsencesArray(arr) {
     return arr.sort((a, b) => {
       const startDiff = (a.startDate || '').localeCompare(b.startDate || '')
@@ -251,39 +49,25 @@ export const useAbsentsStore = defineStore('absents', () => {
     })
   }
 
-  // Restore saved absence records from browser storage
+  // ---------------------------------------------------------------------------
+  // State Initialization
+  // ---------------------------------------------------------------------------
+
   const storedData = localStorage.getItem(STORAGE_KEY)
   const initialAbsences = storedData ? JSON.parse(storedData) : []
   sortAbsencesArray(initialAbsences)
 
-  /**
-   * Primary reactive list of absence records, maintained in chronological order.
-   */
+  /** Primary reactive list of absence records, maintained in chronological order. */
   const absences = ref(initialAbsences)
 
-  // Restore saved Visa Start Date
-  const storedVisaDate = localStorage.getItem(STORAGE_VISA_KEY) || ''
+  /** The start date of the user's BNO visa (YYYY-MM-DD format). */
+  const visaStartDate = ref(localStorage.getItem(STORAGE_VISA_KEY) || '')
 
-  /**
-   * The start date of the user's BNO visa (YYYY-MM-DD format).
-   */
-  const visaStartDate = ref(storedVisaDate)
+  /** The UK arrival date of the user (YYYY-MM-DD format). */
+  const ukArrivalDate = ref(localStorage.getItem(STORAGE_ARRIVAL_KEY) || '')
 
-  // Restore saved UK Arrival Date
-  const storedArrivalDate = localStorage.getItem(STORAGE_ARRIVAL_KEY) || ''
-
-  /**
-   * The UK arrival date of the user (YYYY-MM-DD format).
-   */
-  const ukArrivalDate = ref(storedArrivalDate)
-
-  // Restore saved ILR Approved Date
-  const storedIlrApprovedDate = localStorage.getItem(STORAGE_ILR_APPROVED_KEY) || ''
-
-  /**
-   * The ILR approved date of the user (YYYY-MM-DD format).
-   */
-  const ilrApprovedDate = ref(storedIlrApprovedDate)
+  /** The ILR approved date of the user (YYYY-MM-DD format). */
+  const ilrApprovedDate = ref(localStorage.getItem(STORAGE_ILR_APPROVED_KEY) || '')
 
   // Persistent Segment Tree & Coverage Tracking State
   const segmentTree = ref(null)
@@ -294,23 +78,6 @@ export const useAbsentsStore = defineStore('absents', () => {
   // ---------------------------------------------------------------------------
   // Auto UK Arrival Absence Record Sync
   // ---------------------------------------------------------------------------
-
-  const AUTO_ARRIVAL_ID = 'auto_uk_arrival_record'
-
-  /**
-   * Returns a 'YYYY-MM-DD' date string corresponding to 1 day before the given date string.
-   */
-  function getOneDayBefore(dateStr) {
-    if (!dateStr || typeof dateStr !== 'string') return ''
-    const parts = dateStr.split('-').map(Number)
-    if (parts.length !== 3 || parts.some(isNaN)) return ''
-    const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]))
-    date.setUTCDate(date.getUTCDate() - 1)
-    const y = date.getUTCFullYear()
-    const m = String(date.getUTCMonth() + 1).padStart(2, '0')
-    const d = String(date.getUTCDate()).padStart(2, '0')
-    return `${y}-${m}-${d}`
-  }
 
   /**
    * Synchronizes the automatic initial UK arrival absence record.
@@ -433,7 +200,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     const vEnd = new Date(vStart)
     vEnd.setUTCFullYear(vEnd.getUTCFullYear() + 10)
 
-    const n = Math.round((vEnd - vStart) / (1000 * 60 * 60 * 24))
+    const n = Math.round((vEnd.getTime() - vStart.getTime()) / 86400000)
     if (n <= 0) {
       segmentTree.value = null
       coverageCount = null
@@ -517,7 +284,6 @@ export const useAbsentsStore = defineStore('absents', () => {
   // Persistence Watchers
   // ---------------------------------------------------------------------------
 
-  // Sync absences to localStorage
   watch(
     absences,
     (newVal) => {
@@ -526,7 +292,6 @@ export const useAbsentsStore = defineStore('absents', () => {
     { deep: true },
   )
 
-  // Sync visa start date to localStorage and rebuild tree if changed
   watch(visaStartDate, (newVal) => {
     if (newVal) {
       localStorage.setItem(STORAGE_VISA_KEY, newVal)
@@ -537,7 +302,6 @@ export const useAbsentsStore = defineStore('absents', () => {
     rebuildSegmentTree()
   })
 
-  // Sync UK arrival date to localStorage and rebuild tree if changed
   watch(ukArrivalDate, (newVal) => {
     if (newVal) {
       localStorage.setItem(STORAGE_ARRIVAL_KEY, newVal)
@@ -548,7 +312,6 @@ export const useAbsentsStore = defineStore('absents', () => {
     rebuildSegmentTree()
   })
 
-  // Sync ILR approved date to localStorage
   watch(ilrApprovedDate, (newVal) => {
     if (newVal) {
       localStorage.setItem(STORAGE_ILR_APPROVED_KEY, newVal)
@@ -561,40 +324,32 @@ export const useAbsentsStore = defineStore('absents', () => {
   // Getters / Computed Properties
   // ---------------------------------------------------------------------------
 
-  /**
-   * Boolean indicating whether the Visa Start Date has been set.
-   */
   const isVisaDateSet = computed(() => Boolean(visaStartDate.value))
-
-  /**
-   * Boolean indicating whether the UK Arrival Date has been set.
-   */
   const isArrivalDateSet = computed(() => Boolean(ukArrivalDate.value))
-
-  /**
-   * Boolean indicating whether the ILR Approved Date has been set.
-   */
   const isIlrApprovedDateSet = computed(() => Boolean(ilrApprovedDate.value))
 
-  /**
-   * Computed array of absences sorted chronologically by start date (ascending).
-   */
-  const sortedAbsences = computed(() => {
-    return sortAbsencesArray([...absences.value])
-  })
+  const sortedAbsences = computed(() => sortAbsencesArray([...absences.value]))
 
   /**
-   * Total number of days absent across all recorded absence entries.
+   * Total number of distinct full days absent across all recorded entries.
+   * Utilizes the Segment Tree (O(1)) when available for fast & accurate count of unique absent days.
    */
   const totalDaysAbsent = computed(() => {
+    if (segmentTree.value && visaStartDate.value && segmentTreeSize > 0) {
+      const vStart = parseDateUTC(visaStartDate.value)
+      if (vStart) {
+        // Direct O(1) query of the entire segment tree root
+        return segmentTree.value.query(0, segmentTreeSize - 1)
+      }
+    }
     return absences.value.reduce((sum, item) => {
       return sum + calculateDays(item.startDate, item.endDate)
     }, 0)
   })
 
   /**
-   * Computes the peak rolling 12-month (365-day) absence across the 5-year ILR qualifying period [visaStartDate, settlementTargetDate].
-   * Scans rolling 365-day windows strictly within the 5-year qualifying period and returns { maxDays, peakStartDate, peakEndDate }.
+   * Computes the peak rolling 12-month (365-day) absence across the 5-year ILR qualifying period.
+   * Uses O(log N) Segment Tree range sum queries per rolling window for maximum calculation speed.
    */
   const max12MonthAbsenceInfo = computed(() => {
     if (!visaStartDate.value || !settlementTargetDate.value) {
@@ -611,65 +366,53 @@ export const useAbsentsStore = defineStore('absents', () => {
     let peakStart = vStart
     let peakEnd = new Date(vStart.getTime() + 364 * 86400000)
 
-    // The ILR qualifying period is strictly the 5-year window [vStart, targetDate]
     const totalQualifyingDays = Math.round((targetDate.getTime() - vStart.getTime()) / 86400000)
     const limit = Math.max(0, totalQualifyingDays - 364)
 
+    const hasTree = segmentTree.value && segmentTreeSize > 0
+
     for (let i = 0; i <= limit; i++) {
-      const windowStart = new Date(vStart.getTime() + i * 86400000)
-      const windowEnd = new Date(vStart.getTime() + (i + 364) * 86400000)
+      let days = 0
 
-      // Clamp query range strictly within the 5-year qualifying period [vStart, targetDate]
-      const qStart = windowStart < vStart ? vStart : windowStart
-      const qEnd = windowEnd > targetDate ? targetDate : windowEnd
-
-      const days = queryAbsentDaysInRange(qStart, qEnd)
+      // Fast Path: Direct Segment Tree O(log N) leaf range query without date object creation
+      if (hasTree && i < segmentTreeSize) {
+        const endIdx = Math.min(segmentTreeSize - 1, i + 364)
+        days = segmentTree.value.query(i, endIdx)
+      } else {
+        const windowStart = new Date(vStart.getTime() + i * 86400000)
+        const windowEnd = new Date(vStart.getTime() + (i + 364) * 86400000)
+        const qStart = windowStart < vStart ? vStart : windowStart
+        const qEnd = windowEnd > targetDate ? targetDate : windowEnd
+        days = queryAbsentDaysInRange(qStart, qEnd)
+      }
 
       if (days > maxDays) {
         maxDays = days
-        peakStart = windowStart
-        peakEnd = windowEnd
+        peakStart = new Date(vStart.getTime() + i * 86400000)
+        peakEnd = new Date(vStart.getTime() + (i + 364) * 86400000)
       }
-    }
-
-    const formatDateStr = (d) => {
-      const y = d.getUTCFullYear()
-      const m = String(d.getUTCMonth() + 1).padStart(2, '0')
-      const day = String(d.getUTCDate()).padStart(2, '0')
-      return `${y}-${m}-${day}`
     }
 
     return {
       maxDays,
-      peakStartDate: formatDateStr(peakStart),
-      peakEndDate: formatDateStr(peakEnd),
+      peakStartDate: formatDateUTC(peakStart),
+      peakEndDate: formatDateUTC(peakEnd),
     }
   })
 
-  /**
-   * Maximum absent days in any rolling 12-month window.
-   */
   const max12MonthAbsence = computed(() => max12MonthAbsenceInfo.value.maxDays)
 
-  /**
-   * Calculates the 5-year target settlement date (YYYY-MM-DD) from visaStartDate.
-   */
+  /** Calculates the 5-year target settlement date (YYYY-MM-DD) from visaStartDate. */
   const settlementTargetDate = computed(() => {
     if (!visaStartDate.value) return ''
     const vStart = parseDateUTC(visaStartDate.value)
     if (!vStart) return ''
     const target = new Date(vStart)
     target.setUTCFullYear(target.getUTCFullYear() + 5)
-    const y = target.getUTCFullYear()
-    const m = String(target.getUTCMonth() + 1).padStart(2, '0')
-    const day = String(target.getUTCDate()).padStart(2, '0')
-    return `${y}-${m}-${day}`
+    return formatDateUTC(target)
   })
 
-  /**
-   * Calculates the earliest date (YYYY-MM-DD) when an ILR application can be submitted.
-   * Under UK Home Office rules, an ILR application can be submitted up to 28 days before completing 5 years.
-   */
+  /** Calculates earliest ILR application date (28 days prior to 5 years). */
   const earliestIlrApplicationDate = computed(() => {
     if (!visaStartDate.value) return ''
     const vStart = parseDateUTC(visaStartDate.value)
@@ -677,15 +420,9 @@ export const useAbsentsStore = defineStore('absents', () => {
     const target = new Date(vStart)
     target.setUTCFullYear(target.getUTCFullYear() + 5)
     target.setUTCDate(target.getUTCDate() - 28)
-    const y = target.getUTCFullYear()
-    const m = String(target.getUTCMonth() + 1).padStart(2, '0')
-    const day = String(target.getUTCDate()).padStart(2, '0')
-    return `${y}-${m}-${day}`
+    return formatDateUTC(target)
   })
 
-  /**
-   * Returns UI status color ('error', 'warning', 'success') based on peak rolling 12-month absence.
-   */
   const ruleStatusColor = computed(() => {
     const days = max12MonthAbsence.value
     if (days > 180) return 'error'
@@ -693,18 +430,8 @@ export const useAbsentsStore = defineStore('absents', () => {
     return 'success'
   })
 
-  /**
-   * Boolean indicating whether the 180-day rolling limit has been exceeded.
-   */
   const isRuleExceeded = computed(() => max12MonthAbsence.value > 180)
 
-  // ---------------------------------------------------------------------------
-  // Section 1: ILR / Settlement (5-Year BNO Route) Getters
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Total absent days across the 5-year BNO visa period [visaStartDate, visaStartDate + 5 years].
-   */
   const ilr5YearTotalAbsence = computed(() => {
     if (!visaStartDate.value || !settlementTargetDate.value) return 0
     return queryAbsentDaysInRange(visaStartDate.value, settlementTargetDate.value)
@@ -714,18 +441,10 @@ export const useAbsentsStore = defineStore('absents', () => {
   // Section 2: Naturalisation / British Citizenship Getters
   // ---------------------------------------------------------------------------
 
-  /**
-   * Helper to check if a UTC Date object falls on a full absent day outside the UK.
-   * Departure and return dates are partially spent in the UK and are NOT absent days.
-   * Utilizes the Segment Tree (O(log N)) when available for fast lookup.
-   *
-   * @param {Date} dateObj
-   * @returns {boolean}
-   */
+  /** Checks if a UTC Date object falls on a full absent day outside the UK. */
   function isAbsentDay(dateObj) {
     if (!dateObj || isNaN(dateObj.getTime())) return false
 
-    // Fast Path: Utilize Segment Tree leaf query if available
     if (segmentTree.value && visaStartDate.value && segmentTreeSize > 0) {
       const vStart = parseDateUTC(visaStartDate.value)
       if (vStart) {
@@ -753,22 +472,7 @@ export const useAbsentsStore = defineStore('absents', () => {
 
   /**
    * Comprehensive validation and calculation of the 5-year qualifying period for British Citizenship.
-   *
-   * 1. Baseline Earliest Date calculation:
-   *    - If ilrApprovedDate is set: baseline target date = ilrApprovedDate + 1 year (window start = ilrApprovedDate - 4 years).
-   *    - Else (from visaStartDate): baseline target date = visaStartDate + 6 years (window start = visaStartDate + 1 year).
-   *
-   * 2. Automatic Shifting:
-   *    - Evaluates candidate 5-year qualifying period [D, D + 5 years] day-by-day starting from baseline window start.
-   *    - Must satisfy 3 criteria:
-   *      a) Applicant must be physically present in the UK on window start date D (!isAbsentDay(D)).
-   *      b) Total absent days in [D, D + 5 years] <= 450 days.
-   *      c) Total absent days in final 12 months [(D + 5 years) - 1 year, D + 5 years] <= 90 days.
-   *    - Shifts forward day-by-day to find the earliest valid period [D*, T*].
-   *
-   * 3. 10-Year Deadline Check:
-   *    - Deadline = visaStartDate + 10 years.
-   *    - If T* > deadline (or no valid window exists within 10 years), is10YearExceeded = true.
+   * Utilizes Segment Tree range queries during day-by-day shifting evaluation.
    */
   const naturalizationQualifyingPeriod = computed(() => {
     if (!visaStartDate.value && !ilrApprovedDate.value) {
@@ -820,7 +524,6 @@ export const useAbsentsStore = defineStore('absents', () => {
     }
     const tenYearDeadlineStr = tenYearDeadline ? formatDateUTC(tenYearDeadline) : ''
 
-    // Day-by-day search for earliest valid 5-year qualifying window
     let currentStart = new Date(baselineStart)
     let safetyCounter = 0
     let foundValid = false
@@ -838,33 +541,30 @@ export const useAbsentsStore = defineStore('absents', () => {
       const final12MoStartDate = new Date(targetDate)
       final12MoStartDate.setUTCFullYear(final12MoStartDate.getUTCFullYear() - 1)
 
-      const cStartStr = formatDateUTC(currentStart)
-      const cTargetStr = formatDateUTC(targetDate)
-      const c12MoStartStr = formatDateUTC(final12MoStartDate)
-
       const isAbsentOnStart = isAbsentDay(currentStart)
-      const f5 = queryAbsentDaysInRange(cStartStr, cTargetStr)
-      const f12 = queryAbsentDaysInRange(c12MoStartStr, cTargetStr)
+      // Pass Date objects directly to queryAbsentDaysInRange to leverage Segment Tree indexing without intermediate string parsing
+      const f5 = queryAbsentDaysInRange(currentStart, targetDate)
+      const f12 = queryAbsentDaysInRange(final12MoStartDate, targetDate)
 
       if (safetyCounter === 0) {
-        if (isAbsentOnStart) initialViolations.push('Physical presence requirement on window start date')
+        if (isAbsentOnStart)
+          initialViolations.push('Physical presence requirement on window start date')
         if (f5 > 450) initialViolations.push('5-year absence limit (> 450 days)')
         if (f12 > 90) initialViolations.push('Final 12-month absence limit (> 90 days)')
       }
 
       if (!isAbsentOnStart && f5 <= 450 && f12 <= 90) {
         foundValid = true
-        finalStartStr = cStartStr
-        finalTargetStr = cTargetStr
+        finalStartStr = formatDateUTC(currentStart)
+        finalTargetStr = formatDateUTC(targetDate)
         fiveYearAbs = f5
         final12MoAbs = f12
         break
       }
 
-      // If we've passed the 10-year deadline and still haven't found a valid window, stop search
       if (tenYearDeadline && targetDate > tenYearDeadline) {
-        finalStartStr = cStartStr
-        finalTargetStr = cTargetStr
+        finalStartStr = formatDateUTC(currentStart)
+        finalTargetStr = formatDateUTC(targetDate)
         fiveYearAbs = f5
         final12MoAbs = f12
         break
@@ -919,9 +619,6 @@ export const useAbsentsStore = defineStore('absents', () => {
     () => naturalizationQualifyingPeriod.value?.final12MoAbsence || 0,
   )
 
-  /**
-   * Overall status color ('success', 'warning', 'error') for Naturalisation eligibility.
-   */
   const naturalizationStatusColor = computed(() => {
     if (isNaturalization10YearExceeded.value) return 'error'
     if (isNaturalizationWindowShifted.value) return 'warning'
@@ -931,51 +628,25 @@ export const useAbsentsStore = defineStore('absents', () => {
     return 'success'
   })
 
-  /**
-   * Boolean indicating if user is eligible for Naturalisation based on absence limits.
-   */
   const isNaturalizationEligible = computed(() => !isNaturalization10YearExceeded.value)
 
   // ---------------------------------------------------------------------------
-  // Actions
+  // Actions & Helper Algorithms
   // ---------------------------------------------------------------------------
 
-  /**
-   * Sets or updates the BNO Visa start date.
-   *
-   * @param {string} dateStr - Date string in 'YYYY-MM-DD' format.
-   */
   function setVisaStartDate(dateStr) {
     visaStartDate.value = dateStr || ''
     rebuildSegmentTree()
   }
 
-  /**
-   * Sets or updates the UK Arrival Date.
-   *
-   * @param {string} dateStr - Date string in 'YYYY-MM-DD' format.
-   */
   function setUkArrivalDate(dateStr) {
     ukArrivalDate.value = dateStr || ''
   }
 
-  /**
-   * Sets or updates the ILR Approved Date.
-   *
-   * @param {string} dateStr - Date string in 'YYYY-MM-DD' format.
-   */
   function setIlrApprovedDate(dateStr) {
     ilrApprovedDate.value = dateStr || ''
   }
 
-  /**
-   * Sets or updates key travel, visa, and settlement dates.
-   *
-   * @param {Object} payload
-   * @param {string} payload.visaStartDate
-   * @param {string} [payload.ukArrivalDate]
-   * @param {string} [payload.ilrApprovedDate]
-   */
   function setVisaAndArrivalDates({
     visaStartDate: vStart,
     ukArrivalDate: uArrival,
@@ -988,13 +659,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
-   * Helper algorithm to calculate full absent days within [qStart, qEnd]
-   * by intersecting and merging trip intervals. Used as a fallback when segment tree is unavailable
-   * or for query date sub-ranges falling outside segment tree array boundaries.
-   *
-   * @param {Date} qStart - UTC start date.
-   * @param {Date} qEnd - UTC end date.
-   * @returns {number} Total distinct full days absent.
+   * Helper algorithm to calculate full absent days within [qStart, qEnd] by merging intervals.
    */
   function calculateIntervalAbsences(qStart, qEnd) {
     if (!qStart || !qEnd || isNaN(qStart.getTime()) || isNaN(qEnd.getTime()) || qEnd < qStart) {
@@ -1049,14 +714,8 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
-   * Efficiently queries the number of absent days within any arbitrary date range [startDate, endDate].
-   * Utilizes the Segment Tree (O(log N)) whenever possible for lightning-fast range sum calculation.
-   * Excludes departure and return days of each trip per Home Office full-day absence rules.
-   *
-   * @param {string|Date} startDate - Query range start date.
-   * @param {string|Date} endDate - Query range end date.
-   * @param {boolean} [excludeEndpoints=false] - Optional flag to trim boundary start/end days from the query range.
-   * @returns {number} Total distinct full absent days spent outside the UK within the queried range.
+   * Queries absent days within any date range [startDate, endDate].
+   * Utilizes Segment Tree (O(log N)) when available.
    */
   function queryAbsentDaysInRange(startDate, endDate, excludeEndpoints = false) {
     const _v = segmentTreeVersion.value
@@ -1067,26 +726,22 @@ export const useAbsentsStore = defineStore('absents', () => {
     if (!qStart || !qEnd || isNaN(qStart.getTime()) || isNaN(qEnd.getTime()) || qEnd < qStart)
       return 0
 
-    // Optionally exclude query range endpoint dates (used for strict interior window queries)
     if (excludeEndpoints) {
       qStart = new Date(qStart.getTime() + 86400000)
       qEnd = new Date(qEnd.getTime() - 86400000)
       if (qEnd < qStart) return 0
     }
 
-    // Fast Path: Utilize Segment Tree range sum query when available and visaStartDate is set
     if (segmentTree.value && visaStartDate.value && segmentTreeSize > 0) {
       const vStart = parseDateUTC(visaStartDate.value)
       if (vStart) {
         const qStartIdx = Math.round((qStart.getTime() - vStart.getTime()) / 86400000)
         const qEndIdx = Math.round((qEnd.getTime() - vStart.getTime()) / 86400000)
 
-        // Case 1: Entire query range falls within segment tree coverage [0, segmentTreeSize - 1]
         if (qStartIdx >= 0 && qEndIdx < segmentTreeSize) {
           return segmentTree.value.query(qStartIdx, qEndIdx)
         }
 
-        // Case 2: Query range overlaps segment tree coverage
         const inStart = Math.max(0, qStartIdx)
         const inEnd = Math.min(segmentTreeSize - 1, qEndIdx)
 
@@ -1095,7 +750,6 @@ export const useAbsentsStore = defineStore('absents', () => {
           total += segmentTree.value.query(inStart, inEnd)
         }
 
-        // Add pre-segment tree range absences (before visa start date)
         if (qStartIdx < 0) {
           const endBefore = new Date(vStart.getTime() - 86400000)
           if (qStart <= endBefore) {
@@ -1103,7 +757,6 @@ export const useAbsentsStore = defineStore('absents', () => {
           }
         }
 
-        // Add post-segment tree range absences (after 10 years from visa start date)
         if (qEndIdx >= segmentTreeSize) {
           const startAfter = new Date(vStart.getTime() + segmentTreeSize * 86400000)
           if (startAfter <= qEnd) {
@@ -1115,19 +768,11 @@ export const useAbsentsStore = defineStore('absents', () => {
       }
     }
 
-    // Fallback: Calculate absences using interval merging when segment tree is unavailable
     return calculateIntervalAbsences(qStart, qEnd)
   }
 
   /**
-   * Validates whether an absence record satisfies date boundary constraints:
-   * 1. Departure date must not be earlier than visa start date or UK arrival date.
-   * 2. Return date must be within range segment tree can handle (no later than 10 years from visa start date).
-   *
-   * @param {Object} record
-   * @param {string} record.startDate - Departure date (YYYY-MM-DD).
-   * @param {string} record.endDate - Return date (YYYY-MM-DD).
-   * @returns {{ valid: boolean, error: string }}
+   * Validates whether an absence record satisfies date boundary constraints.
    */
   function validateAbsence({ startDate, endDate }) {
     if (!startDate || !endDate) {
@@ -1160,15 +805,6 @@ export const useAbsentsStore = defineStore('absents', () => {
     return { valid: true, error: '' }
   }
 
-  /**
-   * Adds a new absence entry to the store and incrementally updates the segment tree in O(D log N) time.
-   *
-   * @param {Object} payload - The absence details.
-   * @param {string} payload.startDate - Start date string (YYYY-MM-DD).
-   * @param {string} payload.endDate - End date string (YYYY-MM-DD).
-   * @param {string} [payload.dest=''] - Destination or reason for the absence.
-   * @returns {Object} The created absence entry object.
-   */
   function addAbsence({ startDate, endDate, dest = '' }) {
     const validation = validateAbsence({ startDate, endDate })
     if (!validation.valid) {
@@ -1176,9 +812,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     }
 
     const newEntry = {
-      id: crypto.randomUUID
-        ? crypto.randomUUID()
-        : Date.now().toString(36) + Math.random().toString(36).substring(2),
+      id: generateId(),
       startDate,
       endDate,
       dest,
@@ -1186,19 +820,11 @@ export const useAbsentsStore = defineStore('absents', () => {
     }
     absences.value.push(newEntry)
     sortAbsencesArray(absences.value)
-
-    // Incremental segment tree update (NO full rebuild)
     addRecordToSegmentTree(newEntry)
 
     return newEntry
   }
 
-  /**
-   * Updates an existing absence record by its ID and incrementally updates the segment tree.
-   *
-   * @param {string} id - The unique identifier of the absence entry to update.
-   * @param {Object} updatedFields - Object containing the fields to update (e.g. startDate, endDate, dest).
-   */
   function updateAbsence(id, updatedFields) {
     const index = absences.value.findIndex((item) => item.id === id)
     if (index !== -1) {
@@ -1223,18 +849,11 @@ export const useAbsentsStore = defineStore('absents', () => {
 
       absences.value[index] = mergedRecord
       sortAbsencesArray(absences.value)
-
-      // Incremental segment tree updates: remove old range, add new range (NO full rebuild)
       removeRecordFromSegmentTree(oldRecord)
       addRecordToSegmentTree(absences.value[index])
     }
   }
 
-  /**
-   * Removes an absence record by its unique ID and incrementally updates the segment tree.
-   *
-   * @param {string} id - The unique identifier of the absence entry to remove.
-   */
   function removeAbsence(id) {
     const index = absences.value.findIndex((item) => item.id === id)
     if (index !== -1) {
@@ -1245,16 +864,11 @@ export const useAbsentsStore = defineStore('absents', () => {
       }
 
       const targetRecord = absences.value[index]
-      // Incremental segment tree update (NO full rebuild)
       removeRecordFromSegmentTree(targetRecord)
-
       absences.value.splice(index, 1)
     }
   }
 
-  /**
-   * Resets all absence data, key travel/visa dates, and segment tree.
-   */
   function clearAbsences() {
     absences.value = []
     visaStartDate.value = ''
@@ -1264,108 +878,31 @@ export const useAbsentsStore = defineStore('absents', () => {
     rebuildSegmentTree()
   }
 
-  /**
-   * Exports key travel/visa dates and user absence records to a YAML string.
-   *
-   * @returns {string} YAML formatted string containing visa_start_date, uk_arrival_date, ilr_approved_date, and absences.
-   */
+  /** Exports key dates and absence records to a YAML string. */
   function exportYAML() {
-    const userAbsences = absences.value
-      .filter((item) => !item.isAutoArrival && item.id !== 'auto_uk_arrival_record')
-      .map((item) => ({
-        startDate: item.startDate,
-        endDate: item.endDate,
-        dest: item.dest || '',
-      }))
-
-    const doc = new Document()
-    doc.commentBefore = ' BNO 5+1 Absence Tracker - Data Export\n Format for all date fields: YYYY-MM-DD'
-
-    const contentMap = doc.createNode({
-      visa_start_date: visaStartDate.value || '',
-      uk_arrival_date: ukArrivalDate.value || '',
-      ilr_approved_date: ilrApprovedDate.value || '',
-      absences: userAbsences,
+    return exportAbsencesBackup({
+      absences: absences.value,
+      visaStartDate: visaStartDate.value,
+      ukArrivalDate: ukArrivalDate.value,
+      ilrApprovedDate: ilrApprovedDate.value,
     })
-
-    if (contentMap && contentMap.items) {
-      contentMap.items.forEach((pair, idx) => {
-        const k = pair.key && pair.key.value !== undefined ? pair.key.value : pair.key
-        if (k === 'visa_start_date') {
-          pair.key.commentBefore = ' BNO Visa Start Date (YYYY-MM-DD)'
-        } else if (k === 'uk_arrival_date') {
-          pair.key.commentBefore = ' First UK Arrival Date under BNO Visa (YYYY-MM-DD)'
-        } else if (k === 'ilr_approved_date') {
-          pair.key.commentBefore = ' ILR Approved Date, if applicable (YYYY-MM-DD)'
-        } else if (k === 'absences') {
-          pair.key.commentBefore = ' List of UK Absences (Travel History)'
-        }
-        if (idx > 0) {
-          pair.key.spaceBefore = true
-        }
-      })
-    }
-
-    doc.contents = contentMap
-
-    return doc.toString()
   }
 
-  /**
-   * Imports absence records and visa/arrival dates from a YAML string.
-   *
-   * @param {string} yamlString - Raw YAML text content to import.
-   * @returns {{ count: number, visaStartDate: string, ukArrivalDate: string, ilrApprovedDate: string }} Summary of imported data.
-   */
+  /** Imports absence records and visa/arrival dates from a YAML string. */
   function importYAML(yamlString) {
-    if (!yamlString || typeof yamlString !== 'string') {
-      throw new Error('Invalid YAML file input.')
-    }
+    const parsed = parseYAML(yamlString)
 
-    let parsed
-    try {
-      parsed = parse(yamlString)
-    } catch (e) {
-      throw new Error('Failed to parse YAML file: ' + e.message)
-    }
-
-    if (!parsed || typeof parsed !== 'object') {
-      throw new Error('Parsed YAML content is empty or invalid.')
-    }
-
-    function normalizeYYYYMMDD(val) {
-      if (!val) return ''
-      if (val instanceof Date) {
-        if (isNaN(val.getTime())) return ''
-        const y = val.getUTCFullYear()
-        const m = String(val.getUTCMonth() + 1).padStart(2, '0')
-        const d = String(val.getUTCDate()).padStart(2, '0')
-        return `${y}-${m}-${d}`
-      }
-      if (typeof val === 'string') {
-        const cleanStr = val.split('T')[0]
-        const parts = cleanStr.split('-')
-        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
-          const y = parts[0].padStart(4, '0')
-          const m = String(parts[1]).padStart(2, '0')
-          const d = String(parts[2]).padStart(2, '0')
-          return `${y}-${m}-${d}`
-        }
-      }
-      return String(val)
-    }
-
-    const importedVisaDate = normalizeYYYYMMDD(
+    const importedVisaDate = normalizeDate(
       parsed.visa_start_date || parsed.visaStartDate || parsed.visa_date || parsed.visaDate || '',
     )
-    const importedArrivalDate = normalizeYYYYMMDD(
+    const importedArrivalDate = normalizeDate(
       parsed.uk_arrival_date ||
         parsed.ukArrivalDate ||
         parsed.arrival_date ||
         parsed.arrivalDate ||
         '',
     )
-    const importedIlrApprovedDate = normalizeYYYYMMDD(
+    const importedIlrApprovedDate = normalizeDate(
       parsed.ilr_approved_date || parsed.ilrApprovedDate || parsed.ilr_date || parsed.ilrDate || '',
     )
 
@@ -1378,15 +915,13 @@ export const useAbsentsStore = defineStore('absents', () => {
     const validNewEntries = []
     for (const item of rawAbsences) {
       if (!item || typeof item !== 'object') continue
-      const startDate = normalizeYYYYMMDD(item.startDate || item.start_date || '')
-      const endDate = normalizeYYYYMMDD(item.endDate || item.end_date || '')
+      const startDate = normalizeDate(item.startDate || item.start_date || '')
+      const endDate = normalizeDate(item.endDate || item.end_date || '')
       const dest = item.dest || item.destination || item.notes || ''
 
       if (startDate && endDate) {
         validNewEntries.push({
-          id: crypto.randomUUID
-            ? crypto.randomUUID()
-            : Date.now().toString(36) + Math.random().toString(36).substring(2),
+          id: generateId(),
           startDate,
           endDate,
           dest,

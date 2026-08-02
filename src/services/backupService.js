@@ -1,0 +1,163 @@
+import { Document, parse } from 'yaml'
+
+/**
+ * Service for consolidating YAML backup generation, comment formatting, and backup parsing.
+ */
+
+/**
+ * Generates a full application YAML backup string containing absence data and document tracker state with inline comments.
+ *
+ * @param {Object} absentsStore - Pinia absents store instance.
+ * @param {Object} documentsStore - Pinia documents store instance.
+ * @returns {string} Formatted YAML backup string.
+ */
+export function exportFullBackup(absentsStore, documentsStore) {
+  const userAbsences = absentsStore.absences
+    .filter((item) => !item.isAutoArrival && item.id !== 'auto_uk_arrival_record')
+    .map((item) => ({
+      startDate: item.startDate,
+      endDate: item.endDate,
+      dest: item.dest || '',
+    }))
+
+  const doc = new Document()
+  doc.commentBefore =
+    ' BNO 5+1 Tracker - Full Data Backup\n' +
+    ' Date format for all dates: YYYY-MM-DD\n' +
+    ' Keep this file safe as a backup for your ILR & Naturalisation applications.'
+
+  const rootMap = doc.createNode({
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    visa_start_date: absentsStore.visaStartDate || '',
+    uk_arrival_date: absentsStore.ukArrivalDate || '',
+    ilr_approved_date: absentsStore.ilrApprovedDate || '',
+    absences: userAbsences,
+    documents: {
+      lifeInUk: documentsStore.lifeInUk,
+      englishTest: documentsStore.englishTest,
+      residenceChecklist: documentsStore.residenceChecklist,
+      addressHistory: documentsStore.addressHistory,
+    },
+  })
+
+  if (rootMap && rootMap.items) {
+    rootMap.items.forEach((pair, idx) => {
+      const k = pair.key && pair.key.value !== undefined ? pair.key.value : pair.key
+      if (k === 'version') {
+        pair.key.commentBefore = ' Backup Schema Version'
+      } else if (k === 'exportedAt') {
+        pair.key.commentBefore = ' ISO Timestamp when backup was generated'
+      } else if (k === 'visa_start_date') {
+        pair.key.commentBefore = ' BNO Visa Start Date (YYYY-MM-DD)'
+      } else if (k === 'uk_arrival_date') {
+        pair.key.commentBefore = ' First UK Arrival Date under BNO Visa (YYYY-MM-DD)'
+      } else if (k === 'ilr_approved_date') {
+        pair.key.commentBefore = ' ILR Approved Date (YYYY-MM-DD), if already granted'
+      } else if (k === 'absences') {
+        pair.key.commentBefore = ' List of UK Absences (Travel History Log)'
+      } else if (k === 'documents') {
+        pair.key.commentBefore = ' Document & Qualification Tracker State'
+
+        if (pair.value && pair.value.items) {
+          pair.value.items.forEach((docPair, docIdx) => {
+            const docKey =
+              docPair.key && docPair.key.value !== undefined ? docPair.key.value : docPair.key
+            if (docKey === 'lifeInUk') {
+              docPair.key.commentBefore =
+                ' Life in the UK Test Status & Reference (status: not_started | scheduled | passed)'
+            } else if (docKey === 'englishTest') {
+              docPair.key.commentBefore =
+                ' English B1 Language Requirement (type: b1_selt | uk_degree | enic_statement | exempt)'
+            } else if (docKey === 'residenceChecklist') {
+              docPair.key.commentBefore =
+                ' 5-Year Continuous Residence Evidence Checklist (Years 1 to 5)'
+            } else if (docKey === 'addressHistory') {
+              docPair.key.commentBefore =
+                ' UK Address History Log (5-Year Residential History for SET(O) / Naturalisation)'
+            }
+            if (docIdx > 0) {
+              docPair.key.spaceBefore = true
+            }
+          })
+        }
+      }
+      if (idx > 0) {
+        pair.key.spaceBefore = true
+      }
+    })
+  }
+
+  doc.contents = rootMap
+  return doc.toString()
+}
+
+/**
+ * Generates an absence-only YAML backup string.
+ *
+ * @param {Object} absentsStore - Pinia absents store instance.
+ * @returns {string} Formatted YAML string.
+ */
+export function exportAbsencesBackup(absentsStore) {
+  const userAbsences = absentsStore.absences
+    .filter((item) => !item.isAutoArrival && item.id !== 'auto_uk_arrival_record')
+    .map((item) => ({
+      startDate: item.startDate,
+      endDate: item.endDate,
+      dest: item.dest || '',
+    }))
+
+  const doc = new Document()
+  doc.commentBefore =
+    ' BNO 5+1 Absence Tracker - Data Export\n Format for all date fields: YYYY-MM-DD'
+
+  const contentMap = doc.createNode({
+    visa_start_date: absentsStore.visaStartDate || '',
+    uk_arrival_date: absentsStore.ukArrivalDate || '',
+    ilr_approved_date: absentsStore.ilrApprovedDate || '',
+    absences: userAbsences,
+  })
+
+  if (contentMap && contentMap.items) {
+    contentMap.items.forEach((pair, idx) => {
+      const k = pair.key && pair.key.value !== undefined ? pair.key.value : pair.key
+      if (k === 'visa_start_date') {
+        pair.key.commentBefore = ' BNO Visa Start Date (YYYY-MM-DD)'
+      } else if (k === 'uk_arrival_date') {
+        pair.key.commentBefore = ' First UK Arrival Date under BNO Visa (YYYY-MM-DD)'
+      } else if (k === 'ilr_approved_date') {
+        pair.key.commentBefore = ' ILR Approved Date, if applicable (YYYY-MM-DD)'
+      } else if (k === 'absences') {
+        pair.key.commentBefore = ' List of UK Absences (Travel History)'
+      }
+      if (idx > 0) {
+        pair.key.spaceBefore = true
+      }
+    })
+  }
+
+  doc.contents = contentMap
+  return doc.toString()
+}
+
+/**
+ * Parses raw YAML text into a JS object.
+ *
+ * @param {string} yamlString - Raw YAML string.
+ * @returns {Object} Parsed JS object.
+ */
+export function parseYAML(yamlString) {
+  if (!yamlString || typeof yamlString !== 'string') {
+    throw new Error('Invalid YAML input: content must be a non-empty string.')
+  }
+  let parsed
+  try {
+    parsed = parse(yamlString)
+  } catch (e) {
+    throw new Error('Failed to parse YAML file: ' + e.message)
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('Parsed YAML content is empty or invalid.')
+  }
+  return parsed
+}

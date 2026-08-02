@@ -99,6 +99,7 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 | `npm run dev` | Starts the Vite local development server with hot module reloading. |
 | `npm run build` | Compiles and bundles production assets into `dist/`. |
 | `npm run preview` | Serves the locally built `dist/` production bundle. |
+| `npm run test` | Runs the automated Node test suite for date math, segment tree, and backup service. |
 | `npm run format` | Runs Prettier to format all source files in `src/`. |
 
 ---
@@ -110,18 +111,25 @@ bno-5plus1-tracker/
 ├── public/                # Static assets and PWA icons
 ├── src/
 │   ├── assets/            # Global styles (main.css)
-│   ├── components/        # UI components
-│   │   └── ReloadPrompt.vue # PWA update prompt snackbar
+│   ├── components/        # UI components (ReloadPrompt.vue)
 │   ├── plugins/           # Vuetify 3 theme configuration (vuetify.js)
 │   ├── router/            # Vue Router routes (index.js)
+│   ├── services/          # Services & Data I/O
+│   │   └── backupService.js # YAML export/import service with node-level comments
 │   ├── stores/            # Pinia stores
-│   │   ├── absents.js     # Absence store (useAbsentsStore) & Segment Tree
+│   │   ├── absents.js     # Absence store (useAbsentsStore) & segment tree syncing
 │   │   └── documents.js   # Document store (useDocumentsStore)
+│   ├── utils/             # Helper utilities
+│   │   ├── date.js        # Centralized UTC date parsing, formatting & day math
+│   │   ├── segmentTree.js # AbsenceSegmentTree O(log N) data structure
+│   │   └── id.js          # Unique ID generator utility
 │   ├── views/             # Application views
 │   │   ├── AbsenceView.vue# Absence tracker dashboard
 │   │   └── DocumentView.vue       # Qualifications & Document tracker
 │   ├── App.vue            # Root layout with right navigation drawer
 │   └── main.js            # Vue app entrypoint
+├── tests/                 # Automated test suite
+│   └── tracker.test.js    # Unit tests for date math, segment tree & backup service
 ├── .antigravity.md        # AI Agent workspace context & guidelines
 ├── .gitlab-ci.yml         # GitLab CI/CD pipeline for GitLab Pages
 ├── index.html             # HTML entry template
@@ -129,10 +137,12 @@ bno-5plus1-tracker/
 └── vite.config.js         # Vite build configuration with Vuetify & VitePWA
 ```
 
-### Key Data Structures & Stores
+### Key Modules & Data Structures
 
-- **[AbsenceSegmentTree](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/absents.js#L29)**: 1-indexed array-backed segment tree (`Int32Array`) using standard `leftNode = 2 * node` and `rightNode = 2 * node + 1` child indexing (0th index unused), supporting $O(\log N)$ point updates and range sum queries over a 10-year period (3,653 days).
-- **[useAbsentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/absents.js#L215)**: Pinia store handling absence records, visa/arrival/ILR dates, auto-arrival record sync, and rolling calculation getters.
+- **[AbsenceSegmentTree](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/segmentTree.js)**: 1-indexed array-backed segment tree (`Int32Array`) using standard `leftNode = 2 * node` and `rightNode = 2 * node + 1` child indexing (0th index unused), supporting $O(\log N)$ point updates and range sum queries over a 10-year period (3,653 days).
+- **[date.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/date.js)**: Centralized UTC date parsing (`parseDateUTC`), formatting (`formatDateUTC`, `formatDisplayDate`), normalization (`normalizeDate`), day arithmetic (`calculateDays`, `getOneDayBefore`), and tree boundary calculations (`getMaxSegmentTreeReturnDate`).
+- **[backupService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/backupService.js)**: Consolidated YAML backup service for full application and absence-only exports with node-level comments and YAML parsing.
+- **[useAbsentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/absents.js)**: Pinia store handling absence records, visa/arrival/ILR dates, auto-arrival record sync, and rolling calculation getters.
 - **[useDocumentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/documents.js)**: Pinia store managing Life in the UK test details, English B1 qualification, 5-year continuous residence checklist, and UK address history log.
 
 ---

@@ -2,6 +2,7 @@
 import { mapStores } from 'pinia'
 import { useDocumentsStore } from '../stores/documents'
 import { useAbsentsStore } from '../stores/absents'
+import { normalizeDate } from '../utils/date'
 
 export default {
   name: 'DocumentView',
@@ -237,11 +238,9 @@ export default {
      * Saves edited notes for an evidence item to the Pinia store.
      */
     saveItemNotes() {
-      this.documentsStore.updateDocumentItem(
-        this.notesDialog.year,
-        this.notesDialog.itemId,
-        { notes: this.notesDialog.notes }
-      )
+      this.documentsStore.updateDocumentItem(this.notesDialog.year, this.notesDialog.itemId, {
+        notes: this.notesDialog.notes,
+      })
       this.notesDialog.show = false
       this.showSnackbar('Document notes saved!', 'success')
     },
@@ -299,10 +298,7 @@ export default {
       }
 
       if (this.addressDialog.editingId) {
-        this.documentsStore.updateAddress(
-          this.addressDialog.editingId,
-          this.addressDialog.form
-        )
+        this.documentsStore.updateAddress(this.addressDialog.editingId, this.addressDialog.form)
         this.showSnackbar('UK Address entry updated!', 'success')
       } else {
         this.documentsStore.addAddress(this.addressDialog.form)
@@ -417,7 +413,7 @@ export default {
       yearEnd.setFullYear(start.getFullYear() + year)
       yearEnd.setDate(yearEnd.getDate() - 1)
 
-      const formatDate = d => d.toISOString().split('T')[0]
+      const formatDate = (d) => d.toISOString().split('T')[0]
       return `${formatDate(yearStart)} to ${formatDate(yearEnd)}`
     },
 
@@ -428,22 +424,7 @@ export default {
      */
     formatDate(dateInput) {
       if (!dateInput) return '-'
-      if (typeof dateInput === 'string') {
-        const cleanStr = dateInput.split('T')[0]
-        const parts = cleanStr.split('-')
-        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
-          const y = parts[0].padStart(4, '0')
-          const m = String(parts[1]).padStart(2, '0')
-          const d = String(parts[2]).padStart(2, '0')
-          return `${y}-${m}-${d}`
-        }
-      }
-      const date = dateInput instanceof Date ? dateInput : new Date(dateInput)
-      if (isNaN(date.getTime())) return String(dateInput)
-      const y = date.getUTCFullYear()
-      const m = String(date.getUTCMonth() + 1).padStart(2, '0')
-      const d = String(date.getUTCDate()).padStart(2, '0')
-      return `${y}-${m}-${d}`
+      return normalizeDate(dateInput) || String(dateInput)
     },
   },
 }
@@ -469,7 +450,9 @@ export default {
         </v-chip>
       </v-card-title>
       <p class="text-body-2 text-medium-emphasis ma-0">
-        Manage your <strong>Life in the UK Test</strong>, <strong>English B1 Qualification</strong>, <strong>5-Year Residence Proof</strong>, and <strong>UK Address History Log</strong> for ILR & Citizenship. (Unofficial 3rd-Party Tool)
+        Manage your <strong>Life in the UK Test</strong>, <strong>English B1 Qualification</strong>,
+        <strong>5-Year Residence Proof</strong>, and <strong>UK Address History Log</strong> for ILR
+        & Citizenship. (Unofficial 3rd-Party Tool)
       </p>
 
       <v-alert
@@ -479,7 +462,9 @@ export default {
         class="mt-3 text-caption"
         density="compact"
       >
-        <strong>Local Storage Notice:</strong> All data input (test certificates, reference numbers, address history, checklists) is saved strictly locally on your device in browser <code>localStorage</code>. No data is uploaded or transmitted to external servers.
+        <strong>Local Storage Notice:</strong> All data input (test certificates, reference numbers,
+        address history, checklists) is saved strictly locally on your device in browser
+        <code>localStorage</code>. No data is uploaded or transmitted to external servers.
       </v-alert>
 
       <v-alert
@@ -489,7 +474,9 @@ export default {
         class="mt-2 text-caption"
         density="compact"
       >
-        <strong>Unofficial 3rd-Party Application:</strong> Provided for personal tracking only. Not affiliated with or endorsed by the UK Home Office or UK Government. Always verify requirements against official UK Home Office guidance before applying.
+        <strong>Unofficial 3rd-Party Application:</strong> Provided for personal tracking only. Not
+        affiliated with or endorsed by the UK Home Office or UK Government. Always verify
+        requirements against official UK Home Office guidance before applying.
       </v-alert>
 
       <!-- Overall Readiness Metric Banner -->
@@ -512,7 +499,8 @@ export default {
                 {{ overallReadinessPercent === 100 ? 'Ready for Application 🎉' : 'In Progress' }}
               </div>
               <div class="text-caption text-medium-emphasis">
-                {{ residenceStats.collectedItems }} of {{ residenceStats.totalItems }} proof items collected
+                {{ residenceStats.collectedItems }} of {{ residenceStats.totalItems }} proof items
+                collected
               </div>
             </div>
           </div>
@@ -522,7 +510,11 @@ export default {
           <v-row density="compact">
             <!-- Life in UK Quick Summary -->
             <v-col cols="12" sm="3">
-              <v-card variant="tonal" :color="getStatusColor(lifeInUk.status)" class="pa-3 rounded-lg">
+              <v-card
+                variant="tonal"
+                :color="getStatusColor(lifeInUk.status)"
+                class="pa-3 rounded-lg"
+              >
                 <div class="d-flex align-center justify-space-between mb-1">
                   <span class="text-caption font-weight-bold">Life in the UK</span>
                   <v-icon icon="mdi-book-education-outline" size="small"></v-icon>
@@ -535,7 +527,11 @@ export default {
 
             <!-- English B1 Quick Summary -->
             <v-col cols="12" sm="3">
-              <v-card variant="tonal" :color="getStatusColor(englishTest.status)" class="pa-3 rounded-lg">
+              <v-card
+                variant="tonal"
+                :color="getStatusColor(englishTest.status)"
+                class="pa-3 rounded-lg"
+              >
                 <div class="d-flex align-center justify-space-between mb-1">
                   <span class="text-caption font-weight-bold">English B1</span>
                   <v-icon icon="mdi-translate" size="small"></v-icon>
@@ -561,7 +557,11 @@ export default {
 
             <!-- Address History Quick Summary -->
             <v-col cols="12" sm="3">
-              <v-card variant="tonal" :color="addressHistory.length > 0 ? 'success' : 'grey'" class="pa-3 rounded-lg">
+              <v-card
+                variant="tonal"
+                :color="addressHistory.length > 0 ? 'success' : 'grey'"
+                class="pa-3 rounded-lg"
+              >
                 <div class="d-flex align-center justify-space-between mb-1">
                   <span class="text-caption font-weight-bold">UK Addresses</span>
                   <v-icon icon="mdi-home-city-outline" size="small"></v-icon>
@@ -585,13 +585,19 @@ export default {
             <v-icon icon="mdi-book-open-page-variant" color="primary"></v-icon>
             <span class="text-h5 font-weight-bold">Life in the UK Test</span>
             <v-spacer></v-spacer>
-            <v-chip :color="getStatusColor(lifeForm.status)" size="small" variant="flat" class="font-weight-bold">
+            <v-chip
+              :color="getStatusColor(lifeForm.status)"
+              size="small"
+              variant="flat"
+              class="font-weight-bold"
+            >
               {{ getStatusText(lifeForm.status) }}
             </v-chip>
           </v-card-title>
           <v-card-text class="px-0 pb-0">
             <p class="text-caption text-medium-emphasis mb-4">
-              Mandatory test on British customs, history, and government for ILR & Naturalisation applications.
+              Mandatory test on British customs, history, and government for ILR & Naturalisation
+              applications.
             </p>
 
             <div class="mb-4">
@@ -606,7 +612,9 @@ export default {
               >
                 <v-btn value="not_started" class="flex-grow-1" size="small">Not Started</v-btn>
                 <v-btn value="scheduled" class="flex-grow-1" size="small">Scheduled</v-btn>
-                <v-btn value="passed" class="flex-grow-1" color="success" size="small">Passed</v-btn>
+                <v-btn value="passed" class="flex-grow-1" color="success" size="small"
+                  >Passed</v-btn
+                >
               </v-btn-toggle>
             </div>
 
@@ -671,7 +679,12 @@ export default {
             <v-icon icon="mdi-translate" color="primary"></v-icon>
             <span class="text-h5 font-weight-bold">English Language (B1)</span>
             <v-spacer></v-spacer>
-            <v-chip :color="getStatusColor(englishForm.status)" size="small" variant="flat" class="font-weight-bold">
+            <v-chip
+              :color="getStatusColor(englishForm.status)"
+              size="small"
+              variant="flat"
+              class="font-weight-bold"
+            >
               {{ englishForm.type === 'exempt' ? 'Exempt' : getStatusText(englishForm.status) }}
             </v-chip>
           </v-card-title>
@@ -688,7 +701,7 @@ export default {
                     { title: 'B1 SELT Speaking & Listening Test', value: 'b1_selt' },
                     { title: 'UK Degree / Degree Taught in English', value: 'uk_degree' },
                     { title: 'Ecctis / ENIC Statement', value: 'enic_statement' },
-                    { title: 'Exemption (Age 65+ / Medical)', value: 'exempt' }
+                    { title: 'Exemption (Age 65+ / Medical)', value: 'exempt' },
                   ]"
                   label="Qualification Pathway"
                   variant="outlined"
@@ -702,7 +715,14 @@ export default {
               <v-col cols="12" sm="6">
                 <v-select
                   v-model="englishForm.provider"
-                  :items="['Trinity College London', 'IELTS SELT Consortium', 'LanguageCert', 'Pearson (PTE Academic UKVI)', 'PSI Services (UKVI)', 'Other']"
+                  :items="[
+                    'Trinity College London',
+                    'IELTS SELT Consortium',
+                    'LanguageCert',
+                    'Pearson (PTE Academic UKVI)',
+                    'PSI Services (UKVI)',
+                    'Other',
+                  ]"
                   label="Test Provider / Institution"
                   variant="outlined"
                   density="compact"
@@ -725,7 +745,9 @@ export default {
               >
                 <v-btn value="not_started" class="flex-grow-1" size="small">Not Started</v-btn>
                 <v-btn value="scheduled" class="flex-grow-1" size="small">Scheduled</v-btn>
-                <v-btn value="passed" class="flex-grow-1" color="success" size="small">Passed / Verified</v-btn>
+                <v-btn value="passed" class="flex-grow-1" color="success" size="small"
+                  >Passed / Verified</v-btn
+                >
               </v-btn-toggle>
             </div>
 
@@ -779,18 +801,23 @@ export default {
       <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
         <v-icon icon="mdi-home-city-outline" color="primary"></v-icon>
         <span class="text-h5 font-weight-bold">UK Address History</span>
-        <v-chip size="x-small" color="info" variant="tonal" class="font-weight-medium">Optional - Reference Only</v-chip>
+        <v-chip size="x-small" color="info" variant="tonal" class="font-weight-medium"
+          >Optional - Reference Only</v-chip
+        >
       </v-card-title>
 
       <v-card-text class="px-0 pb-0">
         <p class="text-caption text-medium-emphasis mb-4">
-          Reference record for Home Office SET(O) ILR & Naturalisation applications covering your 5-year UK residence.
+          Reference record for Home Office SET(O) ILR & Naturalisation applications covering your
+          5-year UK residence.
         </p>
 
         <div v-if="addressHistory.length === 0" class="text-center py-6 text-medium-emphasis">
           <v-icon icon="mdi-map-marker-off-outline" size="large" class="mb-2"></v-icon>
           <div class="text-subtitle-2 font-weight-bold">No UK addresses logged yet.</div>
-          <div class="text-caption mb-3">Click "Add Address Entry" below to log your residential history.</div>
+          <div class="text-caption mb-3">
+            Click "Add Address Entry" below to log your residential history.
+          </div>
         </div>
 
         <v-table v-else density="comfortable" hover class="border rounded-lg">
@@ -806,7 +833,7 @@ export default {
           </thead>
           <tbody>
             <tr v-for="item in addressHistory" :key="item.id">
-              <td class="text-left" style="white-space: nowrap;">
+              <td class="text-left" style="white-space: nowrap">
                 <v-chip
                   size="small"
                   variant="tonal"
@@ -818,7 +845,7 @@ export default {
                 </v-chip>
               </td>
 
-              <td class="text-left" style="white-space: nowrap;">
+              <td class="text-left" style="white-space: nowrap">
                 <v-chip
                   v-if="item.isCurrent"
                   size="small"
@@ -850,13 +877,16 @@ export default {
                 </div>
               </td>
 
-              <td class="d-none d-sm-table-cell" style="width: 150px;">
+              <td class="d-none d-sm-table-cell" style="width: 150px">
                 <v-chip size="small" variant="tonal" color="secondary">
                   {{ getHousingStatusText(item.housingStatus) }}
                 </v-chip>
               </td>
 
-              <td class="d-none d-md-table-cell text-caption text-medium-emphasis" style="max-width: 200px;">
+              <td
+                class="d-none d-md-table-cell text-caption text-medium-emphasis"
+                style="max-width: 200px"
+              >
                 <div class="text-truncate">
                   {{ item.notes || 'No notes' }}
                 </div>
@@ -892,12 +922,7 @@ export default {
         </v-table>
 
         <div class="d-flex justify-end mt-3">
-          <v-btn
-            color="primary"
-            prepend-icon="mdi-plus"
-            size="small"
-            @click="openAddAddressDialog"
-          >
+          <v-btn color="primary" prepend-icon="mdi-plus" size="small" @click="openAddAddressDialog">
             Add Address Entry
           </v-btn>
         </div>
@@ -915,7 +940,11 @@ export default {
         <p class="text-caption text-medium-emphasis mb-4">
           Proof of presence in the UK for every year of the 5-year qualifying period.
         </p>
-        <v-expansion-panels v-model="activeYearPanel" multiple class="mt-3 border rounded-lg overflow-hidden">
+        <v-expansion-panels
+          v-model="activeYearPanel"
+          multiple
+          class="mt-3 border rounded-lg overflow-hidden"
+        >
           <v-expansion-panel
             v-for="year in [1, 2, 3, 4, 5]"
             :key="year"
@@ -941,13 +970,14 @@ export default {
                 <div class="d-flex align-center ga-3">
                   <div class="text-right d-none d-sm-block">
                     <span class="text-caption font-weight-bold">
-                      {{ residenceStats.perYear[year]?.collected || 0 }} / {{ residenceStats.perYear[year]?.total || 0 }} Items
+                      {{ residenceStats.perYear[year]?.collected || 0 }} /
+                      {{ residenceStats.perYear[year]?.total || 0 }} Items
                     </span>
                     <v-progress-linear
                       :model-value="residenceStats.perYear[year]?.percent || 0"
                       color="success"
                       height="5"
-                      style="width: 100px;"
+                      style="width: 100px"
                       rounded
                     ></v-progress-linear>
                   </div>
@@ -966,7 +996,8 @@ export default {
             <v-expansion-panel-text class="pt-2 px-2 px-sm-4">
               <div class="d-flex align-center justify-space-between mb-3 ga-2 flex-wrap">
                 <div class="text-caption text-medium-emphasis">
-                  Collect items like Council Tax, P60s, utility bills, bank statements, or tenancy agreements covering Year {{ year }}.
+                  Collect items like Council Tax, P60s, utility bills, bank statements, or tenancy
+                  agreements covering Year {{ year }}.
                 </div>
                 <v-btn
                   color="primary"
@@ -991,11 +1022,8 @@ export default {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    v-for="item in residenceChecklist[year] || []"
-                    :key="item.id"
-                  >
-                    <td style="width: 140px;">
+                  <tr v-for="item in residenceChecklist[year] || []" :key="item.id">
+                    <td style="width: 140px">
                       <v-menu location="bottom start">
                         <template v-slot:activator="{ props }">
                           <v-chip
@@ -1014,10 +1042,14 @@ export default {
                             <v-list-item-title class="text-caption">Pending</v-list-item-title>
                           </v-list-item>
                           <v-list-item @click="updateItemStatus(year, item.id, 'collected')">
-                            <v-list-item-title class="text-caption text-info font-weight-bold">Collected</v-list-item-title>
+                            <v-list-item-title class="text-caption text-info font-weight-bold"
+                              >Collected</v-list-item-title
+                            >
                           </v-list-item>
                           <v-list-item @click="updateItemStatus(year, item.id, 'verified')">
-                            <v-list-item-title class="text-caption text-success font-weight-bold">Verified</v-list-item-title>
+                            <v-list-item-title class="text-caption text-success font-weight-bold"
+                              >Verified</v-list-item-title
+                            >
                           </v-list-item>
                         </v-list>
                       </v-menu>
@@ -1036,7 +1068,10 @@ export default {
                       </v-chip>
                     </td>
 
-                    <td class="d-none d-md-table-cell text-caption text-medium-emphasis" style="max-width: 220px;">
+                    <td
+                      class="d-none d-md-table-cell text-caption text-medium-emphasis"
+                      style="max-width: 220px"
+                    >
                       <div class="text-truncate">
                         {{ item.notes || 'No notes added' }}
                       </div>
@@ -1192,7 +1227,8 @@ export default {
           Delete Address Record?
         </v-card-title>
         <v-card-text class="px-0 py-2">
-          Are you sure you want to delete <strong>{{ deleteAddressDialog.addressLine1 }}</strong>?
+          Are you sure you want to delete <strong>{{ deleteAddressDialog.addressLine1 }}</strong
+          >?
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
           <v-btn variant="text" @click="deleteAddressDialog.show = false">Cancel</v-btn>
@@ -1255,7 +1291,12 @@ export default {
     </v-dialog>
 
     <!-- Global Snackbar Notification -->
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000" location="bottom end">
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      timeout="3000"
+      location="bottom end"
+    >
       {{ snackbar.text }}
       <template v-slot:actions>
         <v-btn variant="text" size="small" @click="snackbar.show = false">Close</v-btn>

@@ -1,6 +1,7 @@
 <script>
 import { mapStores } from 'pinia'
 import { useAbsentsStore, calculateDays, getMaxSegmentTreeReturnDate } from '../stores/absents'
+import { normalizeDate } from '../utils/date'
 
 /**
  * AbsenceView Component
@@ -551,22 +552,7 @@ export default {
      */
     formatDate(dateInput) {
       if (!dateInput) return '-'
-      if (typeof dateInput === 'string') {
-        const cleanStr = dateInput.split('T')[0]
-        const parts = cleanStr.split('-')
-        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
-          const y = parts[0].padStart(4, '0')
-          const m = String(parts[1]).padStart(2, '0')
-          const d = String(parts[2]).padStart(2, '0')
-          return `${y}-${m}-${d}`
-        }
-      }
-      const date = dateInput instanceof Date ? dateInput : new Date(dateInput)
-      if (isNaN(date.getTime())) return String(dateInput)
-      const y = date.getUTCFullYear()
-      const m = String(date.getUTCMonth() + 1).padStart(2, '0')
-      const d = String(date.getUTCDate()).padStart(2, '0')
-      return `${y}-${m}-${d}`
+      return normalizeDate(dateInput) || String(dateInput)
     },
 
     /**
@@ -629,7 +615,8 @@ export default {
             </v-chip>
           </v-card-title>
           <p class="text-body-2 text-medium-emphasis ma-0">
-            Track travel dates and continuous residence for UK ILR and Citizenship. (Unofficial 3rd-Party Tool)
+            Track travel dates and continuous residence for UK ILR and Citizenship. (Unofficial
+            3rd-Party Tool)
           </p>
 
           <!-- Feature Breakdown / What is Tracked & Calculated -->
@@ -659,7 +646,8 @@ export default {
                           >180-Day Rolling Rule (ILR)</strong
                         >
                         <p class="text-caption text-medium-emphasis mb-0">
-                          Tracks peak absences in any 365-day rolling window strictly within qualifying period (max 180 days for ILR).
+                          Tracks peak absences in any 365-day rolling window strictly within
+                          qualifying period (max 180 days for ILR).
                         </p>
                       </div>
                     </div>
@@ -736,7 +724,9 @@ export default {
             class="mt-3 text-caption"
             density="compact"
           >
-            <strong>Local Storage Notice:</strong> All data input (travel records, visa & arrival dates) is saved strictly locally on your device in browser <code>localStorage</code>. No data is sent to external servers.
+            <strong>Local Storage Notice:</strong> All data input (travel records, visa & arrival
+            dates) is saved strictly locally on your device in browser <code>localStorage</code>. No
+            data is sent to external servers.
           </v-alert>
 
           <v-alert
@@ -746,7 +736,9 @@ export default {
             class="mt-3 text-caption"
             density="compact"
           >
-            <strong>Unofficial 3rd-Party Application:</strong> Provided for personal tracking only. Not affiliated with or endorsed by the UK Home Office or UK Government. Always verify dates against official UK Home Office guidelines before applying.
+            <strong>Unofficial 3rd-Party Application:</strong> Provided for personal tracking only.
+            Not affiliated with or endorsed by the UK Home Office or UK Government. Always verify
+            dates against official UK Home Office guidelines before applying.
           </v-alert>
         </v-card>
 
@@ -846,10 +838,7 @@ export default {
         <!-- 2. Absence Record Editor -->
         <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
           <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
-            <v-icon
-              :icon="editingId ? 'mdi-pencil' : 'mdi-plus-circle'"
-              color="primary"
-            ></v-icon>
+            <v-icon :icon="editingId ? 'mdi-pencil' : 'mdi-plus-circle'" color="primary"></v-icon>
             <span class="text-h5 font-weight-bold">
               {{ editingId ? 'Edit Absence Record' : 'Add Absence Record' }}
             </span>
@@ -967,9 +956,7 @@ export default {
 
         <!-- 3. Absence Record List -->
         <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
-          <v-card-title
-            class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
-          >
+          <v-card-title class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2">
             <div class="d-flex align-center ga-2">
               <v-icon icon="mdi-format-list-bulleted" color="primary"></v-icon>
               <span class="text-h5 font-weight-bold">Absence Records</span>
@@ -1065,11 +1052,7 @@ export default {
                       size="small"
                       variant="tonal"
                       :color="
-                        isOngoingEvent(item)
-                          ? 'warning'
-                          : isFutureEvent(item)
-                            ? 'info'
-                            : 'primary'
+                        isOngoingEvent(item) ? 'warning' : isFutureEvent(item) ? 'info' : 'primary'
                       "
                       prepend-icon="mdi-airplane-takeoff"
                       class="font-weight-medium"
@@ -1082,11 +1065,7 @@ export default {
                       size="small"
                       variant="tonal"
                       :color="
-                        isOngoingEvent(item)
-                          ? 'warning'
-                          : isFutureEvent(item)
-                            ? 'info'
-                            : 'primary'
+                        isOngoingEvent(item) ? 'warning' : isFutureEvent(item) ? 'info' : 'primary'
                       "
                       prepend-icon="mdi-airplane-landing"
                       class="font-weight-medium"
@@ -1109,7 +1088,8 @@ export default {
                       :variant="isFutureEvent(item) && !isOngoingEvent(item) ? 'outlined' : 'tonal'"
                       :class="{
                         'font-weight-bold': !isFutureEvent(item) || isOngoingEvent(item),
-                        'font-weight-medium opacity-90': isFutureEvent(item) && !isOngoingEvent(item),
+                        'font-weight-medium opacity-90':
+                          isFutureEvent(item) && !isOngoingEvent(item),
                       }"
                     >
                       {{ calculateDays(item.startDate, item.endDate) }} day(s)
@@ -1205,7 +1185,9 @@ export default {
           <div class="d-flex flex-column ga-6">
             <!-- SECTION 1: ILR / Settlement Card -->
             <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
-              <v-card-title class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2">
+              <v-card-title
+                class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
+              >
                 <div class="d-flex align-center ga-2">
                   <v-icon icon="mdi-shield-check-outline" color="primary"></v-icon>
                   <span class="text-h5 font-weight-bold">ILR / Settlement</span>
@@ -1227,13 +1209,18 @@ export default {
 
               <v-card-text class="px-0 pb-0">
                 <p class="text-caption text-medium-emphasis mb-4">
-                  5 Yrs: {{ formatDate(absentsStore.visaStartDate) }} – {{ formatDate(absentsStore.settlementTargetDate) }}
+                  5 Yrs: {{ formatDate(absentsStore.visaStartDate) }} –
+                  {{ formatDate(absentsStore.settlementTargetDate) }}
                 </p>
 
                 <v-row density="compact">
                   <!-- 180-Day Rolling Rule -->
                   <v-col cols="12" xl="6">
-                    <v-card variant="tonal" :color="absentsStore.ruleStatusColor" class="pa-3 rounded-lg">
+                    <v-card
+                      variant="tonal"
+                      :color="absentsStore.ruleStatusColor"
+                      class="pa-3 rounded-lg"
+                    >
                       <div class="d-flex align-center justify-space-between mb-1">
                         <span class="text-caption font-weight-bold">180-Day Rolling Rule</span>
                         <v-chip
@@ -1263,12 +1250,7 @@ export default {
                     <v-card variant="tonal" color="info" class="pa-3 rounded-lg">
                       <div class="d-flex align-center justify-space-between mb-1">
                         <span class="text-caption font-weight-bold">Total 5-Year Absences</span>
-                        <v-chip
-                          color="info"
-                          size="x-small"
-                          variant="flat"
-                          class="font-weight-bold"
-                        >
+                        <v-chip color="info" size="x-small" variant="flat" class="font-weight-bold">
                           {{ absentsStore.ilr5YearTotalAbsence }} Days Total
                         </v-chip>
                       </div>
@@ -1305,9 +1287,14 @@ export default {
 
             <!-- SECTION 2: Naturalisation / Citizenship Card -->
             <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
-              <v-card-title class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2">
+              <v-card-title
+                class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
+              >
                 <div class="d-flex align-center ga-2">
-                  <v-icon icon="mdi-flag-checkered" :color="absentsStore.naturalizationStatusColor"></v-icon>
+                  <v-icon
+                    icon="mdi-flag-checkered"
+                    :color="absentsStore.naturalizationStatusColor"
+                  ></v-icon>
                   <span class="text-h5 font-weight-bold">British Citizenship</span>
                 </div>
 
@@ -1436,16 +1423,20 @@ export default {
                     <span>
                       <strong>Out of Tracker Range:</strong>
                     </span>
-                    <strong class="text-subtitle-2 font-weight-bold">
-                      Cannot Track Period
-                    </strong>
+                    <strong class="text-subtitle-2 font-weight-bold"> Cannot Track Period </strong>
                   </div>
                   <div class="mt-1 opacity-90 text-caption">
-                    <strong>Tracking Limit Reached:</strong> The earliest qualifying period satisfying physical presence and absence limits extends beyond 10 years from your visa start date
+                    <strong>Tracking Limit Reached:</strong> The earliest qualifying period
+                    satisfying physical presence and absence limits extends beyond 10 years from
+                    your visa start date
                     <span v-if="absentsStore.naturalizationQualifyingPeriod?.tenYearDeadlineDate">
-                      (Tracker Limit: {{ formatDate(absentsStore.naturalizationQualifyingPeriod.tenYearDeadlineDate) }}).
+                      (Tracker Limit:
+                      {{
+                        formatDate(absentsStore.naturalizationQualifyingPeriod.tenYearDeadlineDate)
+                      }}).
                     </span>
-                    This application cannot track date ranges past 10 years. This does not mean you are legally disqualified; please evaluate periods beyond 10 years manually.
+                    This application cannot track date ranges past 10 years. This does not mean you
+                    are legally disqualified; please evaluate periods beyond 10 years manually.
                   </div>
                 </v-alert>
 
@@ -1466,9 +1457,14 @@ export default {
                     </strong>
                   </div>
                   <div class="mt-1 opacity-90 text-caption">
-                    <strong>Qualifying Period Shifted:</strong> Baseline calculated earliest date was
-                    <strong>{{ formatDate(absentsStore.naturalizationCalculatedEarliestDate) }}</strong>.
-                    Due to rule criteria (physical presence on start date, 5-year absence limit ≤ 450 days, or final 12-month limit ≤ 90 days), the 5-year period was automatically shifted to the earliest compliant period.
+                    <strong>Qualifying Period Shifted:</strong> Baseline calculated earliest date
+                    was
+                    <strong>{{
+                      formatDate(absentsStore.naturalizationCalculatedEarliestDate)
+                    }}</strong
+                    >. Due to rule criteria (physical presence on start date, 5-year absence limit ≤
+                    450 days, or final 12-month limit ≤ 90 days), the 5-year period was
+                    automatically shifted to the earliest compliant period.
                   </div>
                 </v-alert>
 
@@ -1525,7 +1521,8 @@ export default {
 
             <v-card-text class="px-0 pb-0">
               <p class="text-caption text-medium-emphasis mb-4">
-                Query total absent days within any custom interval across 10 years from Visa Start Date.
+                Query total absent days within any custom interval across 10 years from Visa Start
+                Date.
               </p>
 
               <v-row density="compact">
@@ -1693,7 +1690,12 @@ export default {
     </v-dialog>
 
     <!-- Global Snackbar Notification -->
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000" location="bottom end">
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      timeout="3000"
+      location="bottom end"
+    >
       {{ snackbar.text }}
       <template v-slot:actions>
         <v-btn variant="text" size="small" @click="snackbar.show = false">Close</v-btn>

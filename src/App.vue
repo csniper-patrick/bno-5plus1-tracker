@@ -8,9 +8,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import { useTheme } from 'vuetify'
-import { Document, parse } from 'yaml'
 import { useAbsentsStore } from './stores/absents'
 import { useDocumentsStore } from './stores/documents'
+import { exportFullBackup, parseYAML } from './services/backupService'
 import ReloadPrompt from './components/ReloadPrompt.vue'
 
 // Vuetify theme & router instances
@@ -82,85 +82,7 @@ function showSnackbar(text, color = 'success') {
  */
 function exportAllData() {
   try {
-    const userAbsences = absentsStore.absences
-      .filter((item) => !item.isAutoArrival && item.id !== 'auto_uk_arrival_record')
-      .map((item) => ({
-        startDate: item.startDate,
-        endDate: item.endDate,
-        dest: item.dest || '',
-      }))
-
-    const doc = new Document()
-    doc.commentBefore =
-      ' BNO 5+1 Tracker - Full Data Backup\n' +
-      ' Date format for all dates: YYYY-MM-DD\n' +
-      ' Keep this file safe as a backup for your ILR & Naturalisation applications.'
-
-    const rootMap = doc.createNode({
-      version: '1.0',
-      exportedAt: new Date().toISOString(),
-      visa_start_date: absentsStore.visaStartDate || '',
-      uk_arrival_date: absentsStore.ukArrivalDate || '',
-      ilr_approved_date: absentsStore.ilrApprovedDate || '',
-      absences: userAbsences,
-      documents: {
-        lifeInUk: documentsStore.lifeInUk,
-        englishTest: documentsStore.englishTest,
-        residenceChecklist: documentsStore.residenceChecklist,
-        addressHistory: documentsStore.addressHistory,
-      },
-    })
-
-    // Attach descriptive comments above each variable/node with empty line before comments
-    if (rootMap && rootMap.items) {
-      rootMap.items.forEach((pair, idx) => {
-        const k = pair.key && pair.key.value !== undefined ? pair.key.value : pair.key
-        if (k === 'version') {
-          pair.key.commentBefore = ' Backup Schema Version'
-        } else if (k === 'exportedAt') {
-          pair.key.commentBefore = ' ISO Timestamp when backup was generated'
-        } else if (k === 'visa_start_date') {
-          pair.key.commentBefore = ' BNO Visa Start Date (YYYY-MM-DD)'
-        } else if (k === 'uk_arrival_date') {
-          pair.key.commentBefore = ' First UK Arrival Date under BNO Visa (YYYY-MM-DD)'
-        } else if (k === 'ilr_approved_date') {
-          pair.key.commentBefore = ' ILR Approved Date (YYYY-MM-DD), if already granted'
-        } else if (k === 'absences') {
-          pair.key.commentBefore = ' List of UK Absences (Travel History Log)'
-        } else if (k === 'documents') {
-          pair.key.commentBefore = ' Document & Qualification Tracker State'
-
-          if (pair.value && pair.value.items) {
-            pair.value.items.forEach((docPair, docIdx) => {
-              const docKey =
-                docPair.key && docPair.key.value !== undefined ? docPair.key.value : docPair.key
-              if (docKey === 'lifeInUk') {
-                docPair.key.commentBefore =
-                  ' Life in the UK Test Status & Reference (status: not_started | scheduled | passed)'
-              } else if (docKey === 'englishTest') {
-                docPair.key.commentBefore =
-                  ' English B1 Language Requirement (type: b1_selt | uk_degree | enic_statement | exempt)'
-              } else if (docKey === 'residenceChecklist') {
-                docPair.key.commentBefore =
-                  ' 5-Year Continuous Residence Evidence Checklist (Years 1 to 5)'
-              } else if (docKey === 'addressHistory') {
-                docPair.key.commentBefore =
-                  ' UK Address History Log (5-Year Residential History for SET(O) / Naturalisation)'
-              }
-              if (docIdx > 0) {
-                docPair.key.spaceBefore = true
-              }
-            })
-          }
-        }
-        if (idx > 0) {
-          pair.key.spaceBefore = true
-        }
-      })
-    }
-
-    doc.contents = rootMap
-    const yamlContent = doc.toString()
+    const yamlContent = exportFullBackup(absentsStore, documentsStore)
 
     const blob = new Blob([yamlContent], { type: 'text/yaml;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -199,14 +121,7 @@ function handleImportFileSelect(event) {
   reader.onload = (e) => {
     try {
       const content = e.target.result
-      if (!content || typeof content !== 'string') {
-        throw new Error('File content is empty.')
-      }
-
-      const parsed = parse(content)
-      if (!parsed || typeof parsed !== 'object') {
-        throw new Error('Parsed YAML content is invalid.')
-      }
+      const parsed = parseYAML(content)
 
       // Import Absences & Key Visa Dates if present
       let absenceCount = 0
@@ -263,7 +178,7 @@ function confirmClearAll() {
             color="amber-darken-2"
             variant="flat"
             class="d-none d-sm-inline-flex ml-2 font-weight-bold"
-            style="vertical-align: middle;"
+            style="vertical-align: middle"
           >
             Unofficial 3rd-Party App
           </v-chip>
@@ -272,7 +187,7 @@ function confirmClearAll() {
             color="success"
             variant="flat"
             class="d-none d-md-inline-flex ml-2 font-weight-bold"
-            style="vertical-align: middle;"
+            style="vertical-align: middle"
             prepend-icon="mdi-shield-check"
           >
             100% Local Device Storage
@@ -332,20 +247,11 @@ function confirmClearAll() {
       </v-list-subheader>
 
       <v-list nav class="px-2 py-1">
-        <v-list-item
-          to="/"
-          exact
-          color="primary"
-          rounded="lg"
-          class="mb-2"
-          @click="drawer = false"
-        >
+        <v-list-item to="/" exact color="primary" rounded="lg" class="mb-2" @click="drawer = false">
           <template v-slot:prepend>
             <v-icon icon="mdi-airplane-takeoff" color="primary"></v-icon>
           </template>
-          <v-list-item-title class="font-weight-bold">
-            Absence
-          </v-list-item-title>
+          <v-list-item-title class="font-weight-bold"> Absence </v-list-item-title>
           <v-list-item-subtitle class="text-caption">
             180-day rolling & 450-day limits
           </v-list-item-subtitle>
@@ -362,9 +268,7 @@ function confirmClearAll() {
           <template v-slot:prepend>
             <v-icon icon="mdi-file-document-check-outline" color="primary"></v-icon>
           </template>
-          <v-list-item-title class="font-weight-bold">
-            Document
-          </v-list-item-title>
+          <v-list-item-title class="font-weight-bold"> Document </v-list-item-title>
           <v-list-item-subtitle class="text-caption">
             Life in UK, B1 English & Residence proof
           </v-list-item-subtitle>
@@ -378,11 +282,7 @@ function confirmClearAll() {
           </v-list-subheader>
 
           <v-list nav density="compact" class="pa-0">
-            <v-list-item
-              rounded="lg"
-              class="mb-1"
-              @click="exportAllData"
-            >
+            <v-list-item rounded="lg" class="mb-1" @click="exportAllData">
               <template v-slot:prepend>
                 <v-icon icon="mdi-download-outline" color="primary" size="small"></v-icon>
               </template>
@@ -391,11 +291,7 @@ function confirmClearAll() {
               </v-list-item-title>
             </v-list-item>
 
-            <v-list-item
-              rounded="lg"
-              class="mb-1"
-              @click="triggerImport"
-            >
+            <v-list-item rounded="lg" class="mb-1" @click="triggerImport">
               <template v-slot:prepend>
                 <v-icon icon="mdi-upload-outline" color="primary" size="small"></v-icon>
               </template>
@@ -404,12 +300,7 @@ function confirmClearAll() {
               </v-list-item-title>
             </v-list-item>
 
-            <v-list-item
-              rounded="lg"
-              class="mb-1"
-              color="error"
-              @click="clearAllDialog = true"
-            >
+            <v-list-item rounded="lg" class="mb-1" color="error" @click="clearAllDialog = true">
               <template v-slot:prepend>
                 <v-icon icon="mdi-delete-sweep-outline" color="error" size="small"></v-icon>
               </template>
@@ -427,12 +318,13 @@ function confirmClearAll() {
               class="mb-3 text-caption text-left"
               density="compact"
             >
-              <strong>Privacy Note:</strong> All data input is stored locally on your device in browser <code>localStorage</code>. No data is sent to external servers.
+              <strong>Privacy Note:</strong> All data input is stored locally on your device in
+              browser <code>localStorage</code>. No data is sent to external servers.
             </v-alert>
-            <div class="text-caption text-medium-emphasis" style="font-size: 11px;">
+            <div class="text-caption text-medium-emphasis" style="font-size: 11px">
               BNO 5+1 Tracker • Unofficial 3rd-Party App
             </div>
-            <div class="text-caption text-medium-emphasis mt-1" style="font-size: 10px;">
+            <div class="text-caption text-medium-emphasis mt-1" style="font-size: 10px">
               Not affiliated with the UK Home Office • Stored Locally on Device
             </div>
           </div>
@@ -455,8 +347,10 @@ function confirmClearAll() {
           Clear All Tracker Data?
         </v-card-title>
         <v-card-text class="px-6 py-2">
-          This action will permanently delete all <strong>Absence Records</strong>, <strong>Visa & Arrival Dates</strong>, <strong>Life in the UK Test details</strong>, <strong>English Qualification details</strong>, and <strong>Continuous Residence Checklists</strong> across all trackers.
-          <br /><br />
+          This action will permanently delete all <strong>Absence Records</strong>,
+          <strong>Visa & Arrival Dates</strong>, <strong>Life in the UK Test details</strong>,
+          <strong>English Qualification details</strong>, and
+          <strong>Continuous Residence Checklists</strong> across all trackers. <br /><br />
           This cannot be undone unless you have a YAML backup.
         </v-card-text>
         <v-card-actions class="px-6 pb-4">

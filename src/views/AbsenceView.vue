@@ -7,7 +7,7 @@ import { useAbsentsStore, calculateDays, getMaxSegmentTreeReturnDate } from '../
  *
  * Primary dashboard view for managing BNO 5+1 visa absence records.
  * Provides interactive forms for adding/editing trip entries, key dates setup (Visa Start & UK Arrival),
- * real-time compliance status indicators (180-day rolling rule & Naturalisation checks),
+ * real-time limit status indicators (180-day rolling rule & Naturalisation checks),
  * custom date range query tools, and YAML data export/import capabilities.
  */
 export default {
@@ -176,7 +176,7 @@ export default {
     },
 
     /**
-     * Theme color corresponding to 180-day rolling rule compliance status.
+     * Theme color corresponding to 180-day rolling rule status.
      * @returns {string}
      */
     totalDaysColor() {
@@ -590,7 +590,7 @@ export default {
             <span class="text-h5 font-weight-bold">Absence Tracker</span>
           </v-card-title>
           <p class="text-body-2 text-medium-emphasis ma-0">
-            Track travel dates and continuous residence compliance for UK ILR and Citizenship.
+            Track travel dates and continuous residence for UK ILR and Citizenship. (Unofficial 3rd-Party Tool)
           </p>
 
           <!-- Feature Breakdown / What is Tracked & Calculated -->
@@ -697,8 +697,7 @@ export default {
             class="mt-3 text-caption"
             density="compact"
           >
-            <strong>Disclaimer:</strong> For personal tracking only. Verify dates with official UK
-            Home Office guidelines before applying.
+            <strong>Unofficial 3rd-Party Application:</strong> Provided for personal tracking only. Not affiliated with or endorsed by the UK Home Office or UK Government. Always verify dates against official UK Home Office guidelines before applying.
           </v-alert>
         </v-card>
 
@@ -1130,7 +1129,7 @@ export default {
           <h3 class="text-h6 font-weight-bold mb-2">Checkers & Query Tool Locked</h3>
           <p class="text-body-2 text-medium-emphasis mb-4">
             Please set your BNO Visa Start Date on the left to unlock residency & naturalisation
-            compliance checking and custom date range queries.
+            limit checking and custom date range queries.
           </p>
           <v-btn
             color="primary"
@@ -1181,7 +1180,7 @@ export default {
                       :icon="absentsStore.isRuleExceeded ? 'mdi-alert-circle' : 'mdi-check-circle'"
                       start
                     ></v-icon>
-                    {{ absentsStore.isRuleExceeded ? 'ILR Exceeded' : 'ILR Compliant' }}
+                    {{ absentsStore.isRuleExceeded ? 'ILR Limit Exceeded' : 'Within ILR Limit' }}
                   </v-chip>
                 </div>
 
@@ -1302,8 +1301,8 @@ export default {
                     ></v-icon>
                     {{
                       absentsStore.isNaturalizationEligible
-                        ? 'Citizenship Compliant'
-                        : 'Citizenship Exceeded'
+                        ? 'Within Citizenship Limit'
+                        : 'Citizenship Limit Exceeded'
                     }}
                   </v-chip>
                 </div>

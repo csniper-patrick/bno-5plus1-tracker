@@ -23,7 +23,7 @@ const unionJackDarkTheme = {
     'secondary-darken-1': '#A61022',
     error: '#CF142B', // Union Jack Red for Exceeded
     info: '#64B5F6', // Soft Ice Blue accent
-    success: '#10B981', // Emerald Green for compliance
+    success: '#10B981', // Emerald Green for limits met
     warning: '#F59E0B', // Amber Warning
     'on-background': '#F8FAFC',
     'on-surface': '#F8FAFC',

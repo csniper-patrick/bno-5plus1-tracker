@@ -286,6 +286,15 @@ function confirmClearAll() {
         <v-icon icon="mdi-passport" size="large" class="ml-2 ml-sm-3 mr-2"></v-icon>
         <v-app-bar-title class="font-weight-bold text-truncate flex-shrink-1">
           BNO 5+1 Tracker
+          <v-chip
+            size="x-small"
+            color="amber-darken-2"
+            variant="flat"
+            class="ml-2 font-weight-bold d-none d-sm-inline-flex"
+            style="vertical-align: middle;"
+          >
+            Unofficial 3rd-Party App
+          </v-chip>
         </v-app-bar-title>
 
         <v-spacer></v-spacer>
@@ -337,7 +346,7 @@ function confirmClearAll() {
           Navigation & Data
         </v-list-item-title>
         <v-list-item-subtitle class="text-caption">
-          UK BNO 5+1 Settlement Path
+          UK BNO 5+1 Settlement Path (3rd-Party Tool)
         </v-list-item-subtitle>
         <template v-slot:append>
           <v-btn icon="mdi-close" variant="text" size="small" @click="drawer = false"></v-btn>
@@ -364,7 +373,7 @@ function confirmClearAll() {
             <v-icon icon="mdi-airplane-takeoff" color="primary"></v-icon>
           </template>
           <v-list-item-title class="font-weight-bold">
-            Absence Tracker
+            Absence
           </v-list-item-title>
           <v-list-item-subtitle class="text-caption">
             180-day rolling & 450-day limits
@@ -383,7 +392,7 @@ function confirmClearAll() {
             <v-icon icon="mdi-file-document-check-outline" color="primary"></v-icon>
           </template>
           <v-list-item-title class="font-weight-bold">
-            Document Tracker
+            Document
           </v-list-item-title>
           <v-list-item-subtitle class="text-caption">
             Life in UK, B1 English & Residence proof
@@ -441,7 +450,10 @@ function confirmClearAll() {
 
           <div class="pt-2 text-center">
             <div class="text-caption text-medium-emphasis" style="font-size: 11px;">
-              BNO 5+1 Tracker • Home Office Compliant
+              BNO 5+1 Tracker • Unofficial 3rd-Party App
+            </div>
+            <div class="text-caption text-medium-emphasis mt-1" style="font-size: 10px;">
+              Not affiliated with the UK Home Office
             </div>
           </div>
         </div>

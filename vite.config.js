@@ -32,10 +32,10 @@ export default defineConfig({
         'pwa-512x512.png',
       ],
       manifest: {
-        name: 'BNO 5+1 Tracker - UK Settlement & Absence Tracker',
+        name: 'BNO 5+1 Tracker (Unofficial 3rd-Party App)',
         short_name: 'BNO Tracker',
         description:
-          'Track your UK absences on the BNO 5+1 route toward Indefinite Leave to Remain (ILR / Settlement) and British Citizenship.',
+          'Unofficial 3rd-party app to track your UK absences on the BNO 5+1 route toward Indefinite Leave to Remain (ILR / Settlement) and British Citizenship.',
         theme_color: '#1867c0',
         background_color: '#1867c0',
         display: 'standalone',

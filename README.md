@@ -1,4 +1,4 @@
-# BNO 5+1 Tracker 🇬🇧✈️
+# BNO 5+1 Tracker (Unofficial 3rd-Party App) 🇬🇧✈️
 
 [![Vue 3](https://img.shields.io/badge/Vue-3.5-4fc08d.svg?logo=vuedotjs)](https://vuejs.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.1-646cff.svg?logo=vite)](https://vite.dev/)
@@ -7,20 +7,22 @@
 [![PWA](https://img.shields.io/badge/PWA-Ready-5A0FC8.svg?logo=pwa)](https://github.com/vite-pwa/vite-plugin-pwa)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A modern, high-performance web application designed for **British National (Overseas) (BNO) visa holders** to track, calculate, and manage travel absences, qualifications, supporting documents, and address history from the United Kingdom on the "5+1" route toward **Indefinite Leave to Remain (ILR / UK Settlement)** and **British Citizenship (Naturalisation)**.
+An unofficial, 3rd-party web application designed for **British National (Overseas) (BNO) visa holders** to track, calculate, and manage travel absences, qualifications, supporting documents, and address history from the United Kingdom on the "5+1" route toward **Indefinite Leave to Remain (ILR / UK Settlement)** and **British Citizenship (Naturalisation)**.
+
+*Note: This is an independent 3rd-party utility and is NOT affiliated with, endorsed by, or connected to the UK Home Office or the UK Government.*
 
 ---
 
 ## 🌟 Key Features
 
-- **✈️ UK Home Office Compliant Absence Calculation**
-  - Automatically excludes departure (start) and return (end) dates from full-day absence counts, matching UK Home Office rules (days where part of the 24 hours is spent in the UK do not count as full days absent).
+- **✈️ UK Home Office Rules-Aligned Absence Calculation**
+  - Automatically excludes departure (start) and return (end) dates from full-day absence counts, matching UK Home Office guidance (days where part of the 24 hours is spent in the UK do not count as full days absent).
 - **📅 Visa & Arrival Date Synchronization**
   - Track your **BNO Visa Start Date**, **UK Arrival Date**, and optional **ILR Approved Date**.
   - Automatically generates and syncs initial pre-arrival absence records if your UK arrival date differs from your visa start date.
 - **🛡️ Continuous Rolling 12-Month Limit Monitoring (ILR)**
-  - Evaluates absences across all continuous rolling 365-day windows during your 5-year qualifying period to ensure compliance with the **180-day maximum limit** for ILR.
-- **🇬🇧 British Citizenship (Naturalisation) Compliance Checker**
+  - Evaluates absences across all continuous rolling 365-day windows during your 5-year qualifying period to ensure alignment with the **180-day maximum limit** for ILR.
+- **🇬🇧 British Citizenship (Naturalisation) Absence Limits Checker**
   - Checks **5-Year Naturalisation Limit** (maximum **450 days** absent in the 5 years prior to application).
   - Checks **Final 12-Month Limit** (maximum **90 days** absent in the final year post-ILR).
   - Enforces physical presence requirement: Automatically checks if the applicant was present in the UK 5 years prior to application, advancing the window start date if it falls on an absent day.
@@ -139,6 +141,6 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-## ⚠️ Disclaimer
+## ⚠️ Disclaimer & 3rd-Party Notice
 
-*This application is provided for informational and personal tracking purposes only. It does not constitute official legal or immigration advice. Always verify your eligibility and dates against official UK Home Office guidelines before submitting an ILR or Naturalisation application.*
+*This application is an **independent, 3rd-party utility** provided for informational and personal tracking purposes only. It is **NOT an official application**, nor is it affiliated with, endorsed by, or connected to the UK Home Office or the UK Government. It does not constitute official legal or immigration advice. Always verify your eligibility, rules, and dates against official UK Home Office guidelines before submitting an ILR or Naturalisation application.*

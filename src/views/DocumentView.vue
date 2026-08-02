@@ -438,10 +438,20 @@ export default {
               </h1>
             </div>
             <p class="text-body-2 text-medium-emphasis mb-0">
-              Manage your <strong>Life in the UK Test</strong>, <strong>English B1 Qualification</strong>, <strong>5-Year Residence Proof</strong>, and <strong>UK Address History Log</strong> for ILR & Citizenship.
+              Manage your <strong>Life in the UK Test</strong>, <strong>English B1 Qualification</strong>, <strong>5-Year Residence Proof</strong>, and <strong>UK Address History Log</strong> for ILR & Citizenship. (Unofficial 3rd-Party Tool)
             </p>
           </div>
         </div>
+
+        <v-alert
+          type="warning"
+          variant="tonal"
+          icon="mdi-alert-circle-outline"
+          class="mt-3 text-caption"
+          density="compact"
+        >
+          <strong>Unofficial 3rd-Party Application:</strong> Provided for personal tracking only. Not affiliated with or endorsed by the UK Home Office or UK Government. Always verify requirements against official UK Home Office guidance before applying.
+        </v-alert>
 
         <!-- Overall Readiness Metric Banner -->
         <v-divider class="my-4"></v-divider>
@@ -731,12 +741,7 @@ export default {
       <v-card-title class="d-flex align-center justify-space-between pt-4 px-4 px-sm-6 flex-wrap ga-2">
         <div class="d-flex align-center ga-2">
           <v-icon icon="mdi-home-city-outline" color="primary"></v-icon>
-          <div>
-            <span class="font-weight-bold text-h6">UK Address History Log</span>
-            <div class="text-caption text-medium-emphasis font-weight-regular">
-              Required for Home Office SET(O) ILR & Naturalisation applications covering your 5-year UK residence.
-            </div>
-          </div>
+          <span class="font-weight-bold text-h6">UK Address History</span>
         </div>
 
         <v-btn
@@ -750,6 +755,10 @@ export default {
       </v-card-title>
 
       <v-card-text class="px-4 px-sm-6 py-3">
+        <p class="text-caption text-medium-emphasis mb-4">
+          Required for Home Office SET(O) ILR & Naturalisation applications covering your 5-year UK residence.
+        </p>
+
         <div v-if="addressHistory.length === 0" class="text-center py-6 text-medium-emphasis">
           <v-icon icon="mdi-map-marker-off-outline" size="large" class="mb-2"></v-icon>
           <div class="text-subtitle-2 font-weight-bold">No UK addresses logged yet.</div>
@@ -833,15 +842,13 @@ export default {
     <v-card class="elevation-2 border-top-thick" color="surface">
       <v-card-title class="d-flex align-center ga-2 pt-4 px-4 px-sm-6">
         <v-icon icon="mdi-shield-home-outline" color="primary"></v-icon>
-        <div>
-          <span class="font-weight-bold text-h6">5-Year Continuous Residence Evidence Checklist</span>
-          <div class="text-caption text-medium-emphasis font-weight-regular">
-            Home Office requires official proof of presence in the UK for every year of the 5-year qualifying period.
-          </div>
-        </div>
+        <span class="font-weight-bold text-h6">5-Year Residence Evidence</span>
       </v-card-title>
 
-      <v-card-text class="px-2 px-sm-4 pb-6">
+      <v-card-text class="px-4 px-sm-6 py-3">
+        <p class="text-caption text-medium-emphasis mb-4">
+          Home Office requires official proof of presence in the UK for every year of the 5-year qualifying period.
+        </p>
         <v-expansion-panels v-model="activeYearPanel" multiple class="mt-2">
           <v-expansion-panel
             v-for="year in [1, 2, 3, 4, 5]"

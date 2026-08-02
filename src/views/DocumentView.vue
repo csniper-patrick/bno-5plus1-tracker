@@ -734,6 +734,7 @@ export default {
         <div class="d-flex align-center ga-2">
           <v-icon icon="mdi-home-city-outline" color="primary"></v-icon>
           <span class="text-h5 font-weight-bold">UK Address History</span>
+          <v-chip size="x-small" color="info" variant="tonal" class="font-weight-medium">Optional - Reference Only</v-chip>
         </div>
 
         <v-btn
@@ -748,7 +749,7 @@ export default {
 
       <v-card-text class="px-0 pb-0">
         <p class="text-caption text-medium-emphasis mb-4">
-          Required for Home Office SET(O) ILR & Naturalisation applications covering your 5-year UK residence.
+          Reference record for Home Office SET(O) ILR & Naturalisation applications covering your 5-year UK residence.
         </p>
 
         <div v-if="addressHistory.length === 0" class="text-center py-6 text-medium-emphasis">
@@ -839,7 +840,7 @@ export default {
 
       <v-card-text class="px-0 pb-0">
         <p class="text-caption text-medium-emphasis mb-4">
-          Home Office requires official proof of presence in the UK for every year of the 5-year qualifying period.
+          Rroof of presence in the UK for every year of the 5-year qualifying period.
         </p>
         <v-expansion-panels v-model="activeYearPanel" multiple class="mt-3 border rounded-lg overflow-hidden">
           <v-expansion-panel

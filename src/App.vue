@@ -281,17 +281,6 @@ function confirmClearAll() {
 
         <v-spacer></v-spacer>
 
-        <!-- Current Active View Chip (Desktop) -->
-        <v-chip
-          size="small"
-          color="secondary"
-          class="d-none d-sm-inline-flex mr-2 font-weight-bold"
-          variant="flat"
-          prepend-icon="mdi-crown-outline"
-        >
-          {{ route.path === '/documents' ? 'Document Tracker' : 'Absence Tracker' }}
-        </v-chip>
-
         <!-- Theme Switcher -->
         <v-btn
           :icon="theme.global.current.value.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'"

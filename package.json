@@ -18,7 +18,6 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "@rollup/rollup-darwin-arm64": "^4.62.4",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vitejs/plugin-vue-jsx": "^5.1.6",
     "prettier": "3.9.5",

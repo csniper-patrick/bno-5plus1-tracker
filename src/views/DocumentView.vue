@@ -427,131 +427,123 @@ export default {
 <template>
   <div>
     <!-- Page Header & Overview -->
-    <v-card class="mb-6 elevation-2 border-primary border-top-thick" color="surface">
-      <v-card-text class="py-5 px-4 px-md-6">
-        <div class="d-flex flex-column flex-md-row align-start align-md-center justify-space-between ga-4">
-          <div>
-            <div class="d-flex align-center ga-2 mb-1">
-              <v-icon icon="mdi-file-document-check-outline" color="primary" size="large"></v-icon>
-              <h1 class="text-h5 text-md-h4 font-weight-bold text-on-surface">
-                Document & Qualification Tracker
-              </h1>
-            </div>
-            <p class="text-body-2 text-medium-emphasis mb-0">
-              Manage your <strong>Life in the UK Test</strong>, <strong>English B1 Qualification</strong>, <strong>5-Year Residence Proof</strong>, and <strong>UK Address History Log</strong> for ILR & Citizenship. (Unofficial 3rd-Party Tool)
-            </p>
-          </div>
-        </div>
+    <v-card elevation="2" class="pa-3 rounded-lg bg-surface mb-6">
+      <v-card-title class="px-0 pt-0 d-flex align-center">
+        <v-icon icon="mdi-file-document-check-outline" color="primary" class="mr-2"></v-icon>
+        <span class="text-h5 font-weight-bold">Document & Qualification Tracker</span>
+      </v-card-title>
+      <p class="text-body-2 text-medium-emphasis ma-0">
+        Manage your <strong>Life in the UK Test</strong>, <strong>English B1 Qualification</strong>, <strong>5-Year Residence Proof</strong>, and <strong>UK Address History Log</strong> for ILR & Citizenship. (Unofficial 3rd-Party Tool)
+      </p>
 
-        <v-alert
-          type="warning"
-          variant="tonal"
-          icon="mdi-alert-circle-outline"
-          class="mt-3 text-caption"
-          density="compact"
-        >
-          <strong>Unofficial 3rd-Party Application:</strong> Provided for personal tracking only. Not affiliated with or endorsed by the UK Home Office or UK Government. Always verify requirements against official UK Home Office guidance before applying.
-        </v-alert>
+      <v-alert
+        type="warning"
+        variant="tonal"
+        icon="mdi-alert-circle-outline"
+        class="mt-3 text-caption"
+        density="compact"
+      >
+        <strong>Unofficial 3rd-Party Application:</strong> Provided for personal tracking only. Not affiliated with or endorsed by the UK Home Office or UK Government. Always verify requirements against official UK Home Office guidance before applying.
+      </v-alert>
 
-        <!-- Overall Readiness Metric Banner -->
-        <v-divider class="my-4"></v-divider>
+      <!-- Overall Readiness Metric Banner -->
+      <v-divider class="my-4"></v-divider>
 
-        <v-row class="align-center">
-          <v-col cols="12" md="4" class="text-center text-md-left">
-            <div class="text-overline text-medium-emphasis mb-1">Overall ILR Document Readiness</div>
-            <div class="d-flex align-center justify-center justify-md-start ga-3">
-              <v-progress-circular
-                :model-value="overallReadinessPercent"
-                size="64"
-                width="7"
-                color="primary"
-              >
-                <span class="font-weight-bold text-caption">{{ overallReadinessPercent }}%</span>
-              </v-progress-circular>
-              <div>
-                <div class="text-h6 font-weight-bold">
-                  {{ overallReadinessPercent === 100 ? 'Ready for Application 🎉' : 'In Progress' }}
-                </div>
-                <div class="text-caption text-medium-emphasis">
-                  {{ residenceStats.collectedItems }} of {{ residenceStats.totalItems }} proof items collected
-                </div>
+      <v-row class="align-center">
+        <v-col cols="12" md="4" class="text-center text-md-left">
+          <div class="text-overline text-medium-emphasis mb-1">Overall ILR Document Readiness</div>
+          <div class="d-flex align-center justify-center justify-md-start ga-3">
+            <v-progress-circular
+              :model-value="overallReadinessPercent"
+              size="64"
+              width="7"
+              color="primary"
+            >
+              <span class="font-weight-bold text-caption">{{ overallReadinessPercent }}%</span>
+            </v-progress-circular>
+            <div>
+              <div class="text-h6 font-weight-bold">
+                {{ overallReadinessPercent === 100 ? 'Ready for Application 🎉' : 'In Progress' }}
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                {{ residenceStats.collectedItems }} of {{ residenceStats.totalItems }} proof items collected
               </div>
             </div>
-          </v-col>
+          </div>
+        </v-col>
 
-          <v-col cols="12" md="8">
-            <v-row density="compact">
-              <!-- Life in UK Quick Summary -->
-              <v-col cols="12" sm="3">
-                <v-card variant="tonal" :color="getStatusColor(lifeInUk.status)" class="pa-3">
-                  <div class="d-flex align-center justify-space-between mb-1">
-                    <span class="text-caption font-weight-bold">Life in the UK</span>
-                    <v-icon icon="mdi-book-education-outline" size="small"></v-icon>
-                  </div>
-                  <div class="text-subtitle-2 font-weight-bold">
-                    {{ getStatusText(lifeInUk.status) }}
-                  </div>
-                </v-card>
-              </v-col>
+        <v-col cols="12" md="8">
+          <v-row density="compact">
+            <!-- Life in UK Quick Summary -->
+            <v-col cols="12" sm="3">
+              <v-card variant="tonal" :color="getStatusColor(lifeInUk.status)" class="pa-3 rounded-lg">
+                <div class="d-flex align-center justify-space-between mb-1">
+                  <span class="text-caption font-weight-bold">Life in the UK</span>
+                  <v-icon icon="mdi-book-education-outline" size="small"></v-icon>
+                </div>
+                <div class="text-subtitle-2 font-weight-bold">
+                  {{ getStatusText(lifeInUk.status) }}
+                </div>
+              </v-card>
+            </v-col>
 
-              <!-- English B1 Quick Summary -->
-              <v-col cols="12" sm="3">
-                <v-card variant="tonal" :color="getStatusColor(englishTest.status)" class="pa-3">
-                  <div class="d-flex align-center justify-space-between mb-1">
-                    <span class="text-caption font-weight-bold">English B1</span>
-                    <v-icon icon="mdi-translate" size="small"></v-icon>
-                  </div>
-                  <div class="text-subtitle-2 font-weight-bold">
-                    {{ englishTest.type === 'exempt' ? 'Exempt' : getStatusText(englishTest.status) }}
-                  </div>
-                </v-card>
-              </v-col>
+            <!-- English B1 Quick Summary -->
+            <v-col cols="12" sm="3">
+              <v-card variant="tonal" :color="getStatusColor(englishTest.status)" class="pa-3 rounded-lg">
+                <div class="d-flex align-center justify-space-between mb-1">
+                  <span class="text-caption font-weight-bold">English B1</span>
+                  <v-icon icon="mdi-translate" size="small"></v-icon>
+                </div>
+                <div class="text-subtitle-2 font-weight-bold">
+                  {{ englishTest.type === 'exempt' ? 'Exempt' : getStatusText(englishTest.status) }}
+                </div>
+              </v-card>
+            </v-col>
 
-              <!-- Residence Proof Quick Summary -->
-              <v-col cols="12" sm="3">
-                <v-card variant="tonal" color="primary" class="pa-3">
-                  <div class="d-flex align-center justify-space-between mb-1">
-                    <span class="text-caption font-weight-bold">5-Yr Proof</span>
-                    <v-icon icon="mdi-folder-check-outline" size="small"></v-icon>
-                  </div>
-                  <div class="text-subtitle-2 font-weight-bold">
-                    {{ residenceStats.overallPercent }}% Done
-                  </div>
-                </v-card>
-              </v-col>
+            <!-- Residence Proof Quick Summary -->
+            <v-col cols="12" sm="3">
+              <v-card variant="tonal" color="primary" class="pa-3 rounded-lg">
+                <div class="d-flex align-center justify-space-between mb-1">
+                  <span class="text-caption font-weight-bold">5-Yr Proof</span>
+                  <v-icon icon="mdi-folder-check-outline" size="small"></v-icon>
+                </div>
+                <div class="text-subtitle-2 font-weight-bold">
+                  {{ residenceStats.overallPercent }}% Done
+                </div>
+              </v-card>
+            </v-col>
 
-              <!-- Address History Quick Summary -->
-              <v-col cols="12" sm="3">
-                <v-card variant="tonal" :color="addressHistory.length > 0 ? 'success' : 'grey'" class="pa-3">
-                  <div class="d-flex align-center justify-space-between mb-1">
-                    <span class="text-caption font-weight-bold">UK Addresses</span>
-                    <v-icon icon="mdi-home-city-outline" size="small"></v-icon>
-                  </div>
-                  <div class="text-subtitle-2 font-weight-bold">
-                    {{ addressHistory.length }} Logged
-                  </div>
-                </v-card>
-              </v-col>
-            </v-row>
-          </v-col>
-        </v-row>
-      </v-card-text>
+            <!-- Address History Quick Summary -->
+            <v-col cols="12" sm="3">
+              <v-card variant="tonal" :color="addressHistory.length > 0 ? 'success' : 'grey'" class="pa-3 rounded-lg">
+                <div class="d-flex align-center justify-space-between mb-1">
+                  <span class="text-caption font-weight-bold">UK Addresses</span>
+                  <v-icon icon="mdi-home-city-outline" size="small"></v-icon>
+                </div>
+                <div class="text-subtitle-2 font-weight-bold">
+                  {{ addressHistory.length }} Logged
+                </div>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
     </v-card>
 
     <!-- Qualifications Section -->
     <v-row class="mb-6">
       <!-- Life in the UK Card -->
       <v-col cols="12" md="6">
-        <v-card class="h-100 elevation-2 border-top-thick" color="surface">
-          <v-card-title class="d-flex align-center ga-2 pt-4 px-4 px-sm-6">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
+          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
             <v-icon icon="mdi-book-open-page-variant" color="primary"></v-icon>
-            <span class="font-weight-bold">Life in the UK Test</span>
+            <span class="text-h5 font-weight-bold">Life in the UK Test</span>
             <v-spacer></v-spacer>
             <v-chip :color="getStatusColor(lifeForm.status)" size="small" variant="flat" class="font-weight-bold">
               {{ getStatusText(lifeForm.status) }}
             </v-chip>
           </v-card-title>
-          <v-card-text class="px-4 px-sm-6 py-3">
+          <v-card-text class="px-0 pb-0">
             <p class="text-caption text-medium-emphasis mb-4">
               Mandatory test on British customs, history, and government for ILR & Naturalisation applications.
             </p>
@@ -628,16 +620,16 @@ export default {
 
       <!-- English Language Requirement Card -->
       <v-col cols="12" md="6">
-        <v-card class="h-100 elevation-2 border-top-thick" color="surface">
-          <v-card-title class="d-flex align-center ga-2 pt-4 px-4 px-sm-6">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
+          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
             <v-icon icon="mdi-translate" color="primary"></v-icon>
-            <span class="font-weight-bold">English Language (B1)</span>
+            <span class="text-h5 font-weight-bold">English Language (B1)</span>
             <v-spacer></v-spacer>
             <v-chip :color="getStatusColor(englishForm.status)" size="small" variant="flat" class="font-weight-bold">
               {{ englishForm.type === 'exempt' ? 'Exempt' : getStatusText(englishForm.status) }}
             </v-chip>
           </v-card-title>
-          <v-card-text class="px-4 px-sm-6 py-3">
+          <v-card-text class="px-0 pb-0">
             <p class="text-caption text-medium-emphasis mb-4">
               Requires B1 SELT test, UK degree taught in English, or official exemption.
             </p>
@@ -737,11 +729,11 @@ export default {
     </v-row>
 
     <!-- UK Address History Section -->
-    <v-card class="mb-6 elevation-2 border-top-thick" color="surface">
-      <v-card-title class="d-flex align-center justify-space-between pt-4 px-4 px-sm-6 flex-wrap ga-2">
+    <v-card elevation="2" class="pa-3 rounded-lg bg-surface mb-6">
+      <v-card-title class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2">
         <div class="d-flex align-center ga-2">
           <v-icon icon="mdi-home-city-outline" color="primary"></v-icon>
-          <span class="font-weight-bold text-h6">UK Address History</span>
+          <span class="text-h5 font-weight-bold">UK Address History</span>
         </div>
 
         <v-btn
@@ -754,7 +746,7 @@ export default {
         </v-btn>
       </v-card-title>
 
-      <v-card-text class="px-4 px-sm-6 py-3">
+      <v-card-text class="px-0 pb-0">
         <p class="text-caption text-medium-emphasis mb-4">
           Required for Home Office SET(O) ILR & Naturalisation applications covering your 5-year UK residence.
         </p>
@@ -765,7 +757,7 @@ export default {
           <div class="text-caption">Click "Add Address Entry" above to log your residential history.</div>
         </div>
 
-        <v-table v-else density="comfortable" hover class="border rounded">
+        <v-table v-else density="comfortable" hover class="border rounded-lg">
           <thead>
             <tr>
               <th class="text-left font-weight-bold">Dates</th>
@@ -839,21 +831,22 @@ export default {
     </v-card>
 
     <!-- 5-Year Continuous Residence Evidence Checklist -->
-    <v-card class="elevation-2 border-top-thick" color="surface">
-      <v-card-title class="d-flex align-center ga-2 pt-4 px-4 px-sm-6">
+    <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
+      <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
         <v-icon icon="mdi-shield-home-outline" color="primary"></v-icon>
-        <span class="font-weight-bold text-h6">5-Year Residence Evidence</span>
+        <span class="text-h5 font-weight-bold">5-Year Residence Evidence</span>
       </v-card-title>
 
-      <v-card-text class="px-4 px-sm-6 py-3">
+      <v-card-text class="px-0 pb-0">
         <p class="text-caption text-medium-emphasis mb-4">
           Home Office requires official proof of presence in the UK for every year of the 5-year qualifying period.
         </p>
-        <v-expansion-panels v-model="activeYearPanel" multiple class="mt-2">
+        <v-expansion-panels v-model="activeYearPanel" multiple class="mt-3 border rounded-lg overflow-hidden">
           <v-expansion-panel
             v-for="year in [1, 2, 3, 4, 5]"
             :key="year"
-            class="mb-3 border rounded"
+            elevation="0"
+            class="border-b"
           >
             <v-expansion-panel-title class="py-3 px-4">
               <div class="d-flex align-center justify-space-between w-100 pr-2 ga-3">
@@ -913,7 +906,7 @@ export default {
               </div>
 
               <!-- Evidence Table -->
-              <v-table density="comfortable" hover class="border rounded">
+              <v-table density="comfortable" hover class="border rounded-lg">
                 <thead>
                   <tr>
                     <th class="text-left font-weight-bold">Status</th>
@@ -1012,11 +1005,11 @@ export default {
 
     <!-- Address Form Dialog -->
     <v-dialog v-model="addressDialog.show" max-width="550px">
-      <v-card color="surface">
-        <v-card-title class="font-weight-bold pt-4 px-6">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 font-weight-bold text-h6">
           {{ addressDialog.editingId ? 'Edit UK Address Entry' : 'Add UK Address Entry' }}
         </v-card-title>
-        <v-card-text class="px-6 py-2">
+        <v-card-text class="px-0 py-2">
           <v-row density="compact">
             <v-col cols="12">
               <v-text-field
@@ -1111,8 +1104,7 @@ export default {
             </v-col>
           </v-row>
         </v-card-text>
-        <v-card-actions class="px-6 pb-4">
-          <v-spacer></v-spacer>
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
           <v-btn variant="text" @click="addressDialog.show = false">Cancel</v-btn>
           <v-btn color="primary" variant="flat" @click="saveAddress">Save Address</v-btn>
         </v-card-actions>
@@ -1121,15 +1113,14 @@ export default {
 
     <!-- Delete Address Confirmation Dialog -->
     <v-dialog v-model="deleteAddressDialog.show" max-width="400px">
-      <v-card color="surface">
-        <v-card-title class="font-weight-bold pt-4 px-6 text-error">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 font-weight-bold text-h6 text-error">
           Delete Address Record?
         </v-card-title>
-        <v-card-text class="px-6 py-2">
+        <v-card-text class="px-0 py-2">
           Are you sure you want to delete <strong>{{ deleteAddressDialog.addressLine1 }}</strong>?
         </v-card-text>
-        <v-card-actions class="px-6 pb-4">
-          <v-spacer></v-spacer>
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
           <v-btn variant="text" @click="deleteAddressDialog.show = false">Cancel</v-btn>
           <v-btn color="error" variant="flat" @click="executeDeleteAddress">Delete</v-btn>
         </v-card-actions>
@@ -1138,11 +1129,11 @@ export default {
 
     <!-- Custom Document Dialog -->
     <v-dialog v-model="customDocDialog.show" max-width="450px">
-      <v-card color="surface">
-        <v-card-title class="font-weight-bold pt-4 px-6">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 font-weight-bold text-h6">
           Add Custom Evidence Item (Year {{ customDocDialog.year }})
         </v-card-title>
-        <v-card-text class="px-6 py-2">
+        <v-card-text class="px-0 py-2">
           <v-text-field
             v-model="customDocDialog.title"
             label="Document Title"
@@ -1160,8 +1151,7 @@ export default {
             density="compact"
           ></v-select>
         </v-card-text>
-        <v-card-actions class="px-6 pb-4">
-          <v-spacer></v-spacer>
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
           <v-btn variant="text" @click="customDocDialog.show = false">Cancel</v-btn>
           <v-btn color="primary" variant="flat" @click="saveCustomDocument">Add Item</v-btn>
         </v-card-actions>
@@ -1170,11 +1160,11 @@ export default {
 
     <!-- Document Notes Dialog -->
     <v-dialog v-model="notesDialog.show" max-width="500px">
-      <v-card color="surface">
-        <v-card-title class="font-weight-bold pt-4 px-6 text-truncate">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 font-weight-bold text-h6 text-truncate">
           Notes: {{ notesDialog.title }}
         </v-card-title>
-        <v-card-text class="px-6 py-2">
+        <v-card-text class="px-0 py-2">
           <v-textarea
             v-model="notesDialog.notes"
             label="Document Details / File Path / Reference"
@@ -1183,8 +1173,7 @@ export default {
             rows="4"
           ></v-textarea>
         </v-card-text>
-        <v-card-actions class="px-6 pb-4">
-          <v-spacer></v-spacer>
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
           <v-btn variant="text" @click="notesDialog.show = false">Cancel</v-btn>
           <v-btn color="primary" variant="flat" @click="saveItemNotes">Save Notes</v-btn>
         </v-card-actions>
@@ -1202,9 +1191,6 @@ export default {
 </template>
 
 <style scoped>
-.border-top-thick {
-  border-top: 4px solid var(--v-theme-primary) !important;
-}
 .cursor-pointer {
   cursor: pointer;
 }

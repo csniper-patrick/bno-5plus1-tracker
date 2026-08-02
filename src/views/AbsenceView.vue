@@ -795,7 +795,7 @@ export default {
         </div>
 
         <!-- 2. Absence Record Editor -->
-        <v-card elevation="2" class="pa-3 rounded-lg">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
           <v-card-title class="px-0 pt-0 d-flex align-center">
             <v-icon
               :icon="editingId ? 'mdi-pencil' : 'mdi-plus-circle'"
@@ -915,203 +915,204 @@ export default {
         </v-card>
 
         <!-- 3. Absence Record List -->
-        <v-card elevation="2" class="rounded-lg">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
           <v-card-title
-            class="pa-2 px-3 d-flex align-center justify-space-between flex-wrap ga-2 border-b"
+            class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
           >
             <div class="d-flex align-center flex-wrap ga-2">
               <v-icon icon="mdi-format-list-bulleted" color="primary" class="mr-1"></v-icon>
-              <span class="text-subtitle-1 font-weight-bold">Absence Records</span>
+              <span class="text-h5 font-weight-bold">Absence Records</span>
               <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold ml-1">
                 {{ absentsStore.sortedAbsences.length }}
               </v-chip>
             </div>
           </v-card-title>
 
-          <!-- Records Table -->
-          <v-table
-            v-if="absentsStore.sortedAbsences.length > 0"
-            density="compact"
-            class="rounded-b-lg"
-          >
-            <thead>
-              <tr>
-                <th class="text-left font-weight-bold">Destination / Purpose</th>
-                <th class="text-right font-weight-bold">Departure Date</th>
-                <th class="text-right font-weight-bold">Return Date</th>
-                <th class="text-center font-weight-bold">Full Days Absent</th>
-                <th class="text-right font-weight-bold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="item in absentsStore.sortedAbsences"
-                :key="item.id"
-                :class="{
-                  'bg-action-hover': editingId === item.id,
-                  'row-planned-event':
-                    isFutureEvent(item) && !isOngoingEvent(item) && editingId !== item.id,
-                  'row-ongoing-event': isOngoingEvent(item) && editingId !== item.id,
-                }"
-              >
-                <td class="font-weight-medium">
-                  <div class="d-flex align-center flex-wrap ga-2">
-                    <v-icon
-                      :icon="
-                        item.isAutoArrival
-                          ? 'mdi-airplane-landing'
-                          : isOngoingEvent(item)
-                            ? 'mdi-airplane'
-                            : isFutureEvent(item)
-                              ? 'mdi-calendar-clock'
-                              : 'mdi-earth'
-                      "
-                      size="small"
+          <v-card-text class="px-0 pb-0">
+            <!-- Records Table -->
+            <v-table
+              v-if="absentsStore.sortedAbsences.length > 0"
+              density="compact"
+              class="border rounded-lg"
+            >
+              <thead>
+                <tr>
+                  <th class="text-left font-weight-bold">Destination / Purpose</th>
+                  <th class="text-right font-weight-bold">Departure Date</th>
+                  <th class="text-right font-weight-bold">Return Date</th>
+                  <th class="text-center font-weight-bold">Full Days Absent</th>
+                  <th class="text-right font-weight-bold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="item in absentsStore.sortedAbsences"
+                  :key="item.id"
+                  :class="{
+                    'bg-action-hover': editingId === item.id,
+                    'row-planned-event':
+                      isFutureEvent(item) && !isOngoingEvent(item) && editingId !== item.id,
+                    'row-ongoing-event': isOngoingEvent(item) && editingId !== item.id,
+                  }"
+                >
+                  <td class="font-weight-medium">
+                    <div class="d-flex align-center flex-wrap ga-2">
+                      <v-icon
+                        :icon="
+                          item.isAutoArrival
+                            ? 'mdi-airplane-landing'
+                            : isOngoingEvent(item)
+                              ? 'mdi-airplane'
+                              : isFutureEvent(item)
+                                ? 'mdi-calendar-clock'
+                                : 'mdi-earth'
+                        "
+                        size="small"
+                        :color="
+                          item.isAutoArrival
+                            ? 'secondary'
+                            : isOngoingEvent(item)
+                              ? 'warning'
+                              : isFutureEvent(item)
+                                ? 'info'
+                                : 'primary'
+                        "
+                      ></v-icon>
+                      <span
+                        :class="{
+                          'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item),
+                        }"
+                      >
+                        {{ item.dest || 'Unspecified' }}
+                      </span>
+
+                      <!-- Event Status Chip -->
+                      <v-chip
+                        v-if="item.isAutoArrival"
+                        size="x-small"
+                        color="secondary"
+                        variant="flat"
+                        class="font-weight-bold"
+                      >
+                        Initial Entry
+                      </v-chip>
+                      <v-chip
+                        v-else-if="isOngoingEvent(item)"
+                        size="x-small"
+                        color="warning"
+                        variant="flat"
+                        class="font-weight-bold"
+                      >
+                        Ongoing
+                      </v-chip>
+                      <v-chip
+                        v-else-if="isFutureEvent(item)"
+                        size="x-small"
+                        color="info"
+                        variant="outlined"
+                        class="font-weight-medium"
+                      >
+                        Planned
+                      </v-chip>
+                      <v-chip
+                        v-else
+                        size="x-small"
+                        color="grey"
+                        variant="tonal"
+                        class="font-weight-regular text-caption"
+                      >
+                        Past
+                      </v-chip>
+                    </div>
+                  </td>
+                  <td
+                    class="text-right"
+                    :class="{ 'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item) }"
+                  >
+                    {{ formatDate(item.startDate) }}
+                  </td>
+                  <td
+                    class="text-right"
+                    :class="{ 'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item) }"
+                  >
+                    {{ formatDate(item.endDate) }}
+                  </td>
+                  <td class="text-center">
+                    <v-chip
                       :color="
-                        item.isAutoArrival
-                          ? 'secondary'
-                          : isOngoingEvent(item)
-                            ? 'warning'
-                            : isFutureEvent(item)
-                              ? 'info'
-                              : 'primary'
+                        isOngoingEvent(item)
+                          ? 'warning'
+                          : isFutureEvent(item)
+                            ? 'info'
+                            : calculateDays(item.startDate, item.endDate) > 0
+                              ? 'primary'
+                              : 'grey'
                       "
-                    ></v-icon>
-                    <span
+                      size="x-small"
+                      :variant="isFutureEvent(item) && !isOngoingEvent(item) ? 'outlined' : 'tonal'"
                       :class="{
-                        'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item),
+                        'font-weight-bold': !isFutureEvent(item) || isOngoingEvent(item),
+                        'font-weight-medium opacity-90': isFutureEvent(item) && !isOngoingEvent(item),
                       }"
                     >
-                      {{ item.dest || 'Unspecified' }}
-                    </span>
+                      {{ calculateDays(item.startDate, item.endDate) }} day(s)
+                    </v-chip>
+                  </td>
+                  <td class="text-right">
+                    <template v-if="item.isAutoArrival || item.id === 'auto_uk_arrival_record'">
+                      <v-chip
+                        size="x-small"
+                        color="secondary"
+                        variant="tonal"
+                        prepend-icon="mdi-lock-outline"
+                        title="Initial UK Entry record is managed via Key Dates"
+                        class="font-weight-medium"
+                      >
+                        Managed
+                      </v-chip>
+                    </template>
+                    <template v-else>
+                      <v-menu location="bottom end">
+                        <template #activator="{ props }">
+                          <v-btn
+                            icon="mdi-dots-vertical"
+                            variant="text"
+                            size="small"
+                            v-bind="props"
+                            title="Actions menu"
+                          ></v-btn>
+                        </template>
+                        <v-list density="compact" class="rounded-lg elevation-4">
+                          <v-list-item
+                            prepend-icon="mdi-pencil-outline"
+                            title="Edit Record"
+                            @click="startEdit(item)"
+                          ></v-list-item>
+                          <v-list-item
+                            prepend-icon="mdi-delete-outline"
+                            title="Delete Record"
+                            @click="confirmDelete(item)"
+                          ></v-list-item>
+                        </v-list>
+                      </v-menu>
+                    </template>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
 
-                    <!-- Event Status Chip -->
-                    <v-chip
-                      v-if="item.isAutoArrival"
-                      size="x-small"
-                      color="secondary"
-                      variant="flat"
-                      class="font-weight-bold"
-                    >
-                      Initial Entry
-                    </v-chip>
-                    <v-chip
-                      v-else-if="isOngoingEvent(item)"
-                      size="x-small"
-                      color="warning"
-                      variant="flat"
-                      class="font-weight-bold"
-                    >
-                      Ongoing
-                    </v-chip>
-                    <v-chip
-                      v-else-if="isFutureEvent(item)"
-                      size="x-small"
-                      color="info"
-                      variant="outlined"
-                      class="font-weight-medium"
-                    >
-                      Planned
-                    </v-chip>
-                    <v-chip
-                      v-else
-                      size="x-small"
-                      color="grey"
-                      variant="tonal"
-                      class="font-weight-regular text-caption"
-                    >
-                      Past
-                    </v-chip>
-                  </div>
-                </td>
-                <td
-                  class="text-right"
-                  :class="{ 'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item) }"
-                >
-                  {{ formatDate(item.startDate) }}
-                </td>
-                <td
-                  class="text-right"
-                  :class="{ 'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item) }"
-                >
-                  {{ formatDate(item.endDate) }}
-                </td>
-                <td class="text-center">
-                  <v-chip
-                    :color="
-                      isOngoingEvent(item)
-                        ? 'warning'
-                        : isFutureEvent(item)
-                          ? 'info'
-                          : calculateDays(item.startDate, item.endDate) > 0
-                            ? 'primary'
-                            : 'grey'
-                    "
-                    size="x-small"
-                    :variant="isFutureEvent(item) && !isOngoingEvent(item) ? 'outlined' : 'tonal'"
-                    :class="{
-                      'font-weight-bold': !isFutureEvent(item) || isOngoingEvent(item),
-                      'font-weight-medium opacity-90': isFutureEvent(item) && !isOngoingEvent(item),
-                    }"
-                  >
-                    {{ calculateDays(item.startDate, item.endDate) }} day(s)
-                  </v-chip>
-                </td>
-                <td class="text-right">
-                  <template v-if="item.isAutoArrival || item.id === 'auto_uk_arrival_record'">
-                    <v-chip
-                      size="x-small"
-                      color="secondary"
-                      variant="tonal"
-                      prepend-icon="mdi-lock-outline"
-                      title="Initial UK Entry record is managed via Key Dates"
-                      class="font-weight-medium"
-                    >
-                      Managed
-                    </v-chip>
-                  </template>
-                  <template v-else>
-                    <v-menu location="bottom end">
-                      <template #activator="{ props }">
-                        <v-btn
-                          icon="mdi-dots-vertical"
-                          variant="text"
-                          size="small"
-                          v-bind="props"
-                          title="Actions menu"
-                        ></v-btn>
-                      </template>
-                      <v-list density="compact" class="rounded-lg elevation-4">
-                        <v-list-item
-                          prepend-icon="mdi-pencil-outline"
-                          title="Edit Record"
-                          @click="startEdit(item)"
-                        ></v-list-item>
-                        <v-list-item
-                          prepend-icon="mdi-delete-outline"
-                          title="Delete Record"
-                          @click="confirmDelete(item)"
-                        ></v-list-item>
-                      </v-list>
-                    </v-menu>
-                  </template>
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
-
-          <!-- Empty State -->
-          <div v-else class="pa-6 text-center">
-            <v-avatar color="surface-variant" size="56" class="mb-2">
-              <v-icon icon="mdi-airplane-off" size="28" color="medium-emphasis"></v-icon>
-            </v-avatar>
-            <h3 class="text-subtitle-1 font-weight-bold mb-1">No Absence Records</h3>
-            <p class="text-caption text-medium-emphasis mb-0">
-              You haven't logged any travel absence records yet. Use the form above to add your
-              first entry.
-            </p>
-          </div>
-
+            <!-- Empty State -->
+            <div v-else class="pa-6 text-center">
+              <v-avatar color="surface-variant" size="56" class="mb-2">
+                <v-icon icon="mdi-airplane-off" size="28" color="medium-emphasis"></v-icon>
+              </v-avatar>
+              <h3 class="text-subtitle-1 font-weight-bold mb-1">No Absence Records</h3>
+              <p class="text-caption text-medium-emphasis mb-0">
+                You haven't logged any travel absence records yet. Use the form above to add your
+                first entry.
+              </p>
+            </div>
+          </v-card-text>
         </v-card>
       </v-col>
 
@@ -1143,15 +1144,15 @@ export default {
 
         <template v-else>
           <!-- 1. Residence, ILR, Naturalisation Checker -->
-          <div class="d-flex flex-column ga-2">
+          <div class="d-flex flex-column ga-6">
             <h2 class="text-h5 font-weight-bold d-flex align-center">
               <v-icon icon="mdi-shield-search" color="primary" class="mr-2"></v-icon>
               Residency Condition Checkers
             </h2>
 
-            <div class="d-flex flex-column ga-5">
+            <div class="d-flex flex-column ga-6">
               <!-- SECTION 1: ILR / Settlement Card -->
-              <v-card elevation="2" class="pa-3 rounded-lg">
+              <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
                 <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
                   <div>
                     <div class="d-flex align-center mb-1">
@@ -1257,7 +1258,7 @@ export default {
               </v-card>
 
               <!-- SECTION 2: Naturalisation / Citizenship Card -->
-              <v-card elevation="2" class="pa-3 rounded-lg">
+              <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
                 <div class="d-flex align-center justify-space-between flex-wrap ga-3 mb-4">
                   <div>
                     <div class="d-flex align-center mb-1">
@@ -1394,13 +1395,13 @@ export default {
           </div>
 
           <!-- 2. Custom Date Range Calculator Card -->
-          <v-card elevation="2" class="pa-3 rounded-lg">
+          <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
             <v-card-title
               class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
             >
               <div class="d-flex align-center">
                 <v-icon icon="mdi-calendar-range" color="primary" class="mr-2"></v-icon>
-                <span class="text-h6 font-weight-bold">Custom Date Range Calculator</span>
+                <span class="text-h5 font-weight-bold">Custom Date Range Calculator</span>
               </div>
               <v-chip
                 color="primary"
@@ -1468,16 +1469,16 @@ export default {
 
     <!-- Delete Single Confirmation Dialog -->
     <v-dialog v-model="deleteDialog.show" max-width="450">
-      <v-card class="rounded-lg pa-3">
-        <v-card-title class="d-flex align-center">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 d-flex align-center text-h6 font-weight-bold">
           <v-icon icon="mdi-alert-circle-outline" color="error" class="mr-2"></v-icon>
           Confirm Deletion
         </v-card-title>
-        <v-card-text>
+        <v-card-text class="px-0 py-2">
           Are you sure you want to delete the absence record for
           <strong>"{{ deleteDialog.dest }}"</strong>?
         </v-card-text>
-        <v-card-actions class="justify-end">
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
           <v-btn variant="text" @click="deleteDialog.show = false">Cancel</v-btn>
           <v-btn color="error" variant="flat" @click="executeDelete">Delete</v-btn>
         </v-card-actions>
@@ -1486,16 +1487,16 @@ export default {
 
     <!-- Clear All Confirmation Dialog -->
     <v-dialog v-model="clearAllDialog" max-width="450">
-      <v-card class="rounded-lg pa-3">
-        <v-card-title class="d-flex align-center">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 d-flex align-center text-h6 font-weight-bold">
           <v-icon icon="mdi-alert-triangle" color="warning" class="mr-2"></v-icon>
           Clear All Records?
         </v-card-title>
-        <v-card-text>
+        <v-card-text class="px-0 py-2">
           This action will permanently delete all logged absence records and reset your key visa &
           arrival dates. This cannot be undone.
         </v-card-text>
-        <v-card-actions class="justify-end">
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
           <v-btn variant="text" @click="clearAllDialog = false">Cancel</v-btn>
           <v-btn color="error" variant="flat" @click="executeClearAll">Clear All</v-btn>
         </v-card-actions>
@@ -1504,12 +1505,12 @@ export default {
 
     <!-- Set / Edit Key Travel & Visa Dates Dialog -->
     <v-dialog v-model="visaDateDialog" max-width="640">
-      <v-card class="rounded-lg pa-3">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
         <v-card-title class="px-0 pt-0 d-flex align-center">
           <v-icon icon="mdi-calendar-edit" color="primary" class="mr-2"></v-icon>
           <span class="text-h6 font-weight-bold">Set Key Travel & Visa Dates</span>
         </v-card-title>
-        <v-card-text class="px-0 py-4">
+        <v-card-text class="px-0 py-2">
           <p class="text-body-2 text-medium-emphasis mb-4">
             Enter your 5-year BNO Visa Start Date, UK Arrival Date, and optional ILR Approved Date
             to enable accurate residency, settlement, and naturalisation tracking.

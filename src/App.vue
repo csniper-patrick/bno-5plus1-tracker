@@ -275,7 +275,7 @@ function confirmClearAll() {
         </v-list-item>
 
         <v-list-item
-          to="/info"
+          to="/reference"
           exact
           color="primary"
           rounded="lg"
@@ -283,12 +283,32 @@ function confirmClearAll() {
           @click="drawer = false"
         >
           <template v-slot:prepend>
-            <v-icon icon="mdi-link-variant" color="primary"></v-icon>
+            <v-icon icon="mdi-bookshelf" color="primary"></v-icon>
           </template>
-          <v-list-item-title class="font-weight-bold"> Useful Links </v-list-item-title>
+          <v-list-item-title class="font-weight-bold"> Reference </v-list-item-title>
           <v-list-item-subtitle class="text-caption">
             Official GOV.UK guidance & policy resources
           </v-list-item-subtitle>
+        </v-list-item>
+
+        <v-list-item
+          href="https://gitlab.com/CSniper/bno-5plus1-tracker"
+          target="_blank"
+          rel="noopener noreferrer"
+          color="primary"
+          rounded="lg"
+          class="mb-2"
+        >
+          <template v-slot:prepend>
+            <v-icon icon="mdi-gitlab" color="primary"></v-icon>
+          </template>
+          <v-list-item-title class="font-weight-bold"> GitLab Repository </v-list-item-title>
+          <v-list-item-subtitle class="text-caption">
+            Source code & project repository
+          </v-list-item-subtitle>
+          <template v-slot:append>
+            <v-icon icon="mdi-open-in-new" size="x-small" color="medium-emphasis"></v-icon>
+          </template>
         </v-list-item>
       </v-list>
 

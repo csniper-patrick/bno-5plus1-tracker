@@ -31,7 +31,7 @@ An unofficial, 3rd-party web application designed for **British National (Overse
   - **English Language Requirement (B1)**: Track pathway (B1 SELT Test, UK Degree, Ecctis/ENIC Statement, Exemption), provider, test date, and certificate reference.
   - **5-Year Continuous Residence Evidence Checklist**: Year-by-year checklist (Years 1 to 5) covering Council Tax, P60/Tax, Bank Statements, Housing proof, Utility Bills, and custom evidence items.
   - **UK Address History Log**: Log residential addresses lived at during your 5-year qualifying period (Move-in/out dates, postcode, tenure type) required for Home Office SET(O) and Naturalisation AN application forms.
-- **🔗 Useful Links & Official Guidance Page (`InfoView`)**
+- **🔗 Reference & Official Guidance Page (`ReferenceView`)**
   - **Curated Official GOV.UK Resources**: Quick reference page presenting key official UK Home Office publications, policy statements, test portals, and application forms in structured cards.
   - **Category & Search Filters**: Instantly filter official resources by category (BNO Settlement, Policy & Guidance, Qualifications & Tests, Citizenship) or text search.
   - **Direct Links & One-Click Copy**: Convenient action buttons to visit official GOV.UK pages or copy URLs.

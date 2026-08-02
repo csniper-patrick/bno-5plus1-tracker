@@ -5,7 +5,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AbsenceView from '../views/AbsenceView.vue'
 import DocumentView from '../views/DocumentView.vue'
-import InfoView from '../views/InfoView.vue'
+import ReferenceView from '../views/ReferenceView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,9 +21,13 @@ const router = createRouter({
       component: DocumentView,
     },
     {
+      path: '/reference',
+      name: 'reference',
+      component: ReferenceView,
+    },
+    {
       path: '/info',
-      name: 'info',
-      component: InfoView,
+      redirect: '/reference',
     },
   ],
 })

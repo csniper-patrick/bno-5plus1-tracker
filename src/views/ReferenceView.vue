@@ -1,13 +1,13 @@
 <script>
 /**
- * InfoView Component
+ * ReferenceView Component
  *
- * Useful Links page presenting curated official UK Government guidance,
+ * Reference & Official Guidance page presenting curated official UK Government guidance,
  * policy statements, settlement requirements, and qualification portals
  * for Hong Kong British National (Overseas) (BNO) visa holders.
  */
 export default {
-  name: 'InfoView',
+  name: 'ReferenceView',
 
   data() {
     return {
@@ -222,8 +222,8 @@ export default {
     <v-card elevation="2" class="pa-3 pa-sm-4 rounded-lg bg-surface mb-6">
       <v-card-title class="px-0 pt-0 d-flex align-center flex-wrap ga-2">
         <div class="d-flex align-center">
-          <v-icon icon="mdi-link-variant" color="primary" class="mr-2" size="large"></v-icon>
-          <span class="text-h5 font-weight-bold">Useful Links & Official Guidance</span>
+          <v-icon icon="mdi-bookshelf" color="primary" class="mr-2" size="large"></v-icon>
+          <span class="text-h5 font-weight-bold">Reference & Official Guidance</span>
         </div>
         <v-chip
           size="small"
@@ -304,18 +304,35 @@ export default {
           <!-- Card Header -->
           <div class="pa-4 pb-2">
             <div class="d-flex align-start ga-3">
-              <v-avatar :color="item.color" size="40" rounded="lg" class="elevation-1 flex-shrink-0">
+              <v-avatar
+                :color="item.color"
+                size="40"
+                rounded="lg"
+                class="elevation-1 flex-shrink-0"
+              >
                 <v-icon :icon="item.icon" color="white" size="22"></v-icon>
               </v-avatar>
               <div class="flex-grow-1">
-                <div class="text-subtitle-1 font-weight-bold text-wrap leading-tight text-high-emphasis">
+                <div
+                  class="text-subtitle-1 font-weight-bold text-wrap leading-tight text-high-emphasis"
+                >
                   {{ item.title }}
                 </div>
                 <div class="mt-1 d-flex align-center ga-2 flex-wrap">
-                  <v-chip size="x-small" :color="item.color" variant="flat" class="font-weight-bold">
+                  <v-chip
+                    size="x-small"
+                    :color="item.color"
+                    variant="flat"
+                    class="font-weight-bold"
+                  >
                     {{ item.category }}
                   </v-chip>
-                  <v-chip size="x-small" color="secondary" variant="tonal" class="font-weight-medium">
+                  <v-chip
+                    size="x-small"
+                    color="secondary"
+                    variant="tonal"
+                    class="font-weight-medium"
+                  >
                     {{ item.badge }}
                   </v-chip>
                 </div>

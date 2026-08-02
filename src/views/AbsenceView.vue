@@ -308,8 +308,36 @@ export default {
     },
   },
 
+  mounted() {
+    this.resetQueryDateRangeToMax()
+  },
+
+  watch: {
+    'absentsStore.visaStartDate': {
+      handler(newVal) {
+        if (newVal) {
+          this.resetQueryDateRangeToMax()
+        } else {
+          this.queryForm.startDate = ''
+          this.queryForm.endDate = ''
+        }
+      },
+      immediate: true,
+    },
+  },
+
   methods: {
     calculateDays,
+
+    /**
+     * Resets custom query date range inputs to the maximum 10-year range (Visa Start Date to 10-Yr Limit).
+     */
+    resetQueryDateRangeToMax() {
+      if (this.absentsStore.visaStartDate) {
+        this.queryForm.startDate = this.absentsStore.visaStartDate
+        this.queryForm.endDate = this.maxSegmentTreeReturnDate
+      }
+    },
 
     /**
      * Opens the Key Visa & Arrival Dates edit dialog and initializes form fields.
@@ -1442,14 +1470,14 @@ export default {
             </v-card>
           </div>
 
-          <!-- 2. Custom Date Range Calculator Card -->
+          <!-- 2. Custom Date Range Card -->
           <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
             <v-card-title
               class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
             >
               <div class="d-flex align-center ga-2">
                 <v-icon icon="mdi-calendar-range" color="primary"></v-icon>
-                <span class="text-h5 font-weight-bold">Custom Date Range Calculator</span>
+                <span class="text-h5 font-weight-bold">Custom Date Range</span>
                 <v-chip
                   color="primary"
                   variant="tonal"
@@ -1511,6 +1539,19 @@ export default {
                 </v-col>
               </v-row>
             </v-card-text>
+
+            <v-card-actions class="px-0 pb-0 pt-3 justify-end">
+              <v-btn
+                variant="outlined"
+                color="primary"
+                size="small"
+                prepend-icon="mdi-restore"
+                title="Reset query range to maximum 10-year period"
+                @click="resetQueryDateRangeToMax"
+              >
+                Reset to Max Range
+              </v-btn>
+            </v-card-actions>
           </v-card>
         </template>
       </v-col>

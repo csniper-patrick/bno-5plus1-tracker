@@ -17,6 +17,7 @@ const unionJackDarkTheme = {
     background: '#0B132B', // Deep Royal Navy Dark Background
     surface: '#1C2541', // Slate Royal Navy Card Surface
     'surface-variant': '#2E3A59',
+    'on-surface-variant': '#F8FAFC',
     primary: '#4A90E2', // Regal British Royal Blue
     'primary-darken-1': '#2C5282',
     secondary: '#CF142B', // Union Jack Crimson Red
@@ -40,6 +41,7 @@ const unionJackLightTheme = {
     background: '#F4F6F9', // Clean Off-White Background
     surface: '#FFFFFF', // Pure White Surface
     'surface-variant': '#E2E8F0',
+    'on-surface-variant': '#0B132B',
     primary: '#012169', // Official Union Jack Pantone 280 C Royal Navy Blue
     'primary-darken-1': '#001440',
     secondary: '#C8102E', // Official Union Jack Pantone 186 C Crimson Red

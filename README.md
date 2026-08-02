@@ -31,6 +31,10 @@ An unofficial, 3rd-party web application designed for **British National (Overse
   - **English Language Requirement (B1)**: Track pathway (B1 SELT Test, UK Degree, Ecctis/ENIC Statement, Exemption), provider, test date, and certificate reference.
   - **5-Year Continuous Residence Evidence Checklist**: Year-by-year checklist (Years 1 to 5) covering Council Tax, P60/Tax, Bank Statements, Housing proof, Utility Bills, and custom evidence items.
   - **UK Address History Log**: Log residential addresses lived at during your 5-year qualifying period (Move-in/out dates, postcode, tenure type) required for Home Office SET(O) and Naturalisation AN application forms.
+- **🔗 Useful Links & Official Guidance Page (`InfoView`)**
+  - **Curated Official GOV.UK Resources**: Quick reference page presenting key official UK Home Office publications, policy statements, test portals, and application forms in structured cards.
+  - **Category & Search Filters**: Instantly filter official resources by category (BNO Settlement, Policy & Guidance, Qualifications & Tests, Citizenship) or text search.
+  - **Direct Links & One-Click Copy**: Convenient action buttons to visit official GOV.UK pages or copy URLs.
 - **🧭 Right Navigation Drawer & Consolidated Data Management**
   - Quick-switch side drawer toggled via top bar hamburger menu (`mdi-menu`).
   - Consolidated **Commented YAML Export & Import** backing up both absence history and document tracker data with descriptive node comments.
@@ -124,8 +128,9 @@ bno-5plus1-tracker/
 │   │   ├── segmentTree.js # AbsenceSegmentTree O(log N) data structure
 │   │   └── id.js          # Unique ID generator utility
 │   ├── views/             # Application views
-│   │   ├── AbsenceView.vue# Absence tracker dashboard
-│   │   └── DocumentView.vue       # Qualifications & Document tracker
+│   │   ├── AbsenceView.vue  # Absence tracker dashboard
+│   │   ├── DocumentView.vue # Qualifications & Document tracker
+│   │   └── InfoView.vue     # Useful links & official guidance page
 │   ├── App.vue            # Root layout with right navigation drawer
 │   └── main.js            # Vue app entrypoint
 ├── tests/                 # Automated test suite
@@ -144,6 +149,25 @@ bno-5plus1-tracker/
 - **[backupService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/backupService.js)**: Consolidated YAML backup service for full application and absence-only exports with node-level comments and YAML parsing.
 - **[useAbsentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/absents.js)**: Pinia store handling absence records, visa/arrival/ILR dates, auto-arrival record sync, and rolling calculation getters.
 - **[useDocumentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/documents.js)**: Pinia store managing Life in the UK test details, English B1 qualification, 5-year continuous residence checklist, and UK address history log.
+
+---
+
+## 🔗 Useful Links & Official Resources
+
+Below are key official UK Government (GOV.UK) resources and policies for Hong Kong BNO visa holders, accessible within the application via the **Useful Links** (`InfoView`) page:
+
+- **[BNO Visa: Settle in the UK (ILR Guidance)](https://www.gov.uk/british-national-overseas-bno-visa/settle-in-the-uk)**  
+  Official Home Office guidance on settlement eligibility, 5-year continuous residence requirements, 180-day absence limits, and required qualifications.
+- **[Hong Kong BNO Visa Policy Statement (Plain Text Version)](https://www.gov.uk/government/publications/hong-kong-bno-visa-policy-statement/hong-kong-british-national-overseas-visa-policy-statement-plain-text-version)**  
+  Detailed policy statement setting out the rights, work/study permissions, public fund restrictions, and settlement pathways for BNO status holders.
+- **[UKVI Continuous Residence Caseworker Guidance](https://www.gov.uk/government/publications/continuous-residence)**  
+  Official caseworker guidance on calculating 180-day rolling absence windows and departure/arrival day exclusion rules.
+- **[Life in the UK Test Official Booking Portal](https://www.gov.uk/life-in-the-uk-test)**  
+  Official booking portal, test center locator, ID guidelines, and fee information for the mandatory Life in the UK test.
+- **[Prove Your Knowledge of English (B1 Level)](https://www.gov.uk/english-language)**  
+  Official requirements and recognized SELT test providers (Trinity, IELTS SELT, PSI) for demonstrating B1 level English.
+- **[Apply for British Citizenship by Naturalisation (Form AN)](https://www.gov.uk/apply-citizenship-indefinite-leave-to-remain)**  
+  Official guidance and requirements for naturalisation after obtaining ILR, including the 450-day 5-year limit and 90-day final 12-month limit.
 
 ---
 

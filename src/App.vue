@@ -273,6 +273,23 @@ function confirmClearAll() {
             Life in UK, B1 English & Residence proof
           </v-list-item-subtitle>
         </v-list-item>
+
+        <v-list-item
+          to="/info"
+          exact
+          color="primary"
+          rounded="lg"
+          class="mb-2"
+          @click="drawer = false"
+        >
+          <template v-slot:prepend>
+            <v-icon icon="mdi-link-variant" color="primary"></v-icon>
+          </template>
+          <v-list-item-title class="font-weight-bold"> Useful Links </v-list-item-title>
+          <v-list-item-subtitle class="text-caption">
+            Official GOV.UK guidance & policy resources
+          </v-list-item-subtitle>
+        </v-list-item>
       </v-list>
 
       <template v-slot:append>

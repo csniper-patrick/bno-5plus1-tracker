@@ -632,16 +632,6 @@ export default {
             Track travel dates and continuous residence for UK ILR and Citizenship. (Unofficial 3rd-Party Tool)
           </p>
 
-          <v-alert
-            type="info"
-            variant="tonal"
-            icon="mdi-shield-lock-outline"
-            class="mt-3 text-caption"
-            density="compact"
-          >
-            <strong>Local Storage Notice:</strong> All data input (travel records, visa & arrival dates) is saved strictly locally on your device in browser <code>localStorage</code>. No data is sent to external servers.
-          </v-alert>
-
           <!-- Feature Breakdown / What is Tracked & Calculated -->
           <v-expansion-panels class="mt-3 border rounded-lg overflow-hidden" density="compact">
             <v-expansion-panel elevation="0">
@@ -738,6 +728,16 @@ export default {
               </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
+
+          <v-alert
+            type="info"
+            variant="tonal"
+            icon="mdi-shield-lock-outline"
+            class="mt-3 text-caption"
+            density="compact"
+          >
+            <strong>Local Storage Notice:</strong> All data input (travel records, visa & arrival dates) is saved strictly locally on your device in browser <code>localStorage</code>. No data is sent to external servers.
+          </v-alert>
 
           <v-alert
             type="warning"
@@ -1051,7 +1051,7 @@ export default {
                         variant="flat"
                         class="font-weight-bold"
                       >
-                        Initial Entry
+                        Initial
                       </v-chip>
                       <v-chip
                         v-else-if="isOngoingEvent(item)"

@@ -776,21 +776,10 @@ export default {
 
     <!-- UK Address History Section -->
     <v-card elevation="2" class="pa-3 rounded-lg bg-surface mb-6">
-      <v-card-title class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2">
-        <div class="d-flex align-center ga-2">
-          <v-icon icon="mdi-home-city-outline" color="primary"></v-icon>
-          <span class="text-h5 font-weight-bold">UK Address History</span>
-          <v-chip size="x-small" color="info" variant="tonal" class="font-weight-medium">Optional - Reference Only</v-chip>
-        </div>
-
-        <v-btn
-          color="primary"
-          prepend-icon="mdi-plus"
-          size="small"
-          @click="openAddAddressDialog"
-        >
-          Add Address Entry
-        </v-btn>
+      <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
+        <v-icon icon="mdi-home-city-outline" color="primary"></v-icon>
+        <span class="text-h5 font-weight-bold">UK Address History</span>
+        <v-chip size="x-small" color="info" variant="tonal" class="font-weight-medium">Optional - Reference Only</v-chip>
       </v-card-title>
 
       <v-card-text class="px-0 pb-0">
@@ -801,7 +790,7 @@ export default {
         <div v-if="addressHistory.length === 0" class="text-center py-6 text-medium-emphasis">
           <v-icon icon="mdi-map-marker-off-outline" size="large" class="mb-2"></v-icon>
           <div class="text-subtitle-2 font-weight-bold">No UK addresses logged yet.</div>
-          <div class="text-caption">Click "Add Address Entry" above to log your residential history.</div>
+          <div class="text-caption mb-3">Click "Add Address Entry" below to log your residential history.</div>
         </div>
 
         <v-table v-else density="comfortable" hover class="border rounded-lg">
@@ -901,6 +890,17 @@ export default {
             </tr>
           </tbody>
         </v-table>
+
+        <div class="d-flex justify-end mt-3">
+          <v-btn
+            color="primary"
+            prepend-icon="mdi-plus"
+            size="small"
+            @click="openAddAddressDialog"
+          >
+            Add Address Entry
+          </v-btn>
+        </div>
       </v-card-text>
     </v-card>
 

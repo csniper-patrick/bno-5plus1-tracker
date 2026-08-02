@@ -331,7 +331,7 @@ export const useAbsentsStore = defineStore('absents', () => {
           id: AUTO_ARRIVAL_ID,
           startDate: oneDayBeforeVisa,
           endDate: uArrival,
-          dest: 'Initial Entry to UK (Arrival)',
+          dest: 'UK Arrival',
           isAutoArrival: true,
         }
         sortAbsencesArray(absences.value)
@@ -342,7 +342,7 @@ export const useAbsentsStore = defineStore('absents', () => {
           id: AUTO_ARRIVAL_ID,
           startDate: oneDayBeforeVisa,
           endDate: uArrival,
-          dest: 'Initial Entry to UK (Arrival)',
+          dest: 'UK Arrival',
           isAutoArrival: true,
           createdAt: new Date().toISOString(),
         }

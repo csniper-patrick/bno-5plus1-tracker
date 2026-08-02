@@ -428,19 +428,40 @@ export default {
   <div>
     <!-- Page Header & Overview -->
     <v-card elevation="2" class="pa-3 rounded-lg bg-surface mb-6">
-      <v-card-title class="px-0 pt-0 d-flex align-center">
-        <v-icon icon="mdi-file-document-check-outline" color="primary" class="mr-2"></v-icon>
-        <span class="text-h5 font-weight-bold">Document & Qualification Tracker</span>
+      <v-card-title class="px-0 pt-0 d-flex align-center flex-wrap ga-2">
+        <div class="d-flex align-center">
+          <v-icon icon="mdi-file-document-check-outline" color="primary" class="mr-2"></v-icon>
+          <span class="text-h5 font-weight-bold">Document & Qualification Tracker</span>
+        </div>
+        <v-chip
+          size="small"
+          color="success"
+          variant="flat"
+          class="font-weight-bold ml-sm-auto"
+          prepend-icon="mdi-shield-check"
+        >
+          Stored Locally on Device
+        </v-chip>
       </v-card-title>
       <p class="text-body-2 text-medium-emphasis ma-0">
         Manage your <strong>Life in the UK Test</strong>, <strong>English B1 Qualification</strong>, <strong>5-Year Residence Proof</strong>, and <strong>UK Address History Log</strong> for ILR & Citizenship. (Unofficial 3rd-Party Tool)
       </p>
 
       <v-alert
+        type="info"
+        variant="tonal"
+        icon="mdi-shield-lock-outline"
+        class="mt-3 text-caption"
+        density="compact"
+      >
+        <strong>Local Storage Notice:</strong> All data input (test certificates, reference numbers, address history, checklists) is saved strictly locally on your device in browser <code>localStorage</code>. No data is uploaded or transmitted to external servers.
+      </v-alert>
+
+      <v-alert
         type="warning"
         variant="tonal"
         icon="mdi-alert-circle-outline"
-        class="mt-3 text-caption"
+        class="mt-2 text-caption"
         density="compact"
       >
         <strong>Unofficial 3rd-Party Application:</strong> Provided for personal tracking only. Not affiliated with or endorsed by the UK Home Office or UK Government. Always verify requirements against official UK Home Office guidance before applying.

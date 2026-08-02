@@ -267,6 +267,16 @@ function confirmClearAll() {
           >
             Unofficial 3rd-Party App
           </v-chip>
+          <v-chip
+            size="small"
+            color="success"
+            variant="flat"
+            class="d-none d-md-inline-flex ml-2 font-weight-bold"
+            style="vertical-align: middle;"
+            prepend-icon="mdi-shield-check"
+          >
+            100% Local Device Storage
+          </v-chip>
         </v-app-bar-title>
 
         <v-spacer></v-spacer>
@@ -421,11 +431,20 @@ function confirmClearAll() {
           </v-list>
 
           <div class="pt-2 text-center">
+            <v-alert
+              type="info"
+              variant="tonal"
+              icon="mdi-shield-lock-outline"
+              class="mb-3 text-caption text-left"
+              density="compact"
+            >
+              <strong>Privacy Note:</strong> All data input is stored locally on your device in browser <code>localStorage</code>. No data is sent to external servers.
+            </v-alert>
             <div class="text-caption text-medium-emphasis" style="font-size: 11px;">
               BNO 5+1 Tracker • Unofficial 3rd-Party App
             </div>
             <div class="text-caption text-medium-emphasis mt-1" style="font-size: 10px;">
-              Not affiliated with the UK Home Office
+              Not affiliated with the UK Home Office • Stored Locally on Device
             </div>
           </div>
         </div>

@@ -585,13 +585,34 @@ export default {
       <v-col cols="12" md="7" class="d-flex flex-column ga-6">
         <!-- Header / Info Card -->
         <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
-          <v-card-title class="px-0 pt-0 d-flex align-center">
-            <v-icon icon="mdi-passport" color="primary" class="mr-2"></v-icon>
-            <span class="text-h5 font-weight-bold">Absence Tracker</span>
+          <v-card-title class="px-0 pt-0 d-flex align-center flex-wrap ga-2">
+            <div class="d-flex align-center">
+              <v-icon icon="mdi-passport" color="primary" class="mr-2"></v-icon>
+              <span class="text-h5 font-weight-bold">Absence Tracker</span>
+            </div>
+            <v-chip
+              size="small"
+              color="success"
+              variant="flat"
+              class="font-weight-bold ml-sm-auto"
+              prepend-icon="mdi-shield-check"
+            >
+              Stored Locally on Device
+            </v-chip>
           </v-card-title>
           <p class="text-body-2 text-medium-emphasis ma-0">
             Track travel dates and continuous residence for UK ILR and Citizenship. (Unofficial 3rd-Party Tool)
           </p>
+
+          <v-alert
+            type="info"
+            variant="tonal"
+            icon="mdi-shield-lock-outline"
+            class="mt-3 text-caption"
+            density="compact"
+          >
+            <strong>Local Storage Notice:</strong> All data input (travel records, visa & arrival dates) is saved strictly locally on your device in browser <code>localStorage</code>. No data is sent to external servers.
+          </v-alert>
 
           <!-- Feature Breakdown / What is Tracked & Calculated -->
           <v-expansion-panels class="mt-3 border rounded-lg overflow-hidden" density="compact">

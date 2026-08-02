@@ -129,7 +129,7 @@ bno-5plus1-tracker/
 
 ### Key Data Structures & Stores
 
-- **[AbsenceSegmentTree](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/absents.js#L29)**: Array-backed segment tree (`Int32Array`) supporting $O(\log N)$ point updates and range sum queries over a 10-year period (3,653 days).
+- **[AbsenceSegmentTree](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/absents.js#L29)**: 1-indexed array-backed segment tree (`Int32Array`) using standard `leftNode = 2 * node` and `rightNode = 2 * node + 1` child indexing (0th index unused), supporting $O(\log N)$ point updates and range sum queries over a 10-year period (3,653 days).
 - **[useAbsentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/absents.js#L215)**: Pinia store handling absence records, visa/arrival/ILR dates, auto-arrival record sync, and rolling calculation getters.
 - **[useDocumentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/documents.js)**: Pinia store managing Life in the UK test details, English B1 qualification, 5-year continuous residence checklist, and UK address history log.
 

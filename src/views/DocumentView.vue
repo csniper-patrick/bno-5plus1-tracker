@@ -420,6 +420,31 @@ export default {
       const formatDate = d => d.toISOString().split('T')[0]
       return `${formatDate(yearStart)} to ${formatDate(yearEnd)}`
     },
+
+    /**
+     * Formats a date string or Date object into 'YYYY-MM-DD' format with leading zeros.
+     * @param {string|Date} dateInput - Date string or Date object.
+     * @returns {string} Formatted date string in YYYY-MM-DD format or '-' if null/empty.
+     */
+    formatDate(dateInput) {
+      if (!dateInput) return '-'
+      if (typeof dateInput === 'string') {
+        const cleanStr = dateInput.split('T')[0]
+        const parts = cleanStr.split('-')
+        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+          const y = parts[0].padStart(4, '0')
+          const m = String(parts[1]).padStart(2, '0')
+          const d = String(parts[2]).padStart(2, '0')
+          return `${y}-${m}-${d}`
+        }
+      }
+      const date = dateInput instanceof Date ? dateInput : new Date(dateInput)
+      if (isNaN(date.getTime())) return String(dateInput)
+      const y = date.getUTCFullYear()
+      const m = String(date.getUTCMonth() + 1).padStart(2, '0')
+      const d = String(date.getUTCDate()).padStart(2, '0')
+      return `${y}-${m}-${d}`
+    },
   },
 }
 </script>
@@ -782,7 +807,8 @@ export default {
         <v-table v-else density="comfortable" hover class="border rounded-lg">
           <thead>
             <tr>
-              <th class="text-left font-weight-bold">Dates</th>
+              <th class="text-left font-weight-bold">Move-In Date</th>
+              <th class="text-left font-weight-bold">Move-Out Date</th>
               <th class="text-left font-weight-bold">Address</th>
               <th class="text-left font-weight-bold d-none d-sm-table-cell">Tenure</th>
               <th class="text-left font-weight-bold d-none d-md-table-cell">Notes</th>
@@ -791,12 +817,38 @@ export default {
           </thead>
           <tbody>
             <tr v-for="item in addressHistory" :key="item.id">
-              <td style="width: 170px;">
-                <div class="font-weight-bold text-caption">
-                  {{ item.startDate }} to {{ item.isCurrent ? 'Present' : (item.endDate || 'N/A') }}
-                </div>
-                <v-chip v-if="item.isCurrent" size="x-small" color="success" variant="flat" class="mt-1 font-weight-bold">
-                  Current Address
+              <td class="text-left" style="white-space: nowrap;">
+                <v-chip
+                  size="small"
+                  variant="tonal"
+                  color="primary"
+                  prepend-icon="mdi-calendar-import"
+                  class="font-weight-medium"
+                >
+                  {{ formatDate(item.startDate) }}
+                </v-chip>
+              </td>
+
+              <td class="text-left" style="white-space: nowrap;">
+                <v-chip
+                  v-if="item.isCurrent"
+                  size="small"
+                  variant="flat"
+                  color="success"
+                  prepend-icon="mdi-home-clock-outline"
+                  class="font-weight-bold"
+                >
+                  Present
+                </v-chip>
+                <v-chip
+                  v-else
+                  size="small"
+                  variant="tonal"
+                  color="primary"
+                  prepend-icon="mdi-calendar-export"
+                  class="font-weight-medium"
+                >
+                  {{ formatDate(item.endDate) }}
                 </v-chip>
               </td>
 

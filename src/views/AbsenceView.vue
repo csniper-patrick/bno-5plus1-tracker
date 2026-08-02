@@ -1054,17 +1054,39 @@ export default {
                       </v-chip>
                     </div>
                   </td>
-                  <td
-                    class="text-right"
-                    :class="{ 'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item) }"
-                  >
-                    {{ formatDate(item.startDate) }}
+                  <td class="text-right">
+                    <v-chip
+                      size="small"
+                      variant="tonal"
+                      :color="
+                        isOngoingEvent(item)
+                          ? 'warning'
+                          : isFutureEvent(item)
+                            ? 'info'
+                            : 'primary'
+                      "
+                      prepend-icon="mdi-calendar-export"
+                      class="font-weight-medium"
+                    >
+                      {{ formatDate(item.startDate) }}
+                    </v-chip>
                   </td>
-                  <td
-                    class="text-right"
-                    :class="{ 'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item) }"
-                  >
-                    {{ formatDate(item.endDate) }}
+                  <td class="text-right">
+                    <v-chip
+                      size="small"
+                      variant="tonal"
+                      :color="
+                        isOngoingEvent(item)
+                          ? 'warning'
+                          : isFutureEvent(item)
+                            ? 'info'
+                            : 'primary'
+                      "
+                      prepend-icon="mdi-calendar-import"
+                      class="font-weight-medium"
+                    >
+                      {{ formatDate(item.endDate) }}
+                    </v-chip>
                   </td>
                   <td class="text-center">
                     <v-chip

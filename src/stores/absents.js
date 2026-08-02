@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { parse, Document } from 'yaml'
+import { useDocumentsStore } from './documents.js'
 
 /**
  * LocalStorage key used to persist user absence records across browser sessions.
@@ -1328,6 +1329,18 @@ export const useAbsentsStore = defineStore('absents', () => {
     sortAbsencesArray(absences.value)
     syncArrivalRecord()
     rebuildSegmentTree()
+
+    if (
+      parsed.documents ||
+      parsed.addressHistory ||
+      parsed.addresses ||
+      parsed.lifeInUk ||
+      parsed.englishTest ||
+      parsed.residenceChecklist
+    ) {
+      const documentsStore = useDocumentsStore()
+      documentsStore.importData(parsed)
+    }
 
     return {
       count: validNewEntries.length,

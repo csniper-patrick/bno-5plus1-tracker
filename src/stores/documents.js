@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 /** Storage key for persisting document tracker state in localStorage */
 const STORAGE_KEY = 'bno_tracker_documents_v1'
@@ -36,7 +36,8 @@ function getDefaultResidenceChecklist() {
  * @returns {Array<Object>} Sorted address array.
  */
 function sortAddresses(arr) {
-  return arr.sort((a, b) => (a.startDate || '').localeCompare(b.startDate || ''))
+  if (!Array.isArray(arr)) return []
+  return arr.sort((a, b) => ((a && a.startDate) || '').localeCompare((b && b.startDate) || ''))
 }
 
 /**
@@ -248,6 +249,119 @@ export const useDocumentsStore = defineStore('documents', () => {
   }
 
   /**
+   * Helper to normalize date values to YYYY-MM-DD format.
+   * @param {any} val - Date input.
+   * @returns {string} Normalized YYYY-MM-DD string.
+   */
+  function normalizeDate(val) {
+    if (!val) return ''
+    if (val instanceof Date) {
+      if (isNaN(val.getTime())) return ''
+      const y = val.getUTCFullYear()
+      const m = String(val.getUTCMonth() + 1).padStart(2, '0')
+      const d = String(val.getUTCDate()).padStart(2, '0')
+      return `${y}-${m}-${d}`
+    }
+    if (typeof val === 'string') {
+      const cleanStr = val.split('T')[0]
+      const parts = cleanStr.split('-')
+      if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+        const y = parts[0].padStart(4, '0')
+        const m = String(parts[1]).padStart(2, '0')
+        const d = String(parts[2]).padStart(2, '0')
+        return `${y}-${m}-${d}`
+      }
+    }
+    return String(val)
+  }
+
+  /**
+   * Imports document tracker state (lifeInUk, englishTest, residenceChecklist, addressHistory) and saves to storage.
+   * @param {Object} data - Raw imported data object containing document properties or sub-object.
+   * @returns {boolean} True if document data was imported.
+   */
+  function importData(data) {
+    if (!data || typeof data !== 'object') return false
+
+    const docObj = data.documents && typeof data.documents === 'object' ? data.documents : data
+    let importedCount = 0
+
+    if (docObj.lifeInUk && typeof docObj.lifeInUk === 'object') {
+      lifeInUk.value = {
+        ...lifeInUk.value,
+        ...docObj.lifeInUk,
+        testDate: normalizeDate(docObj.lifeInUk.testDate || docObj.lifeInUk.test_date || ''),
+      }
+      importedCount++
+    }
+
+    if (docObj.englishTest && typeof docObj.englishTest === 'object') {
+      englishTest.value = {
+        ...englishTest.value,
+        ...docObj.englishTest,
+        testDate: normalizeDate(docObj.englishTest.testDate || docObj.englishTest.test_date || ''),
+      }
+      importedCount++
+    }
+
+    if (docObj.residenceChecklist && typeof docObj.residenceChecklist === 'object') {
+      Object.keys(docObj.residenceChecklist).forEach((year) => {
+        if (Array.isArray(docObj.residenceChecklist[year])) {
+          residenceChecklist.value[year] = docObj.residenceChecklist[year].map((item) => ({
+            ...item,
+            dateCollected: normalizeDate(item.dateCollected || item.date_collected || ''),
+          }))
+        }
+      })
+      importedCount++
+    }
+
+    const rawAddresses = Array.isArray(docObj.addressHistory)
+      ? docObj.addressHistory
+      : Array.isArray(docObj.addresses)
+        ? docObj.addresses
+        : null
+
+    if (rawAddresses) {
+      const validAddresses = rawAddresses
+        .map((item, idx) => {
+          if (!item || typeof item !== 'object') return null
+          const startDate = normalizeDate(item.startDate || item.start_date || '')
+          const isCurrent = !!item.isCurrent || !!item.is_current
+          const endDate = isCurrent ? '' : normalizeDate(item.endDate || item.end_date || '')
+          return {
+            id: item.id || `addr_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 7)}`,
+            addressLine1: item.addressLine1
+              ? String(item.addressLine1).trim()
+              : item.address_line_1
+                ? String(item.address_line_1).trim()
+                : '',
+            addressLine2: item.addressLine2
+              ? String(item.addressLine2).trim()
+              : item.address_line_2
+                ? String(item.address_line_2).trim()
+                : '',
+            city: item.city ? String(item.city).trim() : '',
+            postcode: item.postcode ? String(item.postcode).trim().toUpperCase() : '',
+            startDate,
+            endDate,
+            isCurrent,
+            housingStatus: item.housingStatus || item.housing_status || 'rented',
+            notes: item.notes ? String(item.notes).trim() : '',
+          }
+        })
+        .filter(Boolean)
+
+      sortAddresses(validAddresses)
+      addressHistory.value = validAddresses
+      importedCount++
+    }
+
+    saveToStorage()
+    return importedCount > 0
+  }
+
+  /**
    * Resets all document tracker states and clears storage.
    */
   function resetAll() {
@@ -332,6 +446,12 @@ export const useDocumentsStore = defineStore('documents', () => {
     return Math.round((score / total) * 100)
   })
 
+  // Dedicated deep watchers to ensure any mutation to store state automatically saves to localStorage
+  watch(lifeInUk, () => saveToStorage(), { deep: true })
+  watch(englishTest, () => saveToStorage(), { deep: true })
+  watch(residenceChecklist, () => saveToStorage(), { deep: true })
+  watch(addressHistory, () => saveToStorage(), { deep: true })
+
   return {
     lifeInUk,
     englishTest,
@@ -346,6 +466,8 @@ export const useDocumentsStore = defineStore('documents', () => {
     updateAddress,
     deleteAddress,
     resetAll,
+    importData,
+    saveToStorage,
     isLifeInUkPassed,
     isEnglishPassed,
     residenceStats,

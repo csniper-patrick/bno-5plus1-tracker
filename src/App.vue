@@ -209,42 +209,8 @@ function handleImportFileSelect(event) {
         absenceCount = res.count
       }
 
-      // Import Document Tracker data if present
-      let docsImported = false
-      if (parsed.documents) {
-        if (parsed.documents.lifeInUk) documentsStore.updateLifeInUk(parsed.documents.lifeInUk)
-        if (parsed.documents.englishTest)
-          documentsStore.updateEnglishTest(parsed.documents.englishTest)
-        if (parsed.documents.residenceChecklist) {
-          Object.keys(parsed.documents.residenceChecklist).forEach((year) => {
-            documentsStore.residenceChecklist[year] = parsed.documents.residenceChecklist[year]
-          })
-        }
-        if (parsed.documents.addressHistory && Array.isArray(parsed.documents.addressHistory)) {
-          documentsStore.addressHistory = parsed.documents.addressHistory
-        }
-        docsImported = true
-      } else {
-        // Fallback for standalone document YAML exports
-        if (parsed.lifeInUk) {
-          documentsStore.updateLifeInUk(parsed.lifeInUk)
-          docsImported = true
-        }
-        if (parsed.englishTest) {
-          documentsStore.updateEnglishTest(parsed.englishTest)
-          docsImported = true
-        }
-        if (parsed.residenceChecklist) {
-          Object.keys(parsed.residenceChecklist).forEach((year) => {
-            documentsStore.residenceChecklist[year] = parsed.residenceChecklist[year]
-          })
-          docsImported = true
-        }
-        if (parsed.addressHistory && Array.isArray(parsed.addressHistory)) {
-          documentsStore.addressHistory = parsed.addressHistory
-          docsImported = true
-        }
-      }
+      // Import Document Tracker data (including address history) if present
+      const docsImported = documentsStore.importData(parsed)
 
       showSnackbar(
         `Import complete! (${absenceCount} absence(s)${docsImported ? ', document tracker data' : ''})`,

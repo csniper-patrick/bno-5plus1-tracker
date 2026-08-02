@@ -111,9 +111,9 @@ function exportAllData() {
       },
     })
 
-    // Attach descriptive comments above each variable/node
+    // Attach descriptive comments above each variable/node with empty line before comments
     if (rootMap && rootMap.items) {
-      rootMap.items.forEach((pair) => {
+      rootMap.items.forEach((pair, idx) => {
         const k = pair.key && pair.key.value !== undefined ? pair.key.value : pair.key
         if (k === 'version') {
           pair.key.commentBefore = ' Backup Schema Version'
@@ -131,7 +131,7 @@ function exportAllData() {
           pair.key.commentBefore = ' Document & Qualification Tracker State'
 
           if (pair.value && pair.value.items) {
-            pair.value.items.forEach((docPair) => {
+            pair.value.items.forEach((docPair, docIdx) => {
               const docKey =
                 docPair.key && docPair.key.value !== undefined ? docPair.key.value : docPair.key
               if (docKey === 'lifeInUk') {
@@ -147,8 +147,14 @@ function exportAllData() {
                 docPair.key.commentBefore =
                   ' UK Address History Log (5-Year Residential History for SET(O) / Naturalisation)'
               }
+              if (docIdx > 0) {
+                docPair.key.spaceBefore = true
+              }
             })
           }
+        }
+        if (idx > 0) {
+          pair.key.spaceBefore = true
         }
       })
     }

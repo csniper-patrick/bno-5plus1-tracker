@@ -1218,7 +1218,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     })
 
     if (contentMap && contentMap.items) {
-      contentMap.items.forEach((pair) => {
+      contentMap.items.forEach((pair, idx) => {
         const k = pair.key && pair.key.value !== undefined ? pair.key.value : pair.key
         if (k === 'visa_start_date') {
           pair.key.commentBefore = ' BNO Visa Start Date (YYYY-MM-DD)'
@@ -1228,6 +1228,9 @@ export const useAbsentsStore = defineStore('absents', () => {
           pair.key.commentBefore = ' ILR Approved Date, if applicable (YYYY-MM-DD)'
         } else if (k === 'absences') {
           pair.key.commentBefore = ' List of UK Absences (Travel History)'
+        }
+        if (idx > 0) {
+          pair.key.spaceBefore = true
         }
       })
     }

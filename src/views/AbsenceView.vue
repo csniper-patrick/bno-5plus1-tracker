@@ -1113,52 +1113,6 @@ export default {
             </p>
           </div>
 
-          <!-- Bottom Card Actions -->
-          <v-divider></v-divider>
-          <v-card-actions class="pa-2 px-3 d-flex align-center justify-end flex-wrap ga-2">
-            <input
-              ref="yamlFileInput"
-              type="file"
-              accept=".yaml,.yml"
-              style="display: none"
-              @change="handleYamlFileSelect"
-            />
-
-            <v-btn
-              color="primary"
-              variant="outlined"
-              density="comfortable"
-              size="small"
-              prepend-icon="mdi-file-download-outline"
-              :disabled="!hasExportData"
-              @click="exportYamlFile"
-            >
-              Download
-            </v-btn>
-
-            <v-btn
-              color="primary"
-              variant="tonal"
-              density="comfortable"
-              size="small"
-              prepend-icon="mdi-file-upload-outline"
-              @click="triggerYamlImport"
-            >
-              Import
-            </v-btn>
-
-            <v-btn
-              v-if="absentsStore.absences.length > 0"
-              color="error"
-              variant="text"
-              density="comfortable"
-              size="small"
-              prepend-icon="mdi-delete-sweep-outline"
-              @click="clearAllDialog = true"
-            >
-              Clear All
-            </v-btn>
-          </v-card-actions>
         </v-card>
       </v-col>
 

@@ -4,6 +4,7 @@
  */
 import { createRouter, createWebHistory } from 'vue-router'
 import AbsenceView from '../views/AbsenceView.vue'
+import DocumentView from '../views/DocumentView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,7 +14,13 @@ const router = createRouter({
       name: 'home',
       component: AbsenceView,
     },
+    {
+      path: '/documents',
+      name: 'documents',
+      component: DocumentView,
+    },
   ],
 })
 
 export default router
+

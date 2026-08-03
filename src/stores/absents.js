@@ -165,13 +165,11 @@ export const useAbsentsStore = defineStore('absents', () => {
     const startIdx = Math.round((firstAbsentDayMs - vStart.getTime()) / 86400000)
     const endIdx = Math.round((lastAbsentDayMs - vStart.getTime()) / 86400000)
 
-    if (startIdx >= n || endIdx < 0) return null
-
-    const clampedStart = Math.max(0, startIdx)
-    const clampedEnd = Math.min(n - 1, endIdx)
-    if (clampedStart > clampedEnd) return null
-
-    return { startIdx: clampedStart, endIdx: clampedEnd }
+    if (endIdx < 0 || startIdx >= n) return null
+    return {
+      startIdx: Math.max(0, startIdx),
+      endIdx: Math.min(n - 1, endIdx),
+    }
   }
 
   /**
@@ -181,7 +179,6 @@ export const useAbsentsStore = defineStore('absents', () => {
   function rebuildSegmentTree() {
     if (!visaStartDate.value) {
       segmentTree.value = null
-      coverageCount = null
       segmentTreeSize = 0
       segmentTreeVersion.value++
       return
@@ -190,7 +187,6 @@ export const useAbsentsStore = defineStore('absents', () => {
     const vStart = parseDateUTC(visaStartDate.value)
     if (!vStart) {
       segmentTree.value = null
-      coverageCount = null
       segmentTreeSize = 0
       segmentTreeVersion.value++
       return
@@ -203,37 +199,30 @@ export const useAbsentsStore = defineStore('absents', () => {
     const n = Math.round((vEnd.getTime() - vStart.getTime()) / 86400000)
     if (n <= 0) {
       segmentTree.value = null
-      coverageCount = null
       segmentTreeSize = 0
       segmentTreeVersion.value++
       return
     }
 
     segmentTreeSize = n
-    coverageCount = new Int32Array(n)
-    const dayAbsentArray = new Uint8Array(n)
+    const tree = new AbsenceSegmentTree(n)
 
+    const intervals = []
     for (const item of absences.value) {
       const range = getRecordIndexRange(item, vStart, n)
-      if (!range) continue
-
-      for (let i = range.startIdx; i <= range.endIdx; i++) {
-        coverageCount[i]++
-        dayAbsentArray[i] = 1
-      }
+      if (range) intervals.push(range)
     }
+    tree.build(intervals, 1)
 
-    const tree = new AbsenceSegmentTree(n)
-    tree.build(dayAbsentArray)
     segmentTree.value = tree
     segmentTreeVersion.value++
   }
 
   /**
-   * Incrementally updates the segment tree in O(D log N) time when a record is added.
+   * Incrementally updates the segment tree in O(log N) time when a record is added.
    */
   function addRecordToSegmentTree(record) {
-    if (!visaStartDate.value || !segmentTree.value || !coverageCount) {
+    if (!visaStartDate.value || !segmentTree.value) {
       rebuildSegmentTree()
       return
     }
@@ -244,21 +233,15 @@ export const useAbsentsStore = defineStore('absents', () => {
     const range = getRecordIndexRange(record, vStart, segmentTreeSize)
     if (!range) return
 
-    for (let i = range.startIdx; i <= range.endIdx; i++) {
-      coverageCount[i]++
-      // If day was previously not absent (count went from 0 to 1), update segment tree leaf
-      if (coverageCount[i] === 1) {
-        segmentTree.value.updatePoint(i, 1)
-      }
-    }
+    segmentTree.value.updateRange(range.startIdx, range.endIdx, 1)
     segmentTreeVersion.value++
   }
 
   /**
-   * Incrementally updates the segment tree in O(D log N) time when a record is removed.
+   * Incrementally updates the segment tree in O(log N) time when a record is removed.
    */
   function removeRecordFromSegmentTree(record) {
-    if (!visaStartDate.value || !segmentTree.value || !coverageCount) return
+    if (!visaStartDate.value || !segmentTree.value) return
 
     const vStart = parseDateUTC(visaStartDate.value)
     if (!vStart) return
@@ -266,13 +249,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     const range = getRecordIndexRange(record, vStart, segmentTreeSize)
     if (!range) return
 
-    for (let i = range.startIdx; i <= range.endIdx; i++) {
-      coverageCount[i] = Math.max(0, coverageCount[i] - 1)
-      // If day is no longer covered by any trip (count went from 1 to 0), update segment tree leaf
-      if (coverageCount[i] === 0) {
-        segmentTree.value.updatePoint(i, 0)
-      }
-    }
+    segmentTree.value.updateRange(range.startIdx, range.endIdx, -1)
     segmentTreeVersion.value++
   }
 

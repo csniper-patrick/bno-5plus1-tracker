@@ -54,7 +54,22 @@ describe('Date Utilities', () => {
 })
 
 describe('AbsenceSegmentTree', () => {
-  it('should correctly build and query range sums', () => {
+  it('should correctly build from an array of intervals and a target val', () => {
+    const intervals = [
+      { startIdx: 1, endIdx: 2 },
+      [4, 4],
+      { start: 6, end: 6 },
+    ]
+    const tree = new AbsenceSegmentTree(7)
+    tree.build(intervals, 1)
+
+    assert.strictEqual(tree.query(0, 6), 4)
+    assert.strictEqual(tree.query(1, 2), 2)
+    assert.strictEqual(tree.query(3, 3), 0)
+    assert.strictEqual(tree.query(4, 6), 2)
+  })
+
+  it('should correctly build and query range sums from 1D array fallback', () => {
     const arr = new Uint8Array([0, 1, 1, 0, 1, 0, 1]) // 7 days
     const tree = new AbsenceSegmentTree(7)
     tree.build(arr)
@@ -65,18 +80,18 @@ describe('AbsenceSegmentTree', () => {
     assert.strictEqual(tree.query(4, 6), 2)
   })
 
-  it('should support point updates', () => {
+  it('should support point updates via updateRange', () => {
     const arr = new Uint8Array([0, 0, 0, 0, 0])
     const tree = new AbsenceSegmentTree(5)
     tree.build(arr)
 
     assert.strictEqual(tree.query(0, 4), 0)
 
-    tree.updatePoint(2, 1)
+    tree.updateRange(2, 2, 1)
     assert.strictEqual(tree.query(0, 4), 1)
     assert.strictEqual(tree.query(1, 3), 1)
 
-    tree.updatePoint(2, 0)
+    tree.updateRange(2, 2, -1)
     assert.strictEqual(tree.query(0, 4), 0)
   })
 
@@ -119,6 +134,33 @@ describe('AbsenceSegmentTree', () => {
     }
 
     assert.deepStrictEqual(retrievedArr, originalArr)
+  })
+
+  it('should initialize to zero and support range-by-range updates with overlapping intervals', () => {
+    const tree = new AbsenceSegmentTree(10)
+    assert.strictEqual(tree.query(0, 9), 0)
+
+    // Add interval [1, 3]
+    tree.updateRange(1, 3, 1)
+    assert.strictEqual(tree.query(0, 9), 3)
+    assert.strictEqual(tree.queryPoint(1), 1)
+    assert.strictEqual(tree.queryPoint(3), 1)
+    assert.strictEqual(tree.queryPoint(0), 0)
+    assert.strictEqual(tree.queryPoint(4), 0)
+
+    // Add overlapping interval [2, 5]
+    tree.updateRange(2, 5, 1)
+    assert.strictEqual(tree.query(0, 9), 5) // days 1, 2, 3, 4, 5 covered
+
+    // Remove interval [1, 3]
+    tree.updateRange(1, 3, -1)
+    assert.strictEqual(tree.query(0, 9), 4) // days 2, 3, 4, 5 covered
+    assert.strictEqual(tree.queryPoint(1), 0)
+    assert.strictEqual(tree.queryPoint(2), 1)
+
+    // Remove interval [2, 5]
+    tree.updateRange(2, 5, -1)
+    assert.strictEqual(tree.query(0, 9), 0)
   })
 })
 

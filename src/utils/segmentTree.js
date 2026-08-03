@@ -12,8 +12,7 @@ export class AbsenceSegmentTree {
   constructor(size) {
     this.n = size
     this.tree = new Int32Array(4 * size + 1)
-    this.leaf_lb = 0
-    this.leaf_ub = 0
+    this.leafMap = new Int32Array(size)
   }
 
   /**
@@ -24,43 +23,31 @@ export class AbsenceSegmentTree {
    */
   build(arr) {
     this.n = arr.length
-    if (this.n === 0) {
-      this.leaf_lb = 0
-      this.leaf_ub = 0
-      return
-    }
+    if (this.n === 0) return
     if (this.tree.length < 4 * this.n + 1) {
       this.tree = new Int32Array(4 * this.n + 1)
     }
-    this._build(arr, 1, 0, this.n - 1)
-
-    // Compute leaf_lb (node index of first leaf at index 0)
-    let nodeLb = 1, startLb = 0, endLb = this.n - 1
-    while (startLb < endLb) {
-      const mid = Math.floor((startLb + endLb) / 2)
-      nodeLb = 2 * nodeLb
-      endLb = mid
+    if (this.leafMap.length < this.n) {
+      this.leafMap = new Int32Array(this.n)
     }
-    this.leaf_lb = nodeLb
-    this.leaf_ub = this.leaf_lb + this.n - 1
+    this._build(arr, 1, 0, this.n - 1)
   }
 
   /**
    * Computes the 1D tree node index for a specific leaf index in O(1) time.
-   * Leaves are contiguous in the tree array starting at leaf_lb.
+   * Direct lookup using pre-calculated leafMap.
    *
    * @private
    * @param {number} targetIdx - Target leaf index (0 to n - 1).
    * @returns {number} 1D tree array index for the target leaf, or -1 if out of bounds.
    */
   _getLeafNode(targetIdx) {
-    const node = this.leaf_lb + targetIdx
-    if (targetIdx < 0 || node > this.leaf_ub) return -1
-    return node
+    if (targetIdx < 0 || targetIdx >= this.n) return -1
+    return this.leafMap[targetIdx]
   }
 
   /**
-   * Queries a single point (leaf index) utilizing _getLeafNode.
+   * Queries a single point (leaf index) utilizing _getLeafNode in O(1) time.
    *
    * @param {number} idx - Leaf index to query (0 to n - 1).
    * @returns {number} Value of the leaf node (0 or 1), or 0 if index is invalid/out of bounds.
@@ -83,6 +70,7 @@ export class AbsenceSegmentTree {
   _build(arr, node, start, end) {
     if (start === end) {
       this.tree[node] = arr[start]
+      this.leafMap[start] = node
       return
     }
     const mid = Math.floor((start + end) / 2)

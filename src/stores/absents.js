@@ -520,6 +520,15 @@ export const useAbsentsStore = defineStore('absents', () => {
     let final12MoAbs = 0
     const initialViolations = []
 
+    const hasTree = segmentTree.value && visaStartDate.value && segmentTreeSize > 0
+    const vStart = hasTree ? parseDateUTC(visaStartDate.value) : null
+
+    let currentF5 = 0
+    let currentF12 = 0
+    let prevStartIdx = -1
+    let prevTargetIdx = -1
+    let prevF12StartIdx = -1
+
     while (safetyCounter < 3650) {
       const targetDate = new Date(currentStart)
       targetDate.setUTCFullYear(targetDate.getUTCFullYear() + 5)
@@ -527,10 +536,51 @@ export const useAbsentsStore = defineStore('absents', () => {
       const final12MoStartDate = new Date(targetDate)
       final12MoStartDate.setUTCFullYear(final12MoStartDate.getUTCFullYear() - 1)
 
-      const isAbsentOnStart = isAbsentDay(currentStart)
-      // Pass Date objects directly to queryAbsentDaysInRange to leverage Segment Tree indexing without intermediate string parsing
-      const f5 = queryAbsentDaysInRange(currentStart, targetDate)
-      const f12 = queryAbsentDaysInRange(final12MoStartDate, targetDate)
+      let isAbsentOnStart = false
+      let f5 = 0
+      let f12 = 0
+
+      if (hasTree && vStart) {
+        const startIdx = Math.round((currentStart.getTime() - vStart.getTime()) / 86400000)
+        const targetIdx = Math.round((targetDate.getTime() - vStart.getTime()) / 86400000)
+        const f12StartIdx = Math.round((final12MoStartDate.getTime() - vStart.getTime()) / 86400000)
+
+        if (startIdx >= 0 && targetIdx < segmentTreeSize) {
+          isAbsentOnStart = segmentTree.value.queryPoint(startIdx) === 1
+
+          if (safetyCounter === 0) {
+            f5 = segmentTree.value.query(startIdx, targetIdx)
+            f12 = segmentTree.value.query(f12StartIdx, targetIdx)
+            currentF5 = f5
+            currentF12 = f12
+          } else {
+            // O(1) sliding window update using queryPoint
+            currentF5 += segmentTree.value.queryPoint(targetIdx) - segmentTree.value.queryPoint(prevStartIdx)
+            if (targetIdx !== prevTargetIdx + 1) {
+              currentF5 += segmentTree.value.query(prevTargetIdx + 1, targetIdx)
+            }
+            f5 = currentF5
+
+            currentF12 += segmentTree.value.queryPoint(targetIdx) - segmentTree.value.queryPoint(prevF12StartIdx)
+            if (f12StartIdx !== prevF12StartIdx + 1) {
+              currentF12 -= segmentTree.value.query(prevF12StartIdx, f12StartIdx - 1)
+            }
+            f12 = currentF12
+          }
+
+          prevStartIdx = startIdx
+          prevTargetIdx = targetIdx
+          prevF12StartIdx = f12StartIdx
+        } else {
+          isAbsentOnStart = isAbsentDay(currentStart)
+          f5 = queryAbsentDaysInRange(currentStart, targetDate)
+          f12 = queryAbsentDaysInRange(final12MoStartDate, targetDate)
+        }
+      } else {
+        isAbsentOnStart = isAbsentDay(currentStart)
+        f5 = queryAbsentDaysInRange(currentStart, targetDate)
+        f12 = queryAbsentDaysInRange(final12MoStartDate, targetDate)
+      }
 
       if (safetyCounter === 0) {
         if (isAbsentOnStart)

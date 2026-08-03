@@ -312,6 +312,7 @@ export const useAbsentsStore = defineStore('absents', () => {
    * Utilizes the Segment Tree (O(1)) when available for fast & accurate count of unique absent days.
    */
   const totalDaysAbsent = computed(() => {
+    const _v = segmentTreeVersion.value
     if (segmentTree.value && visaStartDate.value && segmentTreeSize > 0) {
       const vStart = parseDateUTC(visaStartDate.value)
       if (vStart) {
@@ -329,6 +330,7 @@ export const useAbsentsStore = defineStore('absents', () => {
    * Uses O(log N) Segment Tree range sum queries per rolling window for maximum calculation speed.
    */
   const max12MonthAbsenceInfo = computed(() => {
+    const _v = segmentTreeVersion.value
     if (!visaStartDate.value || !settlementTargetDate.value) {
       return { maxDays: 0, peakStartDate: null, peakEndDate: null }
     }
@@ -431,6 +433,7 @@ export const useAbsentsStore = defineStore('absents', () => {
 
   /** Checks if a UTC Date object falls on a full absent day outside the UK. */
   function isAbsentDay(dateObj) {
+    const _v = segmentTreeVersion.value
     if (!dateObj || isNaN(dateObj.getTime())) return false
 
     if (segmentTree.value && visaStartDate.value && segmentTreeSize > 0) {
@@ -461,6 +464,7 @@ export const useAbsentsStore = defineStore('absents', () => {
    * Utilizes Segment Tree range queries during day-by-day shifting evaluation.
    */
   const naturalizationQualifyingPeriod = computed(() => {
+    const _v = segmentTreeVersion.value
     if (!visaStartDate.value && !ilrApprovedDate.value) {
       return {
         baselineTargetDate: '',

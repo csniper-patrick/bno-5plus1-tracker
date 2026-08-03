@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
+import { setActivePinia, createPinia } from 'pinia'
 import {
   parseDateUTC,
   formatDateUTC,
@@ -12,6 +13,7 @@ import {
 import { AbsenceSegmentTree } from '../src/utils/segmentTree.js'
 import { generateId } from '../src/utils/id.js'
 import { exportAbsencesBackup, exportFullBackup, parseYAML } from '../src/services/backupService.js'
+import { useAbsentsStore } from '../src/stores/absents.js'
 
 describe('Date Utilities', () => {
   it('should parse YYYY-MM-DD correctly in UTC', () => {
@@ -194,5 +196,97 @@ describe('Backup Service', () => {
     assert.strictEqual(parsed.visa_start_date, '2022-01-01')
     assert.strictEqual(parsed.absences.length, 1)
     assert.strictEqual(parsed.absences[0].dest, 'Japan')
+  })
+})
+
+describe('Absents Store Reactivity', () => {
+  if (typeof globalThis.localStorage === 'undefined') {
+    const storage = new Map()
+    globalThis.localStorage = {
+      getItem: (k) => storage.get(k) || null,
+      setItem: (k, v) => storage.set(k, String(v)),
+      removeItem: (k) => storage.delete(k),
+      clear: () => storage.clear(),
+    }
+  }
+
+  it('should update ILR and Naturalisation computed properties when absence records change', () => {
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    store.setVisaStartDate('2020-01-01')
+    store.setUkArrivalDate('2020-01-01')
+
+    assert.strictEqual(store.max12MonthAbsence, 0)
+    assert.strictEqual(store.isRuleExceeded, false)
+    assert.strictEqual(store.naturalization5YearAbsence, 0)
+    assert.strictEqual(store.totalDaysAbsent, 0)
+
+    // Add absence record with 190 days absent (2021-01-01 to 2021-07-11)
+    store.addAbsence({
+      startDate: '2021-01-01',
+      endDate: '2021-07-11',
+      dest: 'Long Vacation',
+    })
+
+    // ILR 180-day rolling rule should update to 190 days and exceed rule
+    assert.strictEqual(store.totalDaysAbsent, 190)
+    assert.strictEqual(store.max12MonthAbsence, 190)
+    assert.strictEqual(store.isRuleExceeded, true)
+    assert.strictEqual(store.ruleStatusColor, 'error')
+
+    // Naturalisation 5-year total absence should update to 190 days
+    assert.strictEqual(store.naturalization5YearAbsence, 190)
+
+    // Remove the absence record
+    const record = store.absences.find((a) => !a.isAutoArrival)
+    assert.ok(record)
+    store.removeAbsence(record.id)
+
+    // Should revert back to 0 days
+    assert.strictEqual(store.totalDaysAbsent, 0)
+    assert.strictEqual(store.max12MonthAbsence, 0)
+    assert.strictEqual(store.isRuleExceeded, false)
+    assert.strictEqual(store.naturalization5YearAbsence, 0)
+
+    // Add a new trip (150 days)
+    const newRecord = store.addAbsence({
+      startDate: '2021-01-01',
+      endDate: '2021-06-01',
+      dest: 'Trip 1',
+    })
+    assert.strictEqual(store.totalDaysAbsent, 150)
+    assert.strictEqual(store.max12MonthAbsence, 150)
+    assert.strictEqual(store.isRuleExceeded, false)
+
+    // Update the absence record to extend trip (200 days)
+    store.updateAbsence(newRecord.id, {
+      startDate: '2021-01-01',
+      endDate: '2021-07-21',
+      dest: 'Extended Trip',
+    })
+    assert.strictEqual(store.totalDaysAbsent, 200)
+    assert.strictEqual(store.max12MonthAbsence, 200)
+    assert.strictEqual(store.isRuleExceeded, true)
+
+    // Clear absences
+    store.clearAbsences()
+    assert.strictEqual(store.totalDaysAbsent, 0)
+    assert.strictEqual(store.max12MonthAbsence, 0)
+
+    // Import YAML
+    const yamlData = `
+visa_start_date: '2020-01-01'
+uk_arrival_date: '2020-01-01'
+absences:
+  - startDate: '2021-03-01'
+    endDate: '2021-09-17'
+    dest: 'Summer Away'
+`
+    store.importYAML(yamlData)
+    assert.strictEqual(store.totalDaysAbsent, 199)
+    assert.strictEqual(store.max12MonthAbsence, 199)
+    assert.strictEqual(store.isRuleExceeded, true)
+    assert.strictEqual(store.naturalization5YearAbsence, 199)
   })
 })

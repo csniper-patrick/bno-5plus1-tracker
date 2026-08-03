@@ -130,7 +130,7 @@ bno-5plus1-tracker/
 │   ├── views/             # Application views
 │   │   ├── AbsenceView.vue  # Absence tracker dashboard
 │   │   ├── DocumentView.vue # Qualifications & Document tracker
-│   │   └── InfoView.vue     # Useful links & official guidance page
+│   │   └── ReferenceView.vue # Useful links & official guidance page
 │   ├── App.vue            # Root layout with right navigation drawer
 │   └── main.js            # Vue app entrypoint
 ├── tests/                 # Automated test suite
@@ -154,7 +154,7 @@ bno-5plus1-tracker/
 
 ## 🔗 Useful Links & Official Resources
 
-Below are key official UK Government (GOV.UK) resources and policies for Hong Kong BNO visa holders, accessible within the application via the **Useful Links** (`InfoView`) page:
+Below are key official UK Government (GOV.UK) resources and policies for Hong Kong BNO visa holders, accessible within the application via the **Reference & Official Guidance** (`ReferenceView`) page:
 
 - **[BNO Visa: Settle in the UK (ILR Guidance)](https://www.gov.uk/british-national-overseas-bno-visa/settle-in-the-uk)**  
   Official Home Office guidance on settlement eligibility, 5-year continuous residence requirements, 180-day absence limits, and required qualifications.

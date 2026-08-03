@@ -371,13 +371,24 @@ export const useAbsentsStore = defineStore('absents', () => {
 
     const hasTree = segmentTree.value && segmentTreeSize > 0
 
+    let currentWindowDays = 0
+    if (hasTree) {
+      const endIdx = Math.min(segmentTreeSize - 1, 364)
+      currentWindowDays = segmentTree.value.query(0, endIdx)
+    }
+
     for (let i = 0; i <= limit; i++) {
       let days = 0
 
-      // Fast Path: Direct Segment Tree O(log N) leaf range query without date object creation
+      // Fast Path: Direct Segment Tree O(1) sliding window update using queryPoint
       if (hasTree && i < segmentTreeSize) {
-        const endIdx = Math.min(segmentTreeSize - 1, i + 364)
-        days = segmentTree.value.query(i, endIdx)
+        if (i === 0) {
+          days = currentWindowDays
+        } else {
+          // O(1) sliding window update: subtract day exiting window (i - 1), add day entering window (i + 364)
+          currentWindowDays += segmentTree.value.queryPoint(i + 364) - segmentTree.value.queryPoint(i - 1)
+          days = currentWindowDays
+        }
       } else {
         const windowStart = new Date(vStart.getTime() + i * 86400000)
         const windowEnd = new Date(vStart.getTime() + (i + 364) * 86400000)
@@ -449,9 +460,7 @@ export const useAbsentsStore = defineStore('absents', () => {
       const vStart = parseDateUTC(visaStartDate.value)
       if (vStart) {
         const idx = Math.round((dateObj.getTime() - vStart.getTime()) / 86400000)
-        if (idx >= 0 && idx < segmentTreeSize) {
-          return segmentTree.value.query(idx, idx) === 1
-        }
+        return segmentTree.value.queryPoint(idx) === 1
       }
     }
 
@@ -739,6 +748,7 @@ export const useAbsentsStore = defineStore('absents', () => {
         const qEndIdx = Math.round((qEnd.getTime() - vStart.getTime()) / 86400000)
 
         if (qStartIdx >= 0 && qEndIdx < segmentTreeSize) {
+          if (qStartIdx === qEndIdx) return segmentTree.value.queryPoint(qStartIdx)
           return segmentTree.value.query(qStartIdx, qEndIdx)
         }
 

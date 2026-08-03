@@ -79,6 +79,34 @@ describe('AbsenceSegmentTree', () => {
     tree.updatePoint(2, 0)
     assert.strictEqual(tree.query(0, 4), 0)
   })
+
+  it('should track leaf_lb and leaf_ub node indices', () => {
+    const arr = new Uint8Array([0, 1, 1, 0, 1, 0, 1]) // 7 days
+    const tree = new AbsenceSegmentTree(7)
+    tree.build(arr)
+
+    assert.ok(tree.leaf_lb > 0)
+    assert.ok(tree.leaf_ub > 0)
+    assert.strictEqual(tree.leaf_lb, 8) // leaf 0 at node 8
+    assert.strictEqual(tree.leaf_ub, 14) // leaf 6 at node 14 (leaf_lb + 6)
+    assert.strictEqual(tree._getLeafNode(7), -1) // targetIdx out of bounds
+    assert.strictEqual(tree._getLeafNode(-1), -1) // negative index
+  })
+
+  it('should support O(1) point queries via queryPoint', () => {
+    const arr = new Uint8Array([0, 1, 1, 0, 1, 0, 1]) // 7 days
+    const tree = new AbsenceSegmentTree(7)
+    tree.build(arr)
+
+    assert.strictEqual(tree.queryPoint(0), 0)
+    assert.strictEqual(tree.queryPoint(1), 1)
+    assert.strictEqual(tree.queryPoint(2), 1)
+    assert.strictEqual(tree.queryPoint(3), 0)
+    assert.strictEqual(tree.queryPoint(4), 1)
+    assert.strictEqual(tree.queryPoint(5), 0)
+    assert.strictEqual(tree.queryPoint(-1), 0)
+    assert.strictEqual(tree.queryPoint(7), 0)
+  })
 })
 
 describe('ID Utility', () => {

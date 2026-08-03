@@ -144,7 +144,7 @@ bno-5plus1-tracker/
 
 ### Key Modules & Data Structures
 
-- **[AbsenceSegmentTree](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/segmentTree.js)**: 1-indexed array-backed segment tree (`Int32Array`) using standard `leftNode = 2 * node` and `rightNode = 2 * node + 1` child indexing (0th index unused), supporting $O(\log N)$ point updates and range sum queries over a 10-year period (3,653 days).
+- **[AbsenceSegmentTree](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/segmentTree.js)**: 1-indexed array-backed segment tree (`Int32Array`) using standard `leftNode = 2 * node` and `rightNode = 2 * node + 1` child indexing (0th index unused), supporting $O(1)$ point queries (`queryPoint`), $O(\log N)$ point updates (`updatePoint`), and range sum queries over a 10-year period (3,653 days).
 - **[date.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/date.js)**: Centralized UTC date parsing (`parseDateUTC`), formatting (`formatDateUTC`, `formatDisplayDate`), normalization (`normalizeDate`), day arithmetic (`calculateDays`, `getOneDayBefore`), and tree boundary calculations (`getMaxSegmentTreeReturnDate`).
 - **[backupService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/backupService.js)**: Consolidated YAML backup service for full application and absence-only exports with node-level comments and YAML parsing.
 - **[useAbsentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/absents.js)**: Pinia store handling absence records, visa/arrival/ILR dates, auto-arrival record sync, and rolling calculation getters.

@@ -211,6 +211,7 @@ describe('Absents Store Reactivity', () => {
   }
 
   it('should update ILR and Naturalisation computed properties when absence records change', () => {
+    localStorage.clear()
     setActivePinia(createPinia())
     const store = useAbsentsStore()
 
@@ -229,14 +230,15 @@ describe('Absents Store Reactivity', () => {
       dest: 'Long Vacation',
     })
 
-    // ILR 180-day rolling rule should update to 190 days and exceed rule
+    // Baseline peak was 190 days; window delays so peak within the delayed 5-year qualifying period becomes 180 days
     assert.strictEqual(store.totalDaysAbsent, 190)
-    assert.strictEqual(store.max12MonthAbsence, 190)
+    assert.strictEqual(store.ilrQualifyingPeriod.baselineMax12MonthAbsence, 190)
+    assert.strictEqual(store.max12MonthAbsence, 180)
     assert.strictEqual(store.isRuleExceeded, true)
-    assert.strictEqual(store.ruleStatusColor, 'error')
+    assert.strictEqual(store.ruleStatusColor, 'warning')
 
-    // Naturalisation 5-year total absence should update to 190 days
-    assert.strictEqual(store.naturalization5YearAbsence, 190)
+    // Naturalisation 5-year window shifts with ILR target date
+    assert.strictEqual(store.naturalization5YearAbsence, 0)
 
     // Remove the absence record
     const record = store.absences.find((a) => !a.isAutoArrival)
@@ -266,7 +268,8 @@ describe('Absents Store Reactivity', () => {
       dest: 'Extended Trip',
     })
     assert.strictEqual(store.totalDaysAbsent, 200)
-    assert.strictEqual(store.max12MonthAbsence, 200)
+    assert.strictEqual(store.ilrQualifyingPeriod.baselineMax12MonthAbsence, 200)
+    assert.strictEqual(store.max12MonthAbsence, 180)
     assert.strictEqual(store.isRuleExceeded, true)
 
     // Clear absences
@@ -277,6 +280,7 @@ describe('Absents Store Reactivity', () => {
     // Import YAML
     const yamlData = `
 visa_start_date: '2020-01-01'
+visa_expiry_date: '2022-07-01'
 uk_arrival_date: '2020-01-01'
 absences:
   - startDate: '2021-03-01'
@@ -284,9 +288,167 @@ absences:
     dest: 'Summer Away'
 `
     store.importYAML(yamlData)
+    assert.strictEqual(store.visaExpiryDate, '2022-07-01')
     assert.strictEqual(store.totalDaysAbsent, 199)
-    assert.strictEqual(store.max12MonthAbsence, 199)
     assert.strictEqual(store.isRuleExceeded, true)
-    assert.strictEqual(store.naturalization5YearAbsence, 199)
+    assert.strictEqual(store.isVisaExtensionNeeded, true)
+  })
+
+  it('should support default vs custom visa expiry dates and visa extension warnings', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    store.setVisaStartDate('2020-01-01')
+    // Default visa expiry should be 5 years after visa start (2025-01-01)
+    assert.strictEqual(store.effectiveVisaExpiryDate, '2025-01-01')
+    assert.strictEqual(store.isVisaExpiryDateSet, false)
+    assert.strictEqual(store.isVisaExtensionNeeded, false)
+
+    // Set 30-month visa expiry date (2.5 years)
+    store.setVisaExpiryDate('2022-07-01')
+    assert.strictEqual(store.effectiveVisaExpiryDate, '2022-07-01')
+    assert.strictEqual(store.isVisaExpiryDateSet, true)
+    assert.strictEqual(store.isVisaExtensionNeeded, true)
+
+    // Clear visa expiry date -> reverts to default 5 years
+    store.setVisaExpiryDate('')
+    assert.strictEqual(store.effectiveVisaExpiryDate, '2025-01-01')
+    assert.strictEqual(store.isVisaExtensionNeeded, false)
+  })
+
+  it('should shift ILR qualifying period and chain Naturalisation when rolling 180-day rule is violated', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    store.setVisaStartDate('2020-01-01')
+    store.setUkArrivalDate('2020-01-01')
+
+    // Baseline window: 2020-01-01 to 2025-01-01
+    assert.strictEqual(store.settlementTargetDate, '2025-01-01')
+    assert.strictEqual(store.isIlrWindowShifted, false)
+
+    // Add absence trip of 190 days (2021-01-01 to 2021-07-11)
+    store.addAbsence({
+      startDate: '2021-01-01',
+      endDate: '2021-07-11',
+      dest: 'Over 180 Days Abroad',
+    })
+
+    // ILR window should shift to earliest compliant 5-year window
+    assert.strictEqual(store.isIlrWindowShifted, true)
+    assert.strictEqual(store.ruleStatusColor, 'warning')
+    assert.ok(store.settlementTargetDate > '2025-01-01')
+
+    // Naturalisation baseline target should be 1 year after the shifted ILR target date
+    const natPeriod = store.naturalizationQualifyingPeriod
+    assert.ok(natPeriod)
+    assert.strictEqual(natPeriod.baselineTargetDate, store.naturalizationQualifyingPeriod.targetDate)
+    assert.ok(natPeriod.targetDate > '2026-01-01')
+  })
+
+  it('should accurately calculate multi-trip rolling 12-month absences and trigger window delay when limit is exceeded', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    store.setVisaStartDate('2022-01-01')
+    store.setUkArrivalDate('2022-01-01')
+
+    // Add 3 separate trips in 2022 total 180 days (60 days each)
+    store.addAbsence({ startDate: '2022-02-01', endDate: '2022-04-03', dest: 'Trip A' }) // 60 days
+    store.addAbsence({ startDate: '2022-05-01', endDate: '2022-07-01', dest: 'Trip B' }) // 60 days
+    store.addAbsence({ startDate: '2022-08-01', endDate: '2022-10-01', dest: 'Trip C' }) // 60 days
+
+    assert.strictEqual(store.max12MonthAbsence, 180)
+    assert.strictEqual(store.isRuleExceeded, false)
+    assert.strictEqual(store.isIlrWindowShifted, false)
+
+    // Add 4th trip adding 1 more day (181 days total in 12 months)
+    const trip4 = store.addAbsence({ startDate: '2022-11-01', endDate: '2022-11-03', dest: 'Trip D' }) // 1 day
+    assert.strictEqual(store.ilrQualifyingPeriod.baselineMax12MonthAbsence, 181)
+    assert.strictEqual(store.isRuleExceeded, true)
+    assert.strictEqual(store.isIlrWindowShifted, true)
+
+    // Remove trip 4 -> should return to baseline unshifted window
+    store.removeAbsence(trip4.id)
+    assert.strictEqual(store.max12MonthAbsence, 180)
+    assert.strictEqual(store.isRuleExceeded, false)
+    assert.strictEqual(store.isIlrWindowShifted, false)
+  })
+
+  it('should verify physical presence and 450-day / 90-day rules for Naturalisation', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    store.setVisaStartDate('2020-01-01')
+    store.setUkArrivalDate('2020-01-01')
+
+    // Baseline Naturalisation Target: 2026-01-01 (window: 2021-01-01 to 2026-01-01)
+    assert.strictEqual(store.naturalizationTargetDate, '2026-01-01')
+
+    // Add a trip where applicant is abroad on naturalisation start date (2021-01-01)
+    store.addAbsence({ startDate: '2020-12-25', endDate: '2021-01-05', dest: 'New Year Abroad' })
+
+    // Window must shift forward because of start date physical presence requirement
+    assert.strictEqual(store.isNaturalizationWindowShifted, true)
+    assert.ok(store.naturalizationWindowStartDate > '2021-01-01')
+
+    // Set explicit ILR approved date
+    store.setIlrApprovedDate('2025-06-01')
+    // Naturalisation window start should now be 4 years after ILR approved date (2021-06-01 to 2026-06-01)
+    assert.strictEqual(store.naturalizationWindowStartDate, '2021-06-01')
+    assert.strictEqual(store.naturalizationTargetDate, '2026-06-01')
+  })
+
+  it('should test queryAbsentDaysInRange and isAbsentDay Segment Tree queries', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    store.setVisaStartDate('2020-01-01')
+    store.addAbsence({ startDate: '2020-01-10', endDate: '2020-01-15', dest: 'Trip 1' }) // 11, 12, 13, 14 (4 days)
+
+    // Segment tree O(1) point query
+    assert.strictEqual(store.isAbsentDay(parseDateUTC('2020-01-09')), false)
+    assert.strictEqual(store.isAbsentDay(parseDateUTC('2020-01-10')), false) // departure day excluded
+    assert.strictEqual(store.isAbsentDay(parseDateUTC('2020-01-11')), true)
+    assert.strictEqual(store.isAbsentDay(parseDateUTC('2020-01-14')), true)
+    assert.strictEqual(store.isAbsentDay(parseDateUTC('2020-01-15')), false) // return day excluded
+
+    // Segment tree range query
+    assert.strictEqual(store.queryAbsentDaysInRange('2020-01-01', '2020-01-31'), 4)
+    assert.strictEqual(store.queryAbsentDaysInRange('2020-01-12', '2020-01-13'), 2)
+  })
+
+  it('should preserve all backup fields including visa_expiry_date in full backup export and import', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    store.setVisaAndArrivalDates({
+      visaStartDate: '2021-03-01',
+      visaExpiryDate: '2023-09-01',
+      ukArrivalDate: '2021-03-10',
+      ilrApprovedDate: '2026-03-01',
+    })
+
+    store.addAbsence({ startDate: '2022-01-05', endDate: '2022-01-20', dest: 'Winter Break' })
+
+    const fullYaml = exportFullBackup(store, { getDocumentsExportData: () => [] })
+    assert.ok(fullYaml.includes('visa_expiry_date: 2023-09-01') || fullYaml.includes('visa_expiry_date: \'2023-09-01\''))
+    assert.ok(fullYaml.includes('ilr_approved_date: 2026-03-01') || fullYaml.includes('ilr_approved_date: \'2026-03-01\''))
+
+    // Clear store and re-import
+    store.clearAbsences()
+    store.importYAML(fullYaml)
+
+    assert.strictEqual(store.visaStartDate, '2021-03-01')
+    assert.strictEqual(store.visaExpiryDate, '2023-09-01')
+    assert.strictEqual(store.ukArrivalDate, '2021-03-10')
+    assert.strictEqual(store.ilrApprovedDate, '2026-03-01')
+    assert.strictEqual(store.absences.filter((a) => !a.isAutoArrival).length, 1)
   })
 })

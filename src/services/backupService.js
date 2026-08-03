@@ -30,6 +30,7 @@ export function exportFullBackup(absentsStore, documentsStore) {
     version: '1.0',
     exportedAt: new Date().toISOString(),
     visa_start_date: absentsStore.visaStartDate || '',
+    visa_expiry_date: absentsStore.visaExpiryDate || '',
     uk_arrival_date: absentsStore.ukArrivalDate || '',
     ilr_approved_date: absentsStore.ilrApprovedDate || '',
     absences: userAbsences,
@@ -50,6 +51,8 @@ export function exportFullBackup(absentsStore, documentsStore) {
         pair.key.commentBefore = ' ISO Timestamp when backup was generated'
       } else if (k === 'visa_start_date') {
         pair.key.commentBefore = ' BNO Visa Start Date (YYYY-MM-DD)'
+      } else if (k === 'visa_expiry_date') {
+        pair.key.commentBefore = ' BNO Visa Expiry Date (YYYY-MM-DD), if custom/extended'
       } else if (k === 'uk_arrival_date') {
         pair.key.commentBefore = ' First UK Arrival Date under BNO Visa (YYYY-MM-DD)'
       } else if (k === 'ilr_approved_date') {
@@ -113,6 +116,7 @@ export function exportAbsencesBackup(absentsStore) {
 
   const contentMap = doc.createNode({
     visa_start_date: absentsStore.visaStartDate || '',
+    visa_expiry_date: absentsStore.visaExpiryDate || '',
     uk_arrival_date: absentsStore.ukArrivalDate || '',
     ilr_approved_date: absentsStore.ilrApprovedDate || '',
     absences: userAbsences,
@@ -123,6 +127,8 @@ export function exportAbsencesBackup(absentsStore) {
       const k = pair.key && pair.key.value !== undefined ? pair.key.value : pair.key
       if (k === 'visa_start_date') {
         pair.key.commentBefore = ' BNO Visa Start Date (YYYY-MM-DD)'
+      } else if (k === 'visa_expiry_date') {
+        pair.key.commentBefore = ' BNO Visa Expiry Date, if applicable (YYYY-MM-DD)'
       } else if (k === 'uk_arrival_date') {
         pair.key.commentBefore = ' First UK Arrival Date under BNO Visa (YYYY-MM-DD)'
       } else if (k === 'ilr_approved_date') {

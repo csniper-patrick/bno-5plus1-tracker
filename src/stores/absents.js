@@ -21,6 +21,7 @@ export { AbsenceSegmentTree, calculateDays, getMaxSegmentTreeReturnDate }
  */
 const STORAGE_KEY = 'bno_absences'
 const STORAGE_VISA_KEY = 'bno_visa_start_date'
+const STORAGE_VISA_EXPIRY_KEY = 'bno_visa_expire_date'
 const STORAGE_ARRIVAL_KEY = 'bno_uk_arrival_date'
 const STORAGE_ILR_APPROVED_KEY = 'bno_ilr_approved_date'
 
@@ -62,6 +63,9 @@ export const useAbsentsStore = defineStore('absents', () => {
 
   /** The start date of the user's BNO visa (YYYY-MM-DD format). */
   const visaStartDate = ref(localStorage.getItem(STORAGE_VISA_KEY) || '')
+
+  /** The optional expiry date of the user's BNO visa (YYYY-MM-DD format). */
+  const visaExpiryDate = ref(localStorage.getItem(STORAGE_VISA_EXPIRY_KEY) || '')
 
   /** The UK arrival date of the user (YYYY-MM-DD format). */
   const ukArrivalDate = ref(localStorage.getItem(STORAGE_ARRIVAL_KEY) || '')
@@ -279,6 +283,14 @@ export const useAbsentsStore = defineStore('absents', () => {
     rebuildSegmentTree()
   })
 
+  watch(visaExpiryDate, (newVal) => {
+    if (newVal) {
+      localStorage.setItem(STORAGE_VISA_EXPIRY_KEY, newVal)
+    } else {
+      localStorage.removeItem(STORAGE_VISA_EXPIRY_KEY)
+    }
+  })
+
   watch(ukArrivalDate, (newVal) => {
     if (newVal) {
       localStorage.setItem(STORAGE_ARRIVAL_KEY, newVal)
@@ -302,8 +314,22 @@ export const useAbsentsStore = defineStore('absents', () => {
   // ---------------------------------------------------------------------------
 
   const isVisaDateSet = computed(() => Boolean(visaStartDate.value))
+  const isVisaExpiryDateSet = computed(() => Boolean(visaExpiryDate.value))
   const isArrivalDateSet = computed(() => Boolean(ukArrivalDate.value))
   const isIlrApprovedDateSet = computed(() => Boolean(ilrApprovedDate.value))
+
+  /**
+   * Effective visa expiry date: user-defined expiry date if set, or default 5 years from visaStartDate.
+   */
+  const effectiveVisaExpiryDate = computed(() => {
+    if (visaExpiryDate.value) return visaExpiryDate.value
+    if (!visaStartDate.value) return ''
+    const vStart = parseDateUTC(visaStartDate.value)
+    if (!vStart) return ''
+    const vEnd = new Date(vStart)
+    vEnd.setUTCFullYear(vEnd.getUTCFullYear() + 5)
+    return formatDateUTC(vEnd)
+  })
 
   const sortedAbsences = computed(() => sortAbsencesArray([...absences.value]))
 
@@ -326,60 +352,56 @@ export const useAbsentsStore = defineStore('absents', () => {
   })
 
   /**
-   * Computes the peak rolling 12-month (365-day) absence across the 5-year ILR qualifying period.
-   * Uses O(log N) Segment Tree range sum queries per rolling window for maximum calculation speed.
+   * Helper algorithm to calculate peak 12-month rolling absence in a 5-year window [wStart, wTarget].
+   * Leverages the Segment Tree for an O(1) per-day sliding window scan over the 5-year qualifying period.
    */
-  const max12MonthAbsenceInfo = computed(() => {
-    const _v = segmentTreeVersion.value
-    if (!visaStartDate.value || !settlementTargetDate.value) {
+  function calcPeak12MoInWindow(wStart, wTarget) {
+    if (!wStart || !wTarget || wTarget <= wStart) {
       return { maxDays: 0, peakStartDate: null, peakEndDate: null }
     }
 
-    const vStart = parseDateUTC(visaStartDate.value)
-    const targetDate = parseDateUTC(settlementTargetDate.value)
-    if (!vStart || !targetDate || targetDate <= vStart) {
-      return { maxDays: 0, peakStartDate: null, peakEndDate: null }
-    }
-
-    let maxDays = 0
-    let peakStart = vStart
-    let peakEnd = new Date(vStart.getTime() + 364 * 86400000)
-
-    const totalQualifyingDays = Math.round((targetDate.getTime() - vStart.getTime()) / 86400000)
+    const totalQualifyingDays = Math.round((wTarget.getTime() - wStart.getTime()) / 86400000)
     const limit = Math.max(0, totalQualifyingDays - 364)
 
-    const hasTree = segmentTree.value && segmentTreeSize > 0
+    const hasTree = segmentTree.value && visaStartDate.value && segmentTreeSize > 0
+    const vStart = hasTree ? parseDateUTC(visaStartDate.value) : null
 
-    let currentWindowDays = 0
-    if (hasTree) {
-      const endIdx = Math.min(segmentTreeSize - 1, 364)
-      currentWindowDays = segmentTree.value.query(0, endIdx)
-    }
+    let maxDays = 0
+    let peakStart = wStart
+    let peakEnd = new Date(wStart.getTime() + 364 * 86400000)
 
-    for (let i = 0; i <= limit; i++) {
-      let days = 0
+    const startOffset = vStart ? Math.round((wStart.getTime() - vStart.getTime()) / 86400000) : 0
 
-      // Fast Path: Direct Segment Tree O(1) sliding window update using queryPoint
-      if (hasTree && i < segmentTreeSize) {
-        if (i === 0) {
-          days = currentWindowDays
-        } else {
-          // O(1) sliding window update: subtract day exiting window (i - 1), add day entering window (i + 364)
-          currentWindowDays += segmentTree.value.queryPoint(i + 364) - segmentTree.value.queryPoint(i - 1)
-          days = currentWindowDays
+    if (hasTree && vStart && startOffset >= 0) {
+      const initialEndIdx = Math.min(segmentTreeSize - 1, startOffset + 364)
+      let currentWindowDays = segmentTree.value.query(startOffset, initialEndIdx)
+      maxDays = currentWindowDays
+
+      for (let i = 1; i <= limit; i++) {
+        const currStartIdx = startOffset + i
+        const currEndIdx = currStartIdx + 364
+
+        const addVal = currEndIdx < segmentTreeSize ? segmentTree.value.queryPoint(currEndIdx) : 0
+        const subVal = currStartIdx - 1 < segmentTreeSize ? segmentTree.value.queryPoint(currStartIdx - 1) : 0
+        currentWindowDays += addVal - subVal
+
+        if (currentWindowDays > maxDays) {
+          maxDays = currentWindowDays
+          peakStart = new Date(wStart.getTime() + i * 86400000)
+          peakEnd = new Date(wStart.getTime() + (i + 364) * 86400000)
         }
-      } else {
-        const windowStart = new Date(vStart.getTime() + i * 86400000)
-        const windowEnd = new Date(vStart.getTime() + (i + 364) * 86400000)
-        const qStart = windowStart < vStart ? vStart : windowStart
-        const qEnd = windowEnd > targetDate ? targetDate : windowEnd
-        days = queryAbsentDaysInRange(qStart, qEnd)
       }
+    } else {
+      for (let i = 0; i <= limit; i++) {
+        const windowStart = new Date(wStart.getTime() + i * 86400000)
+        const windowEnd = new Date(wStart.getTime() + (i + 364) * 86400000)
+        const days = queryAbsentDaysInRange(windowStart, windowEnd)
 
-      if (days > maxDays) {
-        maxDays = days
-        peakStart = new Date(vStart.getTime() + i * 86400000)
-        peakEnd = new Date(vStart.getTime() + (i + 364) * 86400000)
+        if (days > maxDays) {
+          maxDays = days
+          peakStart = windowStart
+          peakEnd = windowEnd
+        }
       }
     }
 
@@ -388,43 +410,172 @@ export const useAbsentsStore = defineStore('absents', () => {
       peakStartDate: formatDateUTC(peakStart),
       peakEndDate: formatDateUTC(peakEnd),
     }
-  })
+  }
 
-  const max12MonthAbsence = computed(() => max12MonthAbsenceInfo.value.maxDays)
+  /**
+   * 5-year sliding window calculation for Indefinite Leave to Remain (ILR).
+   * Evaluates rolling 12-month absence limits (<= 180 days). If the condition
+   * is violated in the baseline 5-year period, automatically shifts the window forward
+   * to the earliest compliant 5-year period.
+   */
+  const ilrQualifyingPeriod = computed(() => {
+    const _v = segmentTreeVersion.value
+    if (!visaStartDate.value) {
+      return {
+        baselineWindowStartDate: '',
+        baselineTargetDate: '',
+        baselineEarliestAppDate: '',
+        baselineMax12MonthAbsence: 0,
+        windowStartDate: '',
+        targetDate: '',
+        earliestApplicationDate: '',
+        isShifted: false,
+        is10YearExceeded: false,
+        max12MonthAbsence: 0,
+        peakStartDate: null,
+        peakEndDate: null,
+        total5YearAbsence: 0,
+      }
+    }
 
-  /** Calculates the 5-year target settlement date (YYYY-MM-DD) from visaStartDate. */
-  const settlementTargetDate = computed(() => {
-    if (!visaStartDate.value) return ''
     const vStart = parseDateUTC(visaStartDate.value)
-    if (!vStart) return ''
-    const target = new Date(vStart)
-    target.setUTCFullYear(target.getUTCFullYear() + 5)
-    return formatDateUTC(target)
+    if (!vStart) {
+      return {
+        baselineWindowStartDate: '',
+        baselineTargetDate: '',
+        baselineEarliestAppDate: '',
+        baselineMax12MonthAbsence: 0,
+        windowStartDate: '',
+        targetDate: '',
+        earliestApplicationDate: '',
+        isShifted: false,
+        is10YearExceeded: false,
+        max12MonthAbsence: 0,
+        peakStartDate: null,
+        peakEndDate: null,
+        total5YearAbsence: 0,
+      }
+    }
+
+    const baselineStartStr = formatDateUTC(vStart)
+    const baselineTarget = new Date(vStart)
+    baselineTarget.setUTCFullYear(baselineTarget.getUTCFullYear() + 5)
+    const baselineTargetStr = formatDateUTC(baselineTarget)
+
+    const baselineAppDate = new Date(baselineTarget)
+    baselineAppDate.setUTCDate(baselineAppDate.getUTCDate() - 28)
+    const baselineAppDateStr = formatDateUTC(baselineAppDate)
+
+    const tenYearDeadline = new Date(vStart)
+    tenYearDeadline.setUTCFullYear(tenYearDeadline.getUTCFullYear() + 10)
+
+    const baselinePeakInfo = calcPeak12MoInWindow(vStart, baselineTarget)
+
+    let currentStart = new Date(vStart)
+    let safetyCounter = 0
+    let foundValid = false
+
+    let finalStartStr = baselineStartStr
+    let finalTargetStr = baselineTargetStr
+    let finalPeakInfo = baselinePeakInfo
+    let finalTotalAbsence = 0
+
+    if (baselinePeakInfo.maxDays <= 180) {
+      foundValid = true
+      finalStartStr = baselineStartStr
+      finalTargetStr = baselineTargetStr
+      finalPeakInfo = baselinePeakInfo
+      finalTotalAbsence = queryAbsentDaysInRange(vStart, baselineTarget)
+    } else {
+      while (safetyCounter < 3650) {
+        const currentTarget = new Date(currentStart)
+        currentTarget.setUTCFullYear(currentTarget.getUTCFullYear() + 5)
+
+        const peakInfo = calcPeak12MoInWindow(currentStart, currentTarget)
+
+        if (peakInfo.maxDays <= 180) {
+          foundValid = true
+          finalStartStr = formatDateUTC(currentStart)
+          finalTargetStr = formatDateUTC(currentTarget)
+          finalPeakInfo = peakInfo
+          finalTotalAbsence = queryAbsentDaysInRange(currentStart, currentTarget)
+          break
+        }
+
+        if (currentTarget > tenYearDeadline) {
+          finalStartStr = formatDateUTC(currentStart)
+          finalTargetStr = formatDateUTC(currentTarget)
+          finalPeakInfo = peakInfo
+          finalTotalAbsence = queryAbsentDaysInRange(currentStart, currentTarget)
+          break
+        }
+
+        currentStart.setUTCDate(currentStart.getUTCDate() + 1)
+        safetyCounter++
+      }
+    }
+
+    const isShifted = finalTargetStr !== baselineTargetStr
+    let is10YearExceeded = false
+    const finalTargetObj = parseDateUTC(finalTargetStr)
+    if (finalTargetObj && finalTargetObj > tenYearDeadline) {
+      is10YearExceeded = true
+    }
+
+    const appDate = new Date(finalTargetObj || baselineTarget)
+    appDate.setUTCDate(appDate.getUTCDate() - 28)
+    const earliestAppDateStr = formatDateUTC(appDate)
+
+    return {
+      baselineWindowStartDate: baselineStartStr,
+      baselineTargetDate: baselineTargetStr,
+      baselineEarliestAppDate: baselineAppDateStr,
+      baselineMax12MonthAbsence: baselinePeakInfo.maxDays,
+      windowStartDate: finalStartStr,
+      targetDate: finalTargetStr,
+      earliestApplicationDate: earliestAppDateStr,
+      isShifted,
+      is10YearExceeded,
+      max12MonthAbsence: finalPeakInfo.maxDays,
+      peakStartDate: finalPeakInfo.peakStartDate,
+      peakEndDate: finalPeakInfo.peakEndDate,
+      total5YearAbsence: finalTotalAbsence,
+    }
   })
 
-  /** Calculates earliest ILR application date (28 days prior to 5 years). */
-  const earliestIlrApplicationDate = computed(() => {
-    if (!visaStartDate.value) return ''
-    const vStart = parseDateUTC(visaStartDate.value)
-    if (!vStart) return ''
-    const target = new Date(vStart)
-    target.setUTCFullYear(target.getUTCFullYear() + 5)
-    target.setUTCDate(target.getUTCDate() - 28)
-    return formatDateUTC(target)
-  })
+  const max12MonthAbsenceInfo = computed(() => ({
+    maxDays: ilrQualifyingPeriod.value.max12MonthAbsence,
+    peakStartDate: ilrQualifyingPeriod.value.peakStartDate,
+    peakEndDate: ilrQualifyingPeriod.value.peakEndDate,
+  }))
+
+  const max12MonthAbsence = computed(() => ilrQualifyingPeriod.value.max12MonthAbsence)
+  const settlementTargetDate = computed(() => ilrQualifyingPeriod.value.targetDate)
+  const earliestIlrApplicationDate = computed(() => ilrQualifyingPeriod.value.earliestApplicationDate)
+  const isIlrWindowShifted = computed(() => ilrQualifyingPeriod.value.isShifted)
+  const ilr5YearTotalAbsence = computed(() => ilrQualifyingPeriod.value.total5YearAbsence)
 
   const ruleStatusColor = computed(() => {
+    if (ilrQualifyingPeriod.value.is10YearExceeded) return 'error'
+    if (isIlrWindowShifted.value) return 'warning'
     const days = max12MonthAbsence.value
     if (days > 180) return 'error'
     if (days >= 150) return 'warning'
     return 'success'
   })
 
-  const isRuleExceeded = computed(() => max12MonthAbsence.value > 180)
+  const isRuleExceeded = computed(() => {
+    return ilrQualifyingPeriod.value.baselineMax12MonthAbsence > 180 || max12MonthAbsence.value > 180
+  })
 
-  const ilr5YearTotalAbsence = computed(() => {
-    if (!visaStartDate.value || !settlementTargetDate.value) return 0
-    return queryAbsentDaysInRange(visaStartDate.value, settlementTargetDate.value)
+  /**
+   * Checks if current effective visa expiry date is earlier than the required ILR settlement target date.
+   */
+  const isVisaExtensionNeeded = computed(() => {
+    if (!visaStartDate.value || !settlementTargetDate.value) return false
+    const effExpiry = effectiveVisaExpiryDate.value
+    if (!effExpiry) return false
+    return effExpiry < settlementTargetDate.value
   })
 
   // ---------------------------------------------------------------------------
@@ -461,6 +612,7 @@ export const useAbsentsStore = defineStore('absents', () => {
 
   /**
    * Comprehensive validation and calculation of the 5-year qualifying period for British Citizenship.
+   * Inherits baseline window start from shifted ILR target date if ilrApprovedDate is not explicitly set.
    * Utilizes Segment Tree range queries during day-by-day shifting evaluation.
    */
   const naturalizationQualifyingPeriod = computed(() => {
@@ -480,17 +632,32 @@ export const useAbsentsStore = defineStore('absents', () => {
       }
     }
 
+    const emptyResult = {
+      baselineTargetDate: '',
+      baselineWindowStartDate: '',
+      windowStartDate: '',
+      targetDate: '',
+      isShifted: false,
+      is10YearExceeded: false,
+      fiveYearAbsence: 0,
+      final12MoAbsence: 0,
+      tenYearDeadlineDate: '',
+      initialViolations: [],
+    }
+
     let baselineStart
     if (ilrApprovedDate.value) {
       const ilrDate = parseDateUTC(ilrApprovedDate.value)
-      if (!ilrDate) return null
+      if (!ilrDate) return emptyResult
       baselineStart = new Date(ilrDate)
       baselineStart.setUTCFullYear(baselineStart.getUTCFullYear() - 4)
     } else {
-      const vStart = parseDateUTC(visaStartDate.value)
-      if (!vStart) return null
-      baselineStart = new Date(vStart)
-      baselineStart.setUTCFullYear(baselineStart.getUTCFullYear() + 1)
+      const ilrTargetStr = ilrQualifyingPeriod.value?.targetDate
+      if (!ilrTargetStr) return emptyResult
+      const ilrTarget = parseDateUTC(ilrTargetStr)
+      if (!ilrTarget) return emptyResult
+      baselineStart = new Date(ilrTarget)
+      baselineStart.setUTCFullYear(baselineStart.getUTCFullYear() - 4)
     }
 
     const baselineStartStr = formatDateUTC(baselineStart)
@@ -587,6 +754,8 @@ export const useAbsentsStore = defineStore('absents', () => {
       }
 
       if (safetyCounter === 0) {
+        fiveYearAbs = f5
+        final12MoAbs = f12
         if (isAbsentOnStart)
           initialViolations.push('Physical presence requirement on window start date')
         if (f5 > 450) initialViolations.push('5-year absence limit (> 450 days)')
@@ -653,10 +822,10 @@ export const useAbsentsStore = defineStore('absents', () => {
     () => naturalizationQualifyingPeriod.value?.is10YearExceeded || false,
   )
   const naturalization5YearAbsence = computed(
-    () => naturalizationQualifyingPeriod.value?.fiveYearAbsence || 0,
+    () => naturalizationQualifyingPeriod.value?.fiveYearAbsence ?? 0,
   )
   const naturalizationFinal12MoAbsence = computed(
-    () => naturalizationQualifyingPeriod.value?.final12MoAbsence || 0,
+    () => naturalizationQualifyingPeriod.value?.final12MoAbsence ?? 0,
   )
 
   const naturalizationStatusColor = computed(() => {
@@ -679,6 +848,10 @@ export const useAbsentsStore = defineStore('absents', () => {
     rebuildSegmentTree()
   }
 
+  function setVisaExpiryDate(dateStr) {
+    visaExpiryDate.value = dateStr || ''
+  }
+
   function setUkArrivalDate(dateStr) {
     ukArrivalDate.value = dateStr || ''
   }
@@ -689,10 +862,12 @@ export const useAbsentsStore = defineStore('absents', () => {
 
   function setVisaAndArrivalDates({
     visaStartDate: vStart,
+    visaExpiryDate: vExpiry,
     ukArrivalDate: uArrival,
     ilrApprovedDate: iApproved,
   }) {
     visaStartDate.value = vStart || ''
+    visaExpiryDate.value = vExpiry || ''
     ukArrivalDate.value = uArrival || ''
     ilrApprovedDate.value = iApproved || ''
     rebuildSegmentTree()
@@ -913,6 +1088,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   function clearAbsences() {
     absences.value = []
     visaStartDate.value = ''
+    visaExpiryDate.value = ''
     ukArrivalDate.value = ''
     ilrApprovedDate.value = ''
     syncArrivalRecord()
@@ -924,6 +1100,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     return exportAbsencesBackup({
       absences: absences.value,
       visaStartDate: visaStartDate.value,
+      visaExpiryDate: visaExpiryDate.value,
       ukArrivalDate: ukArrivalDate.value,
       ilrApprovedDate: ilrApprovedDate.value,
     })
@@ -935,6 +1112,13 @@ export const useAbsentsStore = defineStore('absents', () => {
 
     const importedVisaDate = normalizeDate(
       parsed.visa_start_date || parsed.visaStartDate || parsed.visa_date || parsed.visaDate || '',
+    )
+    const importedVisaExpiryDate = normalizeDate(
+      parsed.visa_expiry_date ||
+        parsed.visaExpiryDate ||
+        parsed.visa_expire_date ||
+        parsed.visaExpireDate ||
+        '',
     )
     const importedArrivalDate = normalizeDate(
       parsed.uk_arrival_date ||
@@ -972,6 +1156,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     }
 
     visaStartDate.value = importedVisaDate
+    visaExpiryDate.value = importedVisaExpiryDate
     ukArrivalDate.value = importedArrivalDate
     ilrApprovedDate.value = importedIlrApprovedDate
     absences.value = validNewEntries
@@ -995,6 +1180,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     return {
       count: validNewEntries.length,
       visaStartDate: importedVisaDate,
+      visaExpiryDate: importedVisaExpiryDate,
       ukArrivalDate: importedArrivalDate,
       ilrApprovedDate: importedIlrApprovedDate,
     }
@@ -1005,6 +1191,10 @@ export const useAbsentsStore = defineStore('absents', () => {
     visaStartDate,
     isVisaDateSet,
     setVisaStartDate,
+    visaExpiryDate,
+    isVisaExpiryDateSet,
+    effectiveVisaExpiryDate,
+    setVisaExpiryDate,
     ukArrivalDate,
     isArrivalDateSet,
     setUkArrivalDate,
@@ -1016,8 +1206,11 @@ export const useAbsentsStore = defineStore('absents', () => {
     queryAbsentDaysInRange,
     max12MonthAbsence,
     max12MonthAbsenceInfo,
+    ilrQualifyingPeriod,
     settlementTargetDate,
     earliestIlrApplicationDate,
+    isIlrWindowShifted,
+    isVisaExtensionNeeded,
     ruleStatusColor,
     isRuleExceeded,
     ilr5YearTotalAbsence,
@@ -1033,6 +1226,8 @@ export const useAbsentsStore = defineStore('absents', () => {
     isNaturalizationEligible,
     sortedAbsences,
     totalDaysAbsent,
+    isAbsentDay,
+    queryAbsentDaysInRange,
     calculateDays,
     validateAbsence,
     getMaxSegmentTreeReturnDate,

@@ -56,6 +56,9 @@ export default {
       /** Temporary input state for Visa Start Date in modal */
       visaDateInput: '',
 
+      /** Temporary input state for Visa Expiry Date in modal */
+      visaExpiryDateInput: '',
+
       /** Temporary input state for UK Arrival Date in modal */
       arrivalDateInput: '',
 
@@ -345,6 +348,7 @@ export default {
      */
     openVisaDateDialog() {
       this.visaDateInput = this.absentsStore.visaStartDate || ''
+      this.visaExpiryDateInput = this.absentsStore.visaExpiryDate || ''
       this.arrivalDateInput = this.absentsStore.ukArrivalDate || ''
       this.ilrApprovedDateInput = this.absentsStore.ilrApprovedDate || ''
       this.visaDateDialog = true
@@ -357,6 +361,7 @@ export default {
       if (!this.visaDateInput) return
       this.absentsStore.setVisaAndArrivalDates({
         visaStartDate: this.visaDateInput,
+        visaExpiryDate: this.visaExpiryDateInput,
         ukArrivalDate: this.arrivalDateInput,
         ilrApprovedDate: this.ilrApprovedDateInput,
       })
@@ -1183,6 +1188,110 @@ export default {
         <template v-else>
           <!-- 1. Residence, ILR, Naturalisation Checker -->
           <div class="d-flex flex-column ga-6">
+            <!-- BNO Visa Overview Card -->
+            <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
+              <v-card-title
+                class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
+              >
+                <div class="d-flex align-center ga-2">
+                  <v-icon icon="mdi-passport-biometric" color="primary"></v-icon>
+                  <span class="text-h5 font-weight-bold">BNO Visa Overview</span>
+                </div>
+
+                <v-chip
+                  :color="absentsStore.isVisaExtensionNeeded ? 'warning' : 'success'"
+                  size="small"
+                  variant="tonal"
+                  class="font-weight-bold"
+                >
+                  <v-icon
+                    :icon="
+                      absentsStore.isVisaExtensionNeeded
+                        ? 'mdi-alert-circle'
+                        : 'mdi-check-circle'
+                    "
+                    start
+                  ></v-icon>
+                  {{
+                    absentsStore.isVisaExtensionNeeded
+                      ? 'Visa Extension Required'
+                      : 'Visa Cover Intact'
+                  }}
+                </v-chip>
+              </v-card-title>
+
+              <v-card-text class="px-0 pb-0">
+                <v-row density="compact">
+                  <!-- Visa Start Date -->
+                  <v-col cols="12" sm="6">
+                    <v-card variant="tonal" color="primary" class="pa-3 rounded-lg">
+                      <div class="text-caption text-medium-emphasis">BNO Visa Start Date</div>
+                      <div class="text-subtitle-1 font-weight-bold text-primary">
+                        {{ formatDate(absentsStore.visaStartDate) }}
+                      </div>
+                    </v-card>
+                  </v-col>
+
+                  <!-- Visa Expiry Date -->
+                  <v-col cols="12" sm="6">
+                    <v-card
+                      variant="tonal"
+                      :color="absentsStore.isVisaExtensionNeeded ? 'warning' : 'info'"
+                      class="pa-3 rounded-lg"
+                    >
+                      <div class="d-flex align-center justify-space-between mb-1">
+                        <span class="text-caption text-medium-emphasis">Visa Expiry Date</span>
+                        <v-chip
+                          size="x-small"
+                          :color="absentsStore.isVisaExpiryDateSet ? 'purple' : 'info'"
+                          variant="flat"
+                          class="font-weight-bold"
+                        >
+                          {{ absentsStore.isVisaExpiryDateSet ? 'Custom Expiry' : 'Default 5-Yr' }}
+                        </v-chip>
+                      </div>
+                      <div class="text-subtitle-1 font-weight-bold">
+                        {{ formatDate(absentsStore.effectiveVisaExpiryDate) }}
+                      </div>
+                    </v-card>
+                  </v-col>
+                </v-row>
+
+                <!-- Yellow Warning Alert if Visa Extension Needed -->
+                <v-alert
+                  v-if="absentsStore.isVisaExtensionNeeded"
+                  type="warning"
+                  variant="tonal"
+                  icon="mdi-alert-outline"
+                  class="mt-3 text-caption"
+                  density="compact"
+                >
+                  <div class="font-weight-bold text-subtitle-2 mb-1">
+                    Visa Extension Needed to Complete ILR
+                  </div>
+                  <div>
+                    Your current visa expires on
+                    <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong>,
+                    which is before your earliest ILR settlement date
+                    <strong>{{ formatDate(absentsStore.settlementTargetDate) }}</strong>.
+                    You must extend your BNO visa (e.g. by 30 months) to complete your 5-year continuous residence for ILR.
+                  </div>
+                </v-alert>
+                <v-alert
+                  v-else
+                  type="success"
+                  variant="tonal"
+                  icon="mdi-shield-check"
+                  class="mt-3 text-caption"
+                  density="compact"
+                >
+                  <strong>Visa Cover Verified:</strong> Your current visa is valid until
+                  <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong>,
+                  which covers your earliest ILR settlement date ({{ formatDate(absentsStore.settlementTargetDate) }}).
+                </v-alert>
+              </v-card-text>
+            </v-card>
+
             <!-- SECTION 1: ILR / Settlement Card -->
             <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
               <v-card-title
@@ -1200,16 +1309,28 @@ export default {
                   class="font-weight-bold"
                 >
                   <v-icon
-                    :icon="absentsStore.isRuleExceeded ? 'mdi-alert-circle' : 'mdi-check-circle'"
+                    :icon="
+                      absentsStore.ilrQualifyingPeriod.is10YearExceeded
+                        ? 'mdi-alert-circle'
+                        : absentsStore.isIlrWindowShifted
+                          ? 'mdi-clock-alert-outline'
+                          : 'mdi-check-circle'
+                    "
                     start
                   ></v-icon>
-                  {{ absentsStore.isRuleExceeded ? 'ILR Limit Exceeded' : 'Within ILR Limit' }}
+                  {{
+                    absentsStore.ilrQualifyingPeriod.is10YearExceeded
+                      ? 'ILR Limit Exceeded (>10 Yrs)'
+                      : absentsStore.isIlrWindowShifted
+                        ? 'ILR Window Delayed'
+                        : 'Within ILR Limit'
+                  }}
                 </v-chip>
               </v-card-title>
 
               <v-card-text class="px-0 pb-0">
                 <p class="text-caption text-medium-emphasis mb-4">
-                  5 Yrs: {{ formatDate(absentsStore.visaStartDate) }} –
+                  5 Yrs: {{ formatDate(absentsStore.ilrQualifyingPeriod.windowStartDate || absentsStore.visaStartDate) }} –
                   {{ formatDate(absentsStore.settlementTargetDate) }}
                 </p>
 
@@ -1263,6 +1384,31 @@ export default {
 
                 <!-- Earliest ILR Application Banner -->
                 <v-alert
+                  v-if="absentsStore.isIlrWindowShifted"
+                  type="warning"
+                  variant="tonal"
+                  icon="mdi-clock-alert-outline"
+                  class="mt-3 text-caption"
+                  density="compact"
+                >
+                  <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+                    <span>
+                      <strong>Earliest Delayed ILR Application Date:</strong>
+                    </span>
+                    <strong class="text-subtitle-2 font-weight-bold">
+                      {{ earliestIlrApplicationDate }}
+                    </strong>
+                  </div>
+                  <div class="mt-1 opacity-90 text-caption">
+                    <strong>Qualifying Period Delayed:</strong> Baseline calculated date was
+                    <strong>{{ formatDate(absentsStore.ilrQualifyingPeriod.baselineTargetDate) }}</strong>.
+                    Because rolling 12-month absences exceeded 180 days in the initial 5 years, the 5-year ILR qualifying window automatically delayed to
+                    <strong>{{ formatDate(absentsStore.ilrQualifyingPeriod.windowStartDate) }} – {{ formatDate(absentsStore.settlementTargetDate) }}</strong>.
+                  </div>
+                </v-alert>
+
+                <v-alert
+                  v-else
                   type="info"
                   variant="tonal"
                   icon="mdi-clock-start"
@@ -1318,7 +1464,7 @@ export default {
                     absentsStore.isNaturalization10YearExceeded
                       ? 'Period Exceeds 10-Yr Tracker Range'
                       : absentsStore.isNaturalizationWindowShifted
-                        ? 'Within Citizenship Limit (Shifted)'
+                        ? 'Within Citizenship Limit (Delayed)'
                         : 'Within Citizenship Limit'
                   }}
                 </v-chip>
@@ -1341,25 +1487,13 @@ export default {
                   <v-col cols="12" xl="6">
                     <v-card
                       variant="tonal"
-                      :color="
-                        absentsStore.naturalization5YearAbsence > 450
-                          ? 'error'
-                          : absentsStore.naturalization5YearAbsence >= 380
-                            ? 'warning'
-                            : 'success'
-                      "
+                      :color="absentsStore.naturalizationStatusColor"
                       class="pa-3 rounded-lg"
                     >
                       <div class="d-flex align-center justify-space-between mb-1">
-                        <span class="text-caption font-weight-bold">5-Year Limit</span>
+                        <span class="text-caption font-weight-bold">5-Year Absence Limit</span>
                         <v-chip
-                          :color="
-                            absentsStore.naturalization5YearAbsence > 450
-                              ? 'error'
-                              : absentsStore.naturalization5YearAbsence >= 380
-                                ? 'warning'
-                                : 'success'
-                          "
+                          :color="absentsStore.naturalizationStatusColor"
                           size="x-small"
                           variant="flat"
                           class="font-weight-bold"
@@ -1367,8 +1501,8 @@ export default {
                           {{ absentsStore.naturalization5YearAbsence }} / 450 Days
                         </v-chip>
                       </div>
-                      <div class="text-caption opacity-90">
-                        Total absent days in qualifying 5-year period.
+                      <div class="text-caption opacity-90 mb-1">
+                        Total full days absent in 5-year qualifying period.
                       </div>
                     </v-card>
                   </v-col>
@@ -1377,25 +1511,13 @@ export default {
                   <v-col cols="12" xl="6">
                     <v-card
                       variant="tonal"
-                      :color="
-                        absentsStore.naturalizationFinal12MoAbsence > 90
-                          ? 'error'
-                          : absentsStore.naturalizationFinal12MoAbsence >= 75
-                            ? 'warning'
-                            : 'success'
-                      "
+                      :color="absentsStore.naturalizationStatusColor"
                       class="pa-3 rounded-lg"
                     >
                       <div class="d-flex align-center justify-space-between mb-1">
                         <span class="text-caption font-weight-bold">Final 12-Month Limit</span>
                         <v-chip
-                          :color="
-                            absentsStore.naturalizationFinal12MoAbsence > 90
-                              ? 'error'
-                              : absentsStore.naturalizationFinal12MoAbsence >= 75
-                                ? 'warning'
-                                : 'success'
-                          "
+                          :color="absentsStore.naturalizationStatusColor"
                           size="x-small"
                           variant="flat"
                           class="font-weight-bold"
@@ -1450,21 +1572,21 @@ export default {
                 >
                   <div class="d-flex align-center justify-space-between flex-wrap ga-2">
                     <span>
-                      <strong>Earliest Shifted Application Date:</strong>
+                      <strong>Earliest Delayed Application Date:</strong>
                     </span>
                     <strong class="text-subtitle-2 font-weight-bold">
                       {{ formatDate(absentsStore.naturalizationTargetDate) }}
                     </strong>
                   </div>
                   <div class="mt-1 opacity-90 text-caption">
-                    <strong>Qualifying Period Shifted:</strong> Baseline calculated earliest date
+                    <strong>Qualifying Period Delayed:</strong> Baseline calculated earliest date
                     was
                     <strong>{{
                       formatDate(absentsStore.naturalizationCalculatedEarliestDate)
                     }}</strong
                     >. Due to rule criteria (physical presence on start date, 5-year absence limit ≤
                     450 days, or final 12-month limit ≤ 90 days), the 5-year period was
-                    automatically shifted to the earliest compliant period.
+                    automatically delayed to the earliest compliant period.
                   </div>
                 </v-alert>
 
@@ -1630,11 +1752,11 @@ export default {
         </v-card-title>
         <v-card-text class="px-0 py-2">
           <p class="text-caption text-medium-emphasis mb-4">
-            Enter your 5-year BNO Visa Start Date, UK Arrival Date, and optional ILR Approved Date
+            Enter your BNO Visa Start Date, optional Visa Expiry Date (defaults to 5 years), UK Arrival Date, and optional ILR Approved Date
             to enable accurate residency, settlement, and naturalisation tracking.
           </p>
           <v-row density="compact">
-            <v-col cols="12" sm="4">
+            <v-col cols="12" sm="6">
               <v-text-field
                 v-model="visaDateInput"
                 label="BNO Visa Start Date"
@@ -1648,7 +1770,20 @@ export default {
               ></v-text-field>
             </v-col>
 
-            <v-col cols="12" sm="4">
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="visaExpiryDateInput"
+                label="Visa Expiry Date (Optional)"
+                type="date"
+                variant="outlined"
+                density="compact"
+                prepend-inner-icon="mdi-calendar-end"
+                hide-details="auto"
+                class="mb-1"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" sm="6">
               <v-text-field
                 v-model="arrivalDateInput"
                 label="UK Arrival Date"
@@ -1661,7 +1796,7 @@ export default {
               ></v-text-field>
             </v-col>
 
-            <v-col cols="12" sm="4">
+            <v-col cols="12" sm="6">
               <v-text-field
                 v-model="ilrApprovedDateInput"
                 label="ILR Approved Date (Optional)"

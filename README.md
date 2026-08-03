@@ -17,15 +17,20 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 
 - **✈️ UK Home Office Rules-Aligned Absence Calculation**
   - Automatically excludes departure (start) and return (end) dates from full-day absence counts, matching UK Home Office guidance (days where part of the 24 hours is spent in the UK do not count as full days absent).
-- **📅 Visa & Arrival Date Synchronization**
-  - Track your **BNO Visa Start Date**, **UK Arrival Date**, and optional **ILR Approved Date**.
+- **📅 Visa & Arrival Date Synchronization & Optional Visa Expiry**
+  - Track your **BNO Visa Start Date**, optional **Visa Expiry Date** (defaults to 5 years after visa start), **UK Arrival Date**, and optional **ILR Approved Date**.
+  - Supports users starting with a 30-month visa or custom visa extensions.
   - Automatically generates and syncs initial pre-arrival absence records if your UK arrival date differs from your visa start date.
-- **🛡️ Continuous Rolling 12-Month Limit Monitoring (ILR)**
+- **🛡️ 5-Year Sliding Window ILR Limit Monitoring & Period Delay**
   - Evaluates absences across all continuous rolling 365-day windows during your 5-year qualifying period to ensure alignment with the **180-day maximum limit** for ILR.
-- **🇬🇧 British Citizenship (Naturalisation) Absence Limits Checker**
+  - If the 180-day rule cannot be satisfied within the baseline 5 years, the qualifying period automatically shifts/delays forward to the earliest subsequent compliant 5-year window, highlighted with yellow **"Delayed"** warnings and active peak absence scanning.
+- **🇬🇧 British Citizenship (Naturalisation) Absence Limits & Chaining**
+  - **Inherited ILR Chaining**: When ILR is delayed, the Naturalisation qualifying period baseline target date automatically inherits `ilrTargetDate + 1 year`.
   - Checks **5-Year Naturalisation Limit** (maximum **450 days** absent in the 5 years prior to application).
   - Checks **Final 12-Month Limit** (maximum **90 days** absent in the final year post-ILR).
   - Enforces physical presence requirement: Automatically checks if the applicant was present in the UK 5 years prior to application, advancing the window start date if it falls on an absent day.
+- **🪪 BNO Visa Overview Card**
+  - Summarizes Visa Start Date, Visa Expiry Date (with Default 5-Year / Custom badges), Earliest ILR Settlement Date, and displays prominent yellow extension warning alerts if visa extension is needed before ILR qualification.
 - **📋 Document & Qualification Tracker (`DocumentView`)**
   - **Life in the UK Test**: Track status (Not Started / Scheduled / Passed), test date, Unique Reference Number (URN), test center location, and notes.
   - **English Language Requirement (B1)**: Track pathway (B1 SELT Test, UK Degree, Ecctis/ENIC Statement, Exemption), provider, test date, and certificate reference.
@@ -37,14 +42,14 @@ An unofficial, 3rd-party web application designed for **British National (Overse
   - **Direct Links & One-Click Copy**: Convenient action buttons to visit official GOV.UK pages or copy URLs.
 - **🧭 Right Navigation Drawer & Consolidated Data Management**
   - Quick-switch side drawer toggled via top bar hamburger menu (`mdi-menu`).
-  - Consolidated **Commented YAML Export & Import** backing up both absence history and document tracker data with descriptive node comments.
+  - Consolidated **Commented YAML Export & Import** backing up both absence history (including optional visa expiry) and document tracker data with descriptive node comments.
   - Global **Clear All Data** modal with safety confirmation.
 - **⚡ High-Performance Segment Tree Engine (`AbsenceSegmentTree`)**
-  - Utilizes a custom $O(\log N)$ **Segment Tree** data structure over a 10-year day-by-day array to deliver lightning-fast custom date range queries and real-time rolling calculations.
+  - Utilizes a custom $O(\log N)$ **Segment Tree** data structure over a 10-year day-by-day array to deliver lightning-fast custom date range queries, $O(1)$ point queries (`queryPoint`), and real-time sliding window calculations.
 - **📊 Settlement & Naturalisation Timeline**
-  - Calculates your exact **Target ILR Settlement Date**, **Earliest ILR Application Date** (28 days prior), and **Target Naturalisation Date**.
+  - Calculates your exact **Earliest ILR Settlement Date**, **Earliest ILR Application Date** (28 days prior), and **Target Naturalisation Date**.
 - **🎨 Modern Responsive Vuetify 3 UI**
-  - Features Union Jack Dark/Light theme toggling, 3-dots vertical action menus for table rows, context-aware form controls, and status chips.
+  - Features Union Jack Dark/Light theme toggling, 3-dots vertical action menus for table rows, context-aware form controls, status chips, and intuitive 2-line Key Dates modal forms.
 - **💾 Local Device Storage & Data Privacy**
   - All data input (travel dates, visa details, test certificates, continuous residence checklists, and address history) is stored strictly locally on your device in browser `localStorage`. No data is uploaded, collected, or transmitted to any external server.
 - **⚡ PWA Offline Support**
@@ -57,8 +62,9 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 | Stage | Rule | Requirement / Limit | Description |
 | :--- | :--- | :--- | :--- |
 | **General** | **Full Day Absence** | Departure & Return Excluded | Only full 24-hour days spent entirely outside the UK count as days absent. Departure and arrival dates are excluded. |
-| **ILR** | **Rolling 12-Month Limit** | Max **180 days** | No more than 180 days absent in any continuous rolling 365-day period across the 5 years. |
-| **ILR** | **Qualifying Period** | **5 Years** | 5 years continuous residence starting from BNO Visa Grant Date or UK Arrival Date. |
+| **ILR** | **Rolling 12-Month Limit** | Max **180 days** | No more than 180 days absent in any continuous rolling 365-day period across the qualifying period. |
+| **ILR** | **Qualifying Period** | **5-Year Sliding Window** | 5 years continuous residence starting from BNO Visa Start / UK Arrival Date. Automatically delays forward if the 180-day rule is violated. |
+| **ILR** | **Visa Validity & Extension** | Variable Expiry | Default 5-year valid period with optional custom expiry date. Displays yellow alert if extension is needed prior to earliest ILR settlement date. |
 | **ILR** | **Earliest Application** | **28 Days Prior** | ILR application can be submitted up to 28 days before completing the 5-year qualifying period. |
 | **Qualifications** | **Life in the UK & B1** | Mandatory Tests | Pass certificate / URN required for ILR (SET(O)) and Naturalisation (AN). |
 | **Residence** | **Address History & Proof** | Full 5-Year History | Official evidence of address (Council tax, P60s, utilities) and complete address log required. |

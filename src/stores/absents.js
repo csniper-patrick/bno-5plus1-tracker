@@ -219,7 +219,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
-   * Incrementally updates the segment tree in O(log N) time when a record is added.
+   * Incrementally updates the segment tree in O(D log N) time (D = trip days) when a record is added.
    */
   function addRecordToSegmentTree(record) {
     if (!visaStartDate.value || !segmentTree.value) {
@@ -238,7 +238,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
-   * Incrementally updates the segment tree in O(log N) time when a record is removed.
+   * Incrementally updates the segment tree in O(D log N) time (D = trip days) when a record is removed.
    */
   function removeRecordFromSegmentTree(record) {
     if (!visaStartDate.value || !segmentTree.value) return

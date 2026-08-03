@@ -1,6 +1,6 @@
 /**
  * Segment Tree data structure for efficient O(log N) range sum queries over a 10-year period (day-by-day).
- * Supports O(1) point queries via pre-calculated leafMap and O(log N) range updates.
+ * Supports O(1) point queries via pre-calculated leafMap, O(D log N) range updates, and O(log N) range sum queries.
  */
 export class AbsenceSegmentTree {
   /**
@@ -111,7 +111,7 @@ export class AbsenceSegmentTree {
   }
 
   /**
-   * Updates a range of nodes [qstart, qend] in O(log N) time.
+   * Updates a range of nodes [qstart, qend] in O(D log N) time, where D is range length.
    *
    * @param {number} qstart - Start leaf index.
    * @param {number} qend - End leaf index.

@@ -50,7 +50,10 @@ export class AbsenceSegmentTree {
     if (!intervals || intervals.length === 0) return
 
     // Fallback: If a 1D daily array is passed (Uint8Array or array of numbers)
-    if (intervals instanceof Uint8Array || (Array.isArray(intervals) && typeof intervals[0] === 'number')) {
+    if (
+      intervals instanceof Uint8Array ||
+      (Array.isArray(intervals) && typeof intervals[0] === 'number')
+    ) {
       let runStart = -1
       for (let i = 0; i < intervals.length; i++) {
         if (intervals[i] !== 0) {
@@ -189,4 +192,3 @@ export class AbsenceSegmentTree {
     return this._query(leftNode, start, mid, l, r) + this._query(rightNode, mid + 1, end, l, r)
   }
 }
-

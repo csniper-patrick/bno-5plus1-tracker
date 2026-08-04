@@ -1206,9 +1206,7 @@ export default {
                 >
                   <v-icon
                     :icon="
-                      absentsStore.isVisaExtensionNeeded
-                        ? 'mdi-alert-circle'
-                        : 'mdi-check-circle'
+                      absentsStore.isVisaExtensionNeeded ? 'mdi-alert-circle' : 'mdi-check-circle'
                     "
                     start
                   ></v-icon>
@@ -1271,10 +1269,11 @@ export default {
                   </div>
                   <div>
                     Your current visa expires on
-                    <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong>,
-                    which is before your earliest ILR settlement date
-                    <strong>{{ formatDate(absentsStore.settlementTargetDate) }}</strong>.
-                    You must extend your BNO visa (e.g. by 30 months) to complete your 5-year continuous residence for ILR.
+                    <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong
+                    >, which is before your earliest ILR settlement date
+                    <strong>{{ formatDate(absentsStore.settlementTargetDate) }}</strong
+                    >. You must extend your BNO visa (e.g. by 30 months) to complete your 5-year
+                    continuous residence for ILR.
                   </div>
                 </v-alert>
                 <v-alert
@@ -1286,8 +1285,10 @@ export default {
                   density="compact"
                 >
                   <strong>Visa Cover Verified:</strong> Your current visa is valid until
-                  <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong>,
-                  which covers your earliest ILR settlement date ({{ formatDate(absentsStore.settlementTargetDate) }}).
+                  <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong
+                  >, which covers your earliest ILR settlement date ({{
+                    formatDate(absentsStore.settlementTargetDate)
+                  }}).
                 </v-alert>
               </v-card-text>
             </v-card>
@@ -1330,7 +1331,14 @@ export default {
 
               <v-card-text class="px-0 pb-0">
                 <p class="text-caption text-medium-emphasis mb-4">
-                  5 Yrs: {{ formatDate(absentsStore.ilrQualifyingPeriod.windowStartDate || absentsStore.visaStartDate) }} –
+                  5 Yrs:
+                  {{
+                    formatDate(
+                      absentsStore.ilrQualifyingPeriod.windowStartDate ||
+                        absentsStore.visaStartDate,
+                    )
+                  }}
+                  –
                   {{ formatDate(absentsStore.settlementTargetDate) }}
                 </p>
 
@@ -1401,9 +1409,15 @@ export default {
                   </div>
                   <div class="mt-1 opacity-90 text-caption">
                     <strong>Qualifying Period Delayed:</strong> Baseline calculated date was
-                    <strong>{{ formatDate(absentsStore.ilrQualifyingPeriod.baselineTargetDate) }}</strong>.
-                    Because rolling 12-month absences exceeded 180 days in the initial 5 years, the 5-year ILR qualifying window automatically delayed to
-                    <strong>{{ formatDate(absentsStore.ilrQualifyingPeriod.windowStartDate) }} – {{ formatDate(absentsStore.settlementTargetDate) }}</strong>.
+                    <strong>{{
+                      formatDate(absentsStore.ilrQualifyingPeriod.baselineTargetDate)
+                    }}</strong
+                    >. Because rolling 12-month absences exceeded 180 days in the initial 5 years,
+                    the 5-year ILR qualifying window automatically delayed to
+                    <strong
+                      >{{ formatDate(absentsStore.ilrQualifyingPeriod.windowStartDate) }} –
+                      {{ formatDate(absentsStore.settlementTargetDate) }}</strong
+                    >.
                   </div>
                 </v-alert>
 
@@ -1752,8 +1766,9 @@ export default {
         </v-card-title>
         <v-card-text class="px-0 py-2">
           <p class="text-caption text-medium-emphasis mb-4">
-            Enter your BNO Visa Start Date, optional Visa Expiry Date (defaults to 5 years), UK Arrival Date, and optional ILR Approved Date
-            to enable accurate residency, settlement, and naturalisation tracking.
+            Enter your BNO Visa Start Date, optional Visa Expiry Date (defaults to 5 years), UK
+            Arrival Date, and optional ILR Approved Date to enable accurate residency, settlement,
+            and naturalisation tracking.
           </p>
           <v-row density="compact">
             <v-col cols="12" sm="6">

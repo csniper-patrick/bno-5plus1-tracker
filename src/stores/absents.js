@@ -418,7 +418,8 @@ export const useAbsentsStore = defineStore('absents', () => {
         const currEndIdx = currStartIdx + 364
 
         const addVal = currEndIdx < segmentTreeSize ? segmentTree.value.queryPoint(currEndIdx) : 0
-        const subVal = currStartIdx - 1 < segmentTreeSize ? segmentTree.value.queryPoint(currStartIdx - 1) : 0
+        const subVal =
+          currStartIdx - 1 < segmentTreeSize ? segmentTree.value.queryPoint(currStartIdx - 1) : 0
         currentWindowDays += addVal - subVal
 
         if (currentWindowDays > maxDays) {
@@ -587,7 +588,9 @@ export const useAbsentsStore = defineStore('absents', () => {
 
   const max12MonthAbsence = computed(() => ilrQualifyingPeriod.value.max12MonthAbsence)
   const settlementTargetDate = computed(() => ilrQualifyingPeriod.value.targetDate)
-  const earliestIlrApplicationDate = computed(() => ilrQualifyingPeriod.value.earliestApplicationDate)
+  const earliestIlrApplicationDate = computed(
+    () => ilrQualifyingPeriod.value.earliestApplicationDate,
+  )
   const isIlrWindowShifted = computed(() => ilrQualifyingPeriod.value.isShifted)
   const ilr5YearTotalAbsence = computed(() => ilrQualifyingPeriod.value.total5YearAbsence)
 
@@ -601,7 +604,9 @@ export const useAbsentsStore = defineStore('absents', () => {
   })
 
   const isRuleExceeded = computed(() => {
-    return ilrQualifyingPeriod.value.baselineMax12MonthAbsence > 180 || max12MonthAbsence.value > 180
+    return (
+      ilrQualifyingPeriod.value.baselineMax12MonthAbsence > 180 || max12MonthAbsence.value > 180
+    )
   })
 
   /**
@@ -762,13 +767,16 @@ export const useAbsentsStore = defineStore('absents', () => {
             currentF12 = f12
           } else {
             // O(1) sliding window update using queryPoint
-            currentF5 += segmentTree.value.queryPoint(targetIdx) - segmentTree.value.queryPoint(prevStartIdx)
+            currentF5 +=
+              segmentTree.value.queryPoint(targetIdx) - segmentTree.value.queryPoint(prevStartIdx)
             if (targetIdx !== prevTargetIdx + 1) {
               currentF5 += segmentTree.value.query(prevTargetIdx + 1, targetIdx)
             }
             f5 = currentF5
 
-            currentF12 += segmentTree.value.queryPoint(targetIdx) - segmentTree.value.queryPoint(prevF12StartIdx)
+            currentF12 +=
+              segmentTree.value.queryPoint(targetIdx) -
+              segmentTree.value.queryPoint(prevF12StartIdx)
             if (f12StartIdx !== prevF12StartIdx + 1) {
               currentF12 -= segmentTree.value.query(prevF12StartIdx, f12StartIdx - 1)
             }

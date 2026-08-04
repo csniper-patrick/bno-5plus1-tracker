@@ -292,26 +292,6 @@ function confirmClearAll() {
             Official GOV.UK guidance & policy resources
           </v-list-item-subtitle>
         </v-list-item>
-
-        <v-list-item
-          href="https://gitlab.com/CSniper/bno-5plus1-tracker"
-          target="_blank"
-          rel="noopener noreferrer"
-          color="primary"
-          rounded="lg"
-          class="mb-2"
-        >
-          <template v-slot:prepend>
-            <v-icon icon="mdi-gitlab" color="primary"></v-icon>
-          </template>
-          <v-list-item-title class="font-weight-bold"> GitLab Repository </v-list-item-title>
-          <v-list-item-subtitle class="text-caption">
-            Source code & project repository
-          </v-list-item-subtitle>
-          <template v-slot:append>
-            <v-icon icon="mdi-open-in-new" size="x-small" color="medium-emphasis"></v-icon>
-          </template>
-        </v-list-item>
       </v-list>
 
       <template v-slot:append>

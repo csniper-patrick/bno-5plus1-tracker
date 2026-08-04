@@ -13,13 +13,17 @@ export default {
     return {
       searchQuery: '',
       selectedCategory: 'All',
+      selectedSourceType: 'All',
       categories: [
         'All',
+        'Visa Extension',
         'BNO Settlement',
         'Policy & Guidance',
         'Qualifications & Tests',
         'Citizenship',
+        'Tools & Source',
       ],
+      sourceTypes: ['All', 'Official', '3rd Party'],
 
       /** Global snackbar notification state */
       snackbar: {
@@ -28,8 +32,114 @@ export default {
         color: 'success',
       },
 
-      /** Curated list of useful official links */
+      /** Curated list of useful official and 3rd-party reference links */
       links: [
+        {
+          id: 'gitlab-repository',
+          title: 'BNO 5+1 Tracker GitLab Repository',
+          category: 'Tools & Source',
+          url: 'https://gitlab.com/CSniper/bno-5plus1-tracker',
+          icon: 'mdi-gitlab',
+          color: 'orange-darken-3',
+          badge: 'Open Source',
+          isOfficial: false,
+          description:
+            'Open-source repository for this BNO 5+1 Tracker web application. Access source code, project issues, and contribution guidelines.',
+          highlights: [
+            'Open-source web application for BNO visa holders tracking ILR continuous residence',
+            'Client-side offline processing with IndexedDB data persistence',
+            'Features 180-day rolling absence calculator and document expiry management',
+            'Community-supported open source project hosted on GitLab',
+          ],
+        },
+        {
+          id: 'bno-visa-extend',
+          title: 'BNO Visa: Extend Your Visa (30 Months or 5 Years)',
+          category: 'Visa Extension',
+          url: 'https://www.gov.uk/british-national-overseas-bno-visa/extend-your-visa',
+          icon: 'mdi-clock-fast',
+          color: 'blue-darken-2',
+          badge: 'Official Application',
+          isOfficial: true,
+          description:
+            'Official UK Government guide and application portal for extending your BNO visa from within the UK before your current permission expires.',
+          highlights: [
+            'Apply online before current visa expires (protected under Section 3C leave while decision is pending)',
+            'Choose between a 30-month (2.5-year) extension or a full 5-year extension',
+            'Identity verification via "UK Immigration: ID Check" smartphone app or biometric appointment',
+            'Apply up to 28 days before current visa expiry date to ensure continuous lawful residence',
+          ],
+        },
+        {
+          id: 'bno-extension-fees',
+          title: 'BNO Visa Extension Fees & IHS Cost Breakdown',
+          category: 'Visa Extension',
+          url: 'https://www.gov.uk/british-national-overseas-bno-visa/how-much-it-costs',
+          icon: 'mdi-currency-gbp',
+          color: 'green-darken-2',
+          badge: 'Fees & Costs',
+          isOfficial: true,
+          description:
+            'Official Home Office fee table and Immigration Health Surcharge (IHS) mandatory calculations for renewing a BNO visa.',
+          highlights: [
+            'Visa Application Fee: £206 for 30-month extension, £285 for 5-year extension per applicant',
+            'Immigration Health Surcharge (IHS): £1,035/year for adults, £776/year for children under 18',
+            'Financial proof: Must show adequate maintenance funds for 6 months if in the UK under 12 months',
+            'No IHS required when applying for ILR / Settlement stage after 5 years',
+          ],
+        },
+        {
+          id: 'bno-dependants-extension',
+          title: 'BNO Visa Dependant & Family Member Extension',
+          category: 'Visa Extension',
+          url: 'https://www.gov.uk/british-national-overseas-bno-visa/your-family-members',
+          icon: 'mdi-account-group-outline',
+          color: 'purple-darken-1',
+          badge: 'Family Rules',
+          isOfficial: true,
+          description:
+            'Official Home Office rules and instructions for extending BNO visas for partners, dependent children, and adult dependent relatives.',
+          highlights: [
+            "Family members submit separate online applications linked via main applicant's UAN / GWF reference",
+            'Dependants can apply to extend at any time before their current individual visa expires',
+            'Children turning 18 during current visa retain dependant extension eligibility',
+            'Provides options to align visa expiration dates across family household members',
+          ],
+        },
+        {
+          id: 'uk-immigration-id-app',
+          title: 'UK Immigration: ID Check App Guidance',
+          category: 'Visa Extension',
+          url: 'https://www.gov.uk/guidance/using-the-uk-immigration-id-check-app',
+          icon: 'mdi-cellphone-check',
+          color: 'deep-orange-darken-1',
+          badge: 'Digital Identity',
+          isOfficial: true,
+          description:
+            'Official step-by-step guidance on using the UKVI identity check app on iOS/Android to verify identity for visa extension without in-person appointments.',
+          highlights: [
+            'Scan biometric chip on BNO, HKSAR, or international passport using smartphone NFC',
+            'Eliminates requirement to attend in-person UKVCAS service center appointment for eligible holders',
+            'Generates digital eVisa profile directly linked to your UKVI account',
+          ],
+        },
+        {
+          id: 'bno-switch-visa',
+          title: 'Switch to BNO Visa from Inside the UK',
+          category: 'Visa Extension',
+          url: 'https://www.gov.uk/british-national-overseas-bno-visa/switch-to-this-visa',
+          icon: 'mdi-swap-horizontal-bold',
+          color: 'teal-darken-2',
+          badge: 'In-UK Switch',
+          isOfficial: true,
+          description:
+            'Official Home Office guidance for switching onto the BNO visa route from other valid UK visa categories without leaving the UK.',
+          highlights: [
+            'Switch from Student, Skilled Worker, Graduate, or LOTR visa statuses',
+            'Must apply before your current valid leave to remain expires',
+            'Previous lawful residence on eligible work/study visas may count towards 5-year continuous residence',
+          ],
+        },
         {
           id: 'bno-settle',
           title: 'BNO Visa: Settle in the UK (ILR Guidance)',
@@ -38,6 +148,7 @@ export default {
           icon: 'mdi-passport',
           color: 'primary',
           badge: 'Essential Guidance',
+          isOfficial: true,
           description:
             'Official UK Government guide on how to apply for Indefinite Leave to Remain (ILR) / UK Settlement under the BNO visa route after 5 years of continuous residence.',
           highlights: [
@@ -55,6 +166,7 @@ export default {
           icon: 'mdi-file-document-outline',
           color: 'indigo-darken-1',
           badge: 'Policy Statement',
+          isOfficial: true,
           description:
             'Comprehensive UK Home Office policy statement outlining background, rights, work/study permissions, public fund restrictions, and settlement pathways for BNO holders.',
           highlights: [
@@ -72,6 +184,7 @@ export default {
           icon: 'mdi-book-open-outline',
           color: 'teal-darken-1',
           badge: 'Caseworker Rules',
+          isOfficial: true,
           description:
             'Official Home Office caseworker guidance explaining how continuous residence is calculated, departure/arrival day exclusion rules, and valid absence exceptions.',
           highlights: [
@@ -89,6 +202,7 @@ export default {
           icon: 'mdi-school-outline',
           color: 'amber-darken-3',
           badge: 'Mandatory Test',
+          isOfficial: true,
           description:
             'Official UK Government booking portal for the Life in the UK Test. Required for all applicants aged 18–64 applying for ILR or British Citizenship.',
           highlights: [
@@ -106,6 +220,7 @@ export default {
           icon: 'mdi-translate',
           color: 'deep-purple-darken-1',
           badge: 'Language Requirement',
+          isOfficial: true,
           description:
             'Official guidelines on proving English language capability at B1 CEFR level or higher for ILR settlement and citizenship applications.',
           highlights: [
@@ -122,6 +237,7 @@ export default {
           icon: 'mdi-crown-outline',
           color: 'red-darken-2',
           badge: 'Naturalisation',
+          isOfficial: true,
           description:
             'Official guidance on applying for British Citizenship by Naturalisation after holding ILR for at least 12 months (or immediately if married to a UK citizen).',
           highlights: [
@@ -134,11 +250,12 @@ export default {
         {
           id: 'bno-visa-overview',
           title: 'Hong Kong BNO Visa General Overview & Extensions',
-          category: 'BNO Settlement',
+          category: 'Visa Extension',
           url: 'https://www.gov.uk/british-national-overseas-bno-visa',
           icon: 'mdi-earth',
           color: 'cyan-darken-2',
           badge: 'Visa Overview',
+          isOfficial: true,
           description:
             'Official overview page for the British National (Overseas) visa, detailing application fees, Immigration Health Surcharge (IHS), 2.5-year vs 5-year visa options, and visa extension processes.',
           highlights: [
@@ -153,32 +270,39 @@ export default {
 
   computed: {
     /**
-     * Filtered list of links based on selected category and text query.
+     * Filtered list of links based on selected category, source type, and text query.
      * @returns {Array}
      */
     filteredLinks() {
       return this.links.filter((link) => {
         const matchesCategory =
           this.selectedCategory === 'All' || link.category === this.selectedCategory
+        const matchesSourceType =
+          this.selectedSourceType === 'All' ||
+          (this.selectedSourceType === 'Official' && link.isOfficial) ||
+          (this.selectedSourceType === '3rd Party' && !link.isOfficial)
         const query = this.searchQuery.trim().toLowerCase()
-        if (!query) return matchesCategory
+        if (!query) return matchesCategory && matchesSourceType
 
         const matchesTitle = link.title.toLowerCase().includes(query)
         const matchesDesc = link.description.toLowerCase().includes(query)
         const matchesHighlights = link.highlights.some((h) => h.toLowerCase().includes(query))
 
-        return matchesCategory && (matchesTitle || matchesDesc || matchesHighlights)
+        return (
+          matchesCategory && matchesSourceType && (matchesTitle || matchesDesc || matchesHighlights)
+        )
       })
     },
   },
 
   methods: {
     /**
-     * Resets search query and selected category filter.
+     * Resets search query, selected category, and source type filters.
      */
     resetFilters() {
       this.searchQuery = ''
       this.selectedCategory = 'All'
+      this.selectedSourceType = 'All'
     },
 
     /**
@@ -223,22 +347,23 @@ export default {
       <v-card-title class="px-0 pt-0 d-flex align-center flex-wrap ga-2">
         <div class="d-flex align-center">
           <v-icon icon="mdi-bookshelf" color="primary" class="mr-2" size="large"></v-icon>
-          <span class="text-h5 font-weight-bold">Reference & Official Guidance</span>
+          <span class="text-h5 font-weight-bold">Reference & Guidance Resources</span>
         </div>
         <v-chip
           size="small"
           color="info"
           variant="flat"
           class="font-weight-bold ml-sm-auto"
-          prepend-icon="mdi-check-decagram"
+          prepend-icon="mdi-format-list-checks"
         >
-          Official GOV.UK Resources
+          Curated Resources
         </v-chip>
       </v-card-title>
 
       <p class="text-body-2 text-medium-emphasis ma-0">
         Direct links to official UK Home Office publications, policy statements, qualification test
-        portals, and settlement application forms for British National (Overseas) visa holders.
+        portals, settlement application forms, and relevant open-source project repositories for
+        British National (Overseas) visa holders.
       </p>
 
       <v-alert
@@ -248,20 +373,37 @@ export default {
         class="mt-3 text-caption"
         density="compact"
       >
-        <strong>Official Sources Notice:</strong> All links point directly to official UK Government
-        (<code>gov.uk</code>) portals. Always refer to official government guidance for legal policy
-        updates, fee changes, and official application submissions.
+        <strong>Sources Notice:</strong> Links include both official UK Government
+        (<code>gov.uk</code>) portals and 3rd-party/open-source project resources. Look for the
+        <v-chip
+          size="x-small"
+          color="success"
+          variant="flat"
+          density="compact"
+          class="mx-1 font-weight-bold"
+          >Official Source</v-chip
+        >
+        and
+        <v-chip
+          size="x-small"
+          color="warning"
+          variant="flat"
+          density="compact"
+          class="mx-1 font-weight-bold"
+          >3rd Party Source</v-chip
+        >
+        chips to distinguish source origins.
       </v-alert>
     </v-card>
 
-    <!-- Search & Category Filters -->
+    <!-- Search & Category / Source Type Filters -->
     <v-card elevation="1" class="pa-4 rounded-lg bg-surface mb-6">
       <v-row align="center">
-        <v-col cols="12" md="6">
+        <v-col cols="12" md="4">
           <v-text-field
             v-model="searchQuery"
             prepend-inner-icon="mdi-magnify"
-            label="Search official links & topics..."
+            label="Search links & topics..."
             variant="outlined"
             density="compact"
             hide-details
@@ -269,26 +411,50 @@ export default {
           ></v-text-field>
         </v-col>
 
-        <v-col cols="12" md="6" class="d-flex align-center flex-wrap ga-2 justify-md-end">
-          <span class="text-caption text-medium-emphasis font-weight-bold mr-1">Category:</span>
-          <v-chip-group
-            v-model="selectedCategory"
-            selected-class="v-chip--selected"
-            mandatory
-            filter
-          >
-            <v-chip
-              v-for="cat in categories"
-              :key="cat"
-              :value="cat"
-              size="small"
-              variant="outlined"
-              color="primary"
-              class="font-weight-medium"
+        <v-col cols="12" md="8" class="d-flex align-center flex-wrap ga-2 justify-md-end">
+          <div class="d-flex align-center ga-1 mr-sm-2">
+            <span class="text-caption text-medium-emphasis font-weight-bold">Source:</span>
+            <v-chip-group
+              v-model="selectedSourceType"
+              selected-class="v-chip--selected"
+              mandatory
+              filter
             >
-              {{ cat }}
-            </v-chip>
-          </v-chip-group>
+              <v-chip
+                v-for="st in sourceTypes"
+                :key="st"
+                :value="st"
+                size="small"
+                variant="outlined"
+                color="primary"
+                class="font-weight-medium"
+              >
+                {{ st }}
+              </v-chip>
+            </v-chip-group>
+          </div>
+
+          <div class="d-flex align-center ga-1">
+            <span class="text-caption text-medium-emphasis font-weight-bold">Category:</span>
+            <v-chip-group
+              v-model="selectedCategory"
+              selected-class="v-chip--selected"
+              mandatory
+              filter
+            >
+              <v-chip
+                v-for="cat in categories"
+                :key="cat"
+                :value="cat"
+                size="small"
+                variant="outlined"
+                color="primary"
+                class="font-weight-medium"
+              >
+                {{ cat }}
+              </v-chip>
+            </v-chip-group>
+          </div>
         </v-col>
       </v-row>
     </v-card>
@@ -319,6 +485,17 @@ export default {
                   {{ item.title }}
                 </div>
                 <div class="mt-1 d-flex align-center ga-2 flex-wrap">
+                  <v-chip
+                    size="x-small"
+                    :color="item.isOfficial ? 'success' : 'warning'"
+                    variant="tonal"
+                    class="font-weight-bold"
+                    :prepend-icon="
+                      item.isOfficial ? 'mdi-shield-check-outline' : 'mdi-account-group-outline'
+                    "
+                  >
+                    {{ item.isOfficial ? 'Official Source' : '3rd Party Source' }}
+                  </v-chip>
                   <v-chip
                     size="x-small"
                     :color="item.color"
@@ -401,7 +578,7 @@ export default {
               append-icon="mdi-open-in-new"
               class="font-weight-bold"
             >
-              Visit Official Page
+              {{ item.isOfficial ? 'Visit Official Page' : 'Visit Repository' }}
             </v-btn>
           </v-card-actions>
         </v-card>

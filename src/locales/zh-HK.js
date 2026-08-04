@@ -41,7 +41,7 @@ export default {
   pwa: {
     new_version: '有新版本可供更新！',
     offline_ready: '應用程式已準備好離線使用',
-    new_version_desc: 'BNO 5+1 Tracker 已推出新版本，點擊重新載入以更新。',
+    new_version_desc: 'BNO 5+1 追蹤工具 已推出新版本，點擊重新載入以更新。',
     offline_desc: '內容已快取，可供離線瀏覽。',
     refresh: '重新載入並更新',
   },
@@ -301,10 +301,10 @@ export default {
     link_copied: '已將連結複製至剪貼簿！',
     links: {
       gitlab_repository: {
-        title: 'BNO 5+1 Tracker GitLab 代碼庫',
+        title: 'BNO 5+1 追蹤工具 GitLab 代碼庫',
         category: '工具與原始碼',
         badge: '開源項目',
-        description: '本 BNO 5+1 Tracker 網頁應用程式的開源代碼庫。可檢視原始碼、項目議題及貢獻指引。',
+        description: '本 BNO 5+1 追蹤工具 網頁應用程式的開源代碼庫。可檢視原始碼、項目議題及貢獻指引。',
         highlights: [
           '專為 BNO 簽證持有人設計的開源網頁應用，追蹤 ILR 連續居住要求',
           '採用 IndexedDB 技術於客戶端離線處理及持久化儲存資料',

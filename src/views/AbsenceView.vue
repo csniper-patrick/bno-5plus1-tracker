@@ -701,45 +701,46 @@ export default {
 </script>
 
 <template>
-  <div>
-    <!-- Main Side-by-Side 2 Column Layout (Wide Desktop) -->
-    <v-row>
-      <!-- LEFT COLUMN (Takes up 7 cols on desktop) -->
-      <v-col cols="12" md="7" class="d-flex flex-column ga-6">
-        <!-- Header / Info Card -->
-        <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
-          <v-card-title class="px-0 pt-0 d-flex align-center flex-wrap ga-2">
-            <div class="d-flex align-center">
-              <v-icon icon="mdi-passport" color="primary" class="mr-2"></v-icon>
-              <span class="text-h5 font-weight-bold">{{ $t('absence.title') }}</span>
-            </div>
-            <v-chip
-              size="small"
-              color="success"
-              variant="flat"
-              class="font-weight-bold ml-sm-auto"
-              prepend-icon="mdi-shield-check"
-            >
-              {{ $t('app.badge_local_storage') }}
-            </v-chip>
-          </v-card-title>
-          <p class="text-body-2 text-medium-emphasis ma-0">
-            {{ $t('absence.subtitle') }}
-          </p>
+  <div class="d-flex flex-column ga-6">
+    <!-- 1. Absence Tracker Title Card & BNO Visa Overview Header Row -->
+    <v-row density="default">
+      <!-- Left Column: Absence Tracker Title Card -->
+      <v-col cols="12" md="5">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100 d-flex flex-column justify-space-between">
+          <div>
+            <v-card-title class="px-0 pt-0 d-flex align-center flex-wrap ga-2">
+              <div class="d-flex align-center">
+                <v-icon icon="mdi-passport" color="primary" class="mr-2"></v-icon>
+                <span class="text-h5 font-weight-bold">{{ $t('absence.title') }}</span>
+              </div>
+              <v-chip
+                size="small"
+                color="success"
+                variant="flat"
+                class="font-weight-bold ml-sm-auto"
+                prepend-icon="mdi-shield-check"
+              >
+                {{ $t('app.badge_local_storage') }}
+              </v-chip>
+            </v-card-title>
+            <p class="text-body-2 text-medium-emphasis ma-0">
+              {{ $t('absence.subtitle') }}
+            </p>
 
-          <v-alert
-            type="info"
-            variant="tonal"
-            icon="mdi-shield-lock-outline"
-            class="mt-3 text-caption"
-            density="compact"
-          >
-            <i18n-t keypath="app.privacy_note_text" scope="global">
-              <template #code>
-                <code>IndexedDB</code>
-              </template>
-            </i18n-t>
-          </v-alert>
+            <v-alert
+              type="info"
+              variant="tonal"
+              icon="mdi-shield-lock-outline"
+              class="mt-3 text-caption"
+              density="compact"
+            >
+              <i18n-t keypath="app.privacy_note_text" scope="global">
+                <template #code>
+                  <code>IndexedDB</code>
+                </template>
+              </i18n-t>
+            </v-alert>
+          </div>
 
           <v-alert
             type="warning"
@@ -751,1083 +752,1049 @@ export default {
             {{ $t('app.disclaimer_text') }}
           </v-alert>
         </v-card>
+      </v-col>
 
-        <!-- 1. BNO Visa & UK Arrival Dates -->
-        <div>
-          <!-- Prompt Alert if missing -->
-          <v-alert
-            v-if="!absentsStore.isVisaDateSet"
-            type="warning"
-            variant="tonal"
-            prominent
-            icon="mdi-calendar-alert"
-            class="rounded-lg shadow-sm"
-          >
-            <div class="d-flex align-center justify-space-between flex-wrap ga-4 pa-2">
-              <div>
-                <h3 class="text-h6 font-weight-bold">{{ $t('absence.key_dates_required') }}</h3>
-                <p class="text-body-2 mb-0">
-                  {{ $t('absence.key_dates_desc') }}
-                </p>
-              </div>
-              <v-btn
-                color="warning"
-                variant="flat"
-                size="small"
-                prepend-icon="mdi-calendar-plus"
-                @click="openVisaDateDialog"
-              >
-                {{ $t('absence.set_key_dates') }}
-              </v-btn>
+      <!-- Right Column: BNO Visa Overview & Key Dates -->
+      <v-col cols="12" md="7">
+        <!-- Prompt Alert if Visa Date is Missing -->
+        <v-alert
+          v-if="!absentsStore.isVisaDateSet"
+          type="warning"
+          variant="tonal"
+          prominent
+          icon="mdi-calendar-alert"
+          class="rounded-lg shadow-sm h-100 d-flex flex-column justify-center pa-4"
+        >
+          <div class="d-flex align-center justify-space-between flex-wrap ga-4 pa-2">
+            <div>
+              <h3 class="text-h6 font-weight-bold">{{ $t('absence.key_dates_required') }}</h3>
+              <p class="text-body-2 mb-0">
+                {{ $t('absence.key_dates_desc') }}
+              </p>
             </div>
-          </v-alert>
+            <v-btn
+              color="warning"
+              variant="flat"
+              size="small"
+              prepend-icon="mdi-calendar-plus"
+              @click="openVisaDateDialog"
+            >
+              {{ $t('absence.set_key_dates') }}
+            </v-btn>
+          </div>
+        </v-alert>
 
-          <!-- Info Bar Card if set -->
-          <v-card v-else elevation="2" class="pa-3 rounded-lg bg-surface">
-            <div class="d-flex align-center justify-space-between flex-wrap ga-4">
-              <div class="d-flex align-center flex-wrap ga-6">
-                <!-- BNO Visa Start Date -->
-                <div class="d-flex align-center ga-3">
-                  <v-icon icon="mdi-calendar-check" color="primary" size="large"></v-icon>
-                  <div>
-                    <div class="text-caption text-medium-emphasis">{{ $t('absence.visa_start') }}</div>
-                    <div class="text-subtitle-1 font-weight-bold">
+        <!-- Consolidated BNO Visa Overview Card if Set -->
+        <v-card v-else elevation="2" class="pa-3 rounded-lg bg-surface h-100 d-flex flex-column justify-space-between">
+          <div>
+            <v-card-title
+              class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
+            >
+              <div class="d-flex align-center ga-2">
+                <v-icon icon="mdi-passport-biometric" color="primary"></v-icon>
+                <span class="text-h5 font-weight-bold">{{ $t('absence.visa_overview') }}</span>
+              </div>
+
+              <v-chip
+                :color="absentsStore.isVisaExtensionNeeded ? 'warning' : 'success'"
+                size="small"
+                variant="tonal"
+                class="font-weight-bold"
+              >
+                <v-icon
+                  :icon="
+                    absentsStore.isVisaExtensionNeeded ? 'mdi-alert-circle' : 'mdi-check-circle'
+                  "
+                  start
+                ></v-icon>
+                {{
+                  absentsStore.isVisaExtensionNeeded
+                    ? $t('absence.visa_extension_required')
+                    : $t('absence.visa_cover_intact')
+                }}
+              </v-chip>
+            </v-card-title>
+
+            <v-card-text class="px-0 pb-0">
+              <!-- Key Dates Grid inside BNO Visa Overview -->
+              <v-row density="compact">
+                <!-- Visa Start Date -->
+                <v-col cols="12" sm="6">
+                  <v-card variant="tonal" color="primary" class="pa-3 rounded-lg h-100">
+                    <div class="d-flex align-center ga-2 mb-1">
+                      <v-icon icon="mdi-calendar-check" size="small" color="primary"></v-icon>
+                      <span class="text-caption text-medium-emphasis">{{ $t('absence.visa_start') }}</span>
+                    </div>
+                    <div class="text-subtitle-1 font-weight-bold text-primary">
                       {{ formatDate(absentsStore.visaStartDate) }}
                     </div>
-                  </div>
-                </div>
+                  </v-card>
+                </v-col>
 
-                <v-divider vertical class="d-none d-sm-flex" style="height: 36px"></v-divider>
+                <!-- Visa Expiry Date -->
+                <v-col cols="12" sm="6">
+                  <v-card
+                    variant="tonal"
+                    :color="absentsStore.isVisaExtensionNeeded ? 'warning' : 'info'"
+                    class="pa-3 rounded-lg h-100"
+                  >
+                    <div class="d-flex align-center justify-space-between mb-1">
+                      <span class="text-caption text-medium-emphasis">{{ $t('absence.visa_expiry') }}</span>
+                      <v-chip
+                        size="x-small"
+                        :color="absentsStore.isVisaExpiryDateSet ? 'purple' : 'info'"
+                        variant="flat"
+                        class="font-weight-bold"
+                      >
+                        {{ absentsStore.isVisaExpiryDateSet ? $t('absence.custom_expiry') : $t('absence.default_5yr') }}
+                      </v-chip>
+                    </div>
+                    <div class="text-subtitle-1 font-weight-bold">
+                      {{ formatDate(absentsStore.effectiveVisaExpiryDate) }}
+                    </div>
+                  </v-card>
+                </v-col>
 
                 <!-- UK Arrival Date -->
-                <div class="d-flex align-center ga-3">
-                  <v-icon icon="mdi-airplane-landing" color="success" size="large"></v-icon>
-                  <div>
-                    <div class="text-caption text-medium-emphasis">{{ $t('absence.uk_arrival') }}</div>
-                    <div class="text-subtitle-1 font-weight-bold">
+                <v-col cols="12" sm="6">
+                  <v-card variant="tonal" color="success" class="pa-3 rounded-lg h-100">
+                    <div class="d-flex align-center ga-2 mb-1">
+                      <v-icon icon="mdi-airplane-landing" size="small" color="success"></v-icon>
+                      <span class="text-caption text-medium-emphasis">{{ $t('absence.uk_arrival') }}</span>
+                    </div>
+                    <div class="text-subtitle-1 font-weight-bold text-success">
                       {{
                         absentsStore.ukArrivalDate
                           ? formatDate(absentsStore.ukArrivalDate)
                           : $t('absence.not_set')
                       }}
                     </div>
-                  </div>
-                </div>
-
-                <v-divider vertical class="d-none d-md-flex" style="height: 36px"></v-divider>
+                  </v-card>
+                </v-col>
 
                 <!-- ILR Approved Date -->
-                <div class="d-flex align-center ga-3">
-                  <v-icon icon="mdi-certificate-outline" color="purple" size="large"></v-icon>
-                  <div>
-                    <div class="text-caption text-medium-emphasis">{{ $t('absence.ilr_approved') }}</div>
-                    <div class="text-subtitle-1 font-weight-bold">
+                <v-col cols="12" sm="6">
+                  <v-card variant="tonal" color="purple" class="pa-3 rounded-lg h-100">
+                    <div class="d-flex align-center ga-2 mb-1">
+                      <v-icon icon="mdi-certificate-outline" size="small" color="purple"></v-icon>
+                      <span class="text-caption text-medium-emphasis">{{ $t('absence.ilr_approved') }}</span>
+                    </div>
+                    <div class="text-subtitle-1 font-weight-bold text-purple">
                       {{
                         absentsStore.ilrApprovedDate
                           ? formatDate(absentsStore.ilrApprovedDate)
                           : $t('absence.not_set')
                       }}
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <v-btn
-                color="primary"
-                size="small"
-                prepend-icon="mdi-pencil"
-                @click="openVisaDateDialog"
-              >
-                {{ $t('absence.edit_key_dates') }}
-              </v-btn>
-            </div>
-          </v-card>
-        </div>
-
-        <!-- 2. Absence Record Editor -->
-        <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
-          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
-            <v-icon :icon="editingId ? 'mdi-pencil' : 'mdi-plus-circle'" color="primary"></v-icon>
-            <span class="text-h5 font-weight-bold">
-              {{ editingId ? $t('absence.edit_record') : $t('absence.add_record') }}
-            </span>
-          </v-card-title>
-
-          <v-card-text class="px-0 pb-0">
-            <v-form @submit.prevent="handleSave">
-              <!-- Horizontal Graph Timeline Flow for Multi-Stop Trip Editor -->
-              <div class="editor-timeline-container pa-3 rounded-lg border bg-surface mb-3 w-100">
-                <div class="d-flex align-center flex-nowrap ga-3 overflow-x-auto py-2 px-1 w-100">
-                  <template v-for="(stop, index) in form.stops" :key="index">
-                    <!-- NODE Card (Date) -->
-                    <div class="timeline-node-card elevation-1 rounded-lg pa-3 border bg-card">
-                      <div class="d-flex align-center justify-space-between ga-2 mb-2">
-                        <span class="text-caption font-weight-bold text-primary d-flex align-center ga-1">
-                          <v-icon
-                            :icon="
-                              index === 0
-                                ? 'mdi-airplane-takeoff'
-                                : index === form.stops.length - 1
-                                  ? 'mdi-airplane-landing'
-                                  : 'mdi-map-marker'
-                            "
-                            :color="
-                              index === 0
-                                ? 'primary'
-                                : index === form.stops.length - 1
-                                  ? 'success'
-                                  : 'info'
-                            "
-                            size="x-small"
-                          ></v-icon>
-                          <span>
-                            {{
-                              index === 0
-                                ? $t('absence.dep_uk')
-                                : index === form.stops.length - 1
-                                  ? $t('absence.ret_uk')
-                                  : $t('absence.stop_number', { n: index })
-                            }}
-                          </span>
-                        </span>
-
-                        <v-btn
-                          v-if="index > 0 && index < form.stops.length - 1"
-                          icon="mdi-close"
-                          variant="text"
-                          color="error"
-                          size="x-small"
-                          :title="$t('absence.remove_stop')"
-                          @click="removeStopNode(index)"
-                        ></v-btn>
-                      </div>
-
-                      <!-- Date Input (Node) -->
-                      <v-text-field
-                        v-model="stop.date"
-                        type="date"
-                        :label="
-                          index === 0
-                            ? $t('absence.departure_date')
-                            : index === form.stops.length - 1
-                              ? $t('absence.return_date')
-                              : 'Date'
-                        "
-                        variant="outlined"
-                        density="compact"
-                        hide-details="auto"
-                        :error-messages="
-                          index === 0
-                            ? startDateError
-                            : index === form.stops.length - 1
-                              ? endDateError
-                              : ''
-                        "
-                        class="w-100"
-                        required
-                      ></v-text-field>
-                    </div>
-
-                    <!-- EDGE Connector (Destination to Next Node) -->
-                    <div
-                      v-if="index < form.stops.length - 1"
-                      class="timeline-edge-connector d-flex flex-column align-center justify-center px-2"
-                    >
-                      <div class="text-caption font-weight-medium text-medium-emphasis mb-1 d-flex align-center ga-1">
-                        <v-icon icon="mdi-map-marker-outline" size="12"></v-icon>
-                        <span>{{ $t('absence.leg_dest') }}</span>
-                      </div>
-
-                      <v-text-field
-                        v-model="stop.dest"
-                        placeholder="e.g. Hong Kong, Japan"
-                        variant="outlined"
-                        density="compact"
-                        hide-details="auto"
-                        class="w-100"
-                      ></v-text-field>
-
-                      <div class="edge-line-arrow d-flex align-center justify-center w-100 mt-2">
-                        <div class="line-flex"></div>
-                        <v-icon icon="mdi-chevron-right" size="small" color="primary"></v-icon>
-                      </div>
-                    </div>
-                  </template>
-                </div>
-              </div>
-
-              <!-- Controls to Add Stop -->
-              <div class="d-flex align-center ga-3 mb-4">
-                <v-btn
-                  variant="tonal"
-                  color="info"
-                  size="small"
-                  prepend-icon="mdi-plus"
-                  @click="addStopNode"
-                >
-                  {{ $t('absence.add_stop') }}
-                </v-btn>
-                <span v-if="nodeDateError" class="text-caption text-error">
-                  {{ nodeDateError }}
-                </span>
-              </div>
-
-              <!-- Form Days Calculation Badge & Actions -->
-              <div class="d-flex align-center justify-space-between flex-wrap ga-4 mt-4">
-                <div class="d-flex align-center">
-                  <v-chip
-                    v-if="startDate && endDate && !dateRangeError"
-                    color="secondary"
-                    variant="tonal"
-                    prepend-icon="mdi-calculator"
-                    size="small"
-                    class="font-weight-medium"
-                  >
-                    <i18n-t keypath="absence.calculated_full_days" scope="global">
-                      <template #days>
-                        <strong class="ml-1 text-primary">{{ calculatedDaysForForm }}</strong>
-                      </template>
-                    </i18n-t>
-                  </v-chip>
-                </div>
-
-                <div class="d-flex ga-2">
-                  <v-btn
-                    v-if="editingId"
-                    variant="outlined"
-                    color="secondary"
-                    size="small"
-                    prepend-icon="mdi-close"
-                    @click="cancelEdit"
-                  >
-                    {{ $t('absence.cancel') }}
-                  </v-btn>
-
-                  <v-btn
-                    type="submit"
-                    color="primary"
-                    size="small"
-                    :disabled="!isFormValid"
-                    :prepend-icon="editingId ? 'mdi-check' : 'mdi-plus'"
-                  >
-                    {{ editingId ? $t('absence.update_record') : $t('absence.add_record') }}
-                  </v-btn>
-                </div>
-              </div>
-            </v-form>
-          </v-card-text>
-        </v-card>
-
-        <!-- 3. Absence Record List -->
-        <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
-          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
-            <v-icon icon="mdi-format-list-bulleted" color="primary"></v-icon>
-            <span class="text-h5 font-weight-bold">{{ $t('absence.records_title') }}</span>
-            <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold">
-              {{ absentsStore.sortedAbsences.length }}
-            </v-chip>
-          </v-card-title>
-
-          <v-card-text class="px-0 pb-0">
-            <!-- Records Table -->
-            <v-table
-              v-if="absentsStore.sortedAbsences.length > 0"
-              density="comfortable"
-              hover
-              class="border rounded-lg"
-            >
-              <thead>
-                <tr>
-                  <th class="text-left font-weight-bold" style="width: 100px">
-                    {{ $t('absence.table_status') }}
-                  </th>
-                  <th class="text-left font-weight-bold">{{ $t('absence.trip_timeline') }}</th>
-                  <th class="text-center font-weight-bold" style="width: 140px">
-                    {{ $t('absence.full_days') }}
-                  </th>
-                  <th class="text-right font-weight-bold" style="width: 110px">
-                    {{ $t('absence.table_actions') }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="item in absentsStore.sortedAbsences"
-                  :key="item.id"
-                  :class="{
-                    'bg-action-hover': editingId === item.id,
-                    'row-planned-event':
-                      isFutureEvent(item) && !isOngoingEvent(item) && editingId !== item.id,
-                    'row-ongoing-event': isOngoingEvent(item) && editingId !== item.id,
-                  }"
-                >
-                  <td class="align-middle" style="width: 100px">
-                    <!-- Event Status Chip -->
-                    <v-chip
-                      v-if="item.isAutoArrival"
-                      size="x-small"
-                      color="secondary"
-                      variant="flat"
-                      class="font-weight-bold"
-                    >
-                      {{ $t('absence.initial') }}
-                    </v-chip>
-                    <v-chip
-                      v-else-if="isOngoingEvent(item)"
-                      size="x-small"
-                      color="warning"
-                      variant="flat"
-                      class="font-weight-bold"
-                    >
-                      {{ $t('absence.ongoing') }}
-                    </v-chip>
-                    <v-chip
-                      v-else-if="isFutureEvent(item)"
-                      size="x-small"
-                      color="info"
-                      variant="outlined"
-                      class="font-weight-medium"
-                    >
-                      {{ $t('absence.planned') }}
-                    </v-chip>
-                    <v-chip
-                      v-else
-                      size="x-small"
-                      color="grey"
-                      variant="tonal"
-                      class="font-weight-regular text-caption"
-                    >
-                      {{ $t('absence.past') }}
-                    </v-chip>
-                  </td>
-
-                  <td class="py-3 align-middle">
-                    <!-- FULL Mode Timeline -->
-                    <div
-                      v-if="timelineViewMode === 'full'"
-                      class="d-flex align-center flex-nowrap ga-1 overflow-x-auto py-1 w-100"
-                    >
-                      <template v-for="(stop, idx) in getRecordStops(item)" :key="idx">
-                        <!-- List NODE -->
-                        <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
-                          <v-icon
-                            :icon="
-                              idx === 0
-                                ? 'mdi-airplane-takeoff'
-                                : idx === getRecordStops(item).length - 1
-                                  ? 'mdi-airplane-landing'
-                                  : 'mdi-map-marker'
-                            "
-                            :color="
-                              idx === 0
-                                ? 'primary'
-                                : idx === getRecordStops(item).length - 1
-                                  ? 'success'
-                                  : 'info'
-                            "
-                            size="x-small"
-                          ></v-icon>
-                          <span class="text-caption font-weight-bold text-no-wrap">
-                            {{ formatDate(stop.date) }}
-                          </span>
-                        </div>
-
-                        <!-- List EDGE Connector -->
-                        <div
-                          v-if="idx < getRecordStops(item).length - 1"
-                          class="d-flex align-center justify-center ga-1 px-1 flex-grow-1"
-                          style="min-width: 50px"
-                        >
-                          <div class="edge-line flex-grow-1"></div>
-                          <v-chip
-                            v-if="stop.dest"
-                            size="x-small"
-                            color="primary"
-                            variant="tonal"
-                            class="font-weight-medium text-no-wrap"
-                          >
-                            <v-icon start icon="mdi-map-marker-outline" size="10"></v-icon>
-                            {{ stop.dest }}
-                          </v-chip>
-                          <div class="edge-line flex-grow-1"></div>
-                          <v-icon icon="mdi-chevron-right" size="x-small" color="primary"></v-icon>
-                        </div>
-                      </template>
-                    </div>
-
-                    <!-- COMPACT Mode Timeline -->
-                    <div
-                      v-else
-                      class="d-flex align-center flex-nowrap ga-1 overflow-x-auto py-1 w-100"
-                    >
-                      <!-- Departure Node -->
-                      <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
-                        <v-icon icon="mdi-airplane-takeoff" color="primary" size="x-small"></v-icon>
-                        <span class="text-caption font-weight-bold text-no-wrap">
-                          {{ formatDate(item.startDate) }}
-                        </span>
-                      </div>
-
-                      <!-- Summary Edge -->
-                      <div class="d-flex align-center justify-center ga-1 px-1 flex-grow-1" style="min-width: 60px">
-                        <div class="edge-line flex-grow-1"></div>
-                        <v-chip
-                          size="x-small"
-                          color="primary"
-                          variant="tonal"
-                          class="font-weight-medium text-no-wrap"
-                        >
-                          <v-icon start icon="mdi-map-marker-outline" size="10"></v-icon>
-                          {{ item.dest || $t('absence.unspecified') }}
-                        </v-chip>
-                        <div class="edge-line flex-grow-1"></div>
-                        <v-icon icon="mdi-chevron-right" size="x-small" color="primary"></v-icon>
-                      </div>
-
-                      <!-- Return Node -->
-                      <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
-                        <v-icon icon="mdi-airplane-landing" color="success" size="x-small"></v-icon>
-                        <span class="text-caption font-weight-bold text-no-wrap">
-                          {{ formatDate(item.endDate) }}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="text-center align-middle">
-                    <v-chip
-                      :color="
-                        isOngoingEvent(item)
-                          ? 'warning'
-                          : isFutureEvent(item)
-                            ? 'info'
-                            : calculateDays(item.startDate, item.endDate) > 0
-                              ? 'primary'
-                              : 'grey'
-                      "
-                      size="x-small"
-                      :variant="
-                        isFutureEvent(item) && !isOngoingEvent(item) ? 'outlined' : 'tonal'
-                      "
-                      :class="{
-                        'font-weight-bold': !isFutureEvent(item) || isOngoingEvent(item),
-                        'font-weight-medium opacity-90':
-                          isFutureEvent(item) && !isOngoingEvent(item),
-                      }"
-                    >
-                      {{ calculateDays(item.startDate, item.endDate) }} day(s)
-                    </v-chip>
-                  </td>
-                  <td class="text-right align-middle">
-                    <template v-if="item.isAutoArrival || item.id === 'auto_uk_arrival_record'">
-                      <v-chip
-                        size="x-small"
-                        color="secondary"
-                        variant="tonal"
-                        prepend-icon="mdi-lock-outline"
-                        title="Initial UK Entry record is managed via Key Dates"
-                        class="font-weight-medium"
-                      >
-                        {{ $t('absence.managed') }}
-                      </v-chip>
-                    </template>
-                    <template v-else>
-                      <v-menu location="bottom end">
-                        <template #activator="{ props }">
-                          <v-btn
-                            icon="mdi-dots-vertical"
-                            variant="text"
-                            size="small"
-                            v-bind="props"
-                            title="Actions menu"
-                          ></v-btn>
-                        </template>
-                        <v-list density="compact" class="rounded-lg elevation-4">
-                          <v-list-item
-                            prepend-icon="mdi-pencil-outline"
-                            :title="$t('absence.edit_record_title')"
-                            @click="startEdit(item)"
-                          ></v-list-item>
-                          <v-list-item
-                            prepend-icon="mdi-delete-outline"
-                            :title="$t('absence.delete_record_title')"
-                            @click="confirmDelete(item)"
-                          ></v-list-item>
-                        </v-list>
-                      </v-menu>
-                    </template>
-                  </td>
-                </tr>
-              </tbody>
-            </v-table>
-
-            <!-- Empty State -->
-            <div v-else class="pa-6 text-center">
-              <v-avatar color="surface-variant" size="56" class="mb-2">
-                <v-icon icon="mdi-airplane-off" size="28" color="medium-emphasis"></v-icon>
-              </v-avatar>
-              <h3 class="text-subtitle-1 font-weight-bold mb-1">{{ $t('absence.no_records_title') }}</h3>
-              <p class="text-caption text-medium-emphasis mb-0">
-                {{ $t('absence.no_records_desc') }}
-              </p>
-            </div>
-
-            <!-- Card Bottom Actions: View Mode Toggle -->
-            <div v-if="absentsStore.sortedAbsences.length > 0" class="d-flex align-center justify-end mt-3">
-              <v-btn-toggle
-                v-model="timelineViewMode"
-                mandatory
-                density="compact"
-                size="x-small"
-                color="primary"
-                variant="outlined"
-                class="rounded-lg"
-              >
-                <v-btn value="full" prepend-icon="mdi-timeline-text-outline">
-                  {{ $t('absence.view_full') }}
-                </v-btn>
-                <v-btn value="compact" prepend-icon="mdi-view-compact-outline">
-                  {{ $t('absence.view_compact') }}
-                </v-btn>
-              </v-btn-toggle>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <!-- RIGHT COLUMN (Takes up 5 cols on desktop) -->
-      <v-col cols="12" md="5" class="d-flex flex-column ga-6">
-        <!-- Locked State Placeholder if Visa Date is Missing -->
-        <v-card
-          v-if="!absentsStore.isVisaDateSet"
-          elevation="2"
-          class="pa-4 rounded-lg text-center bg-surface border-dashed"
-        >
-          <v-avatar color="primary" variant="tonal" size="64" class="mb-4">
-            <v-icon icon="mdi-shield-lock-outline" size="36"></v-icon>
-          </v-avatar>
-          <h3 class="text-h6 font-weight-bold mb-2">{{ $t('absence.locked_title') }}</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
-            {{ $t('absence.locked_desc') }}
-          </p>
-          <v-btn
-            color="primary"
-            variant="flat"
-            size="small"
-            prepend-icon="mdi-calendar-plus"
-            @click="openVisaDateDialog"
-          >
-            {{ $t('absence.set_key_dates') }}
-          </v-btn>
-        </v-card>
-
-        <template v-else>
-          <!-- 1. Residence, ILR, Naturalisation Checker -->
-          <div class="d-flex flex-column ga-6">
-            <!-- BNO Visa Overview Card -->
-            <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
-              <v-card-title
-                class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
-              >
-                <div class="d-flex align-center ga-2">
-                  <v-icon icon="mdi-passport-biometric" color="primary"></v-icon>
-                  <span class="text-h5 font-weight-bold">{{ $t('absence.visa_overview') }}</span>
-                </div>
-
-                <v-chip
-                  :color="absentsStore.isVisaExtensionNeeded ? 'warning' : 'success'"
-                  size="small"
-                  variant="tonal"
-                  class="font-weight-bold"
-                >
-                  <v-icon
-                    :icon="
-                      absentsStore.isVisaExtensionNeeded ? 'mdi-alert-circle' : 'mdi-check-circle'
-                    "
-                    start
-                  ></v-icon>
-                  {{
-                    absentsStore.isVisaExtensionNeeded
-                      ? $t('absence.visa_extension_required')
-                      : $t('absence.visa_cover_intact')
-                  }}
-                </v-chip>
-              </v-card-title>
-
-              <v-card-text class="px-0 pb-0">
-                <v-row density="compact">
-                  <!-- Visa Start Date -->
-                  <v-col cols="12" sm="6">
-                    <v-card variant="tonal" color="primary" class="pa-3 rounded-lg">
-                      <div class="text-caption text-medium-emphasis">{{ $t('absence.visa_start') }}</div>
-                      <div class="text-subtitle-1 font-weight-bold text-primary">
-                        {{ formatDate(absentsStore.visaStartDate) }}
-                      </div>
-                    </v-card>
-                  </v-col>
-
-                  <!-- Visa Expiry Date -->
-                  <v-col cols="12" sm="6">
-                    <v-card
-                      variant="tonal"
-                      :color="absentsStore.isVisaExtensionNeeded ? 'warning' : 'info'"
-                      class="pa-3 rounded-lg"
-                    >
-                      <div class="d-flex align-center justify-space-between mb-1">
-                        <span class="text-caption text-medium-emphasis">{{ $t('absence.visa_expiry') }}</span>
-                        <v-chip
-                          size="x-small"
-                          :color="absentsStore.isVisaExpiryDateSet ? 'purple' : 'info'"
-                          variant="flat"
-                          class="font-weight-bold"
-                        >
-                          {{ absentsStore.isVisaExpiryDateSet ? $t('absence.custom_expiry') : $t('absence.default_5yr') }}
-                        </v-chip>
-                      </div>
-                      <div class="text-subtitle-1 font-weight-bold">
-                        {{ formatDate(absentsStore.effectiveVisaExpiryDate) }}
-                      </div>
-                    </v-card>
-                  </v-col>
-                </v-row>
-
-                <!-- Yellow Warning Alert if Visa Extension Needed -->
-                <v-alert
-                  v-if="absentsStore.isVisaExtensionNeeded"
-                  type="warning"
-                  variant="tonal"
-                  icon="mdi-alert-outline"
-                  class="mt-3 text-caption"
-                  density="compact"
-                >
-                  <div class="font-weight-bold text-subtitle-2 mb-1">
-                    {{ $t('absence.visa_extension_needed_title') }}
-                  </div>
-                  <div>
-                    <i18n-t keypath="absence.visa_extension_needed_body" scope="global">
-                      <template #expiry>
-                        <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong>
-                      </template>
-                      <template #target>
-                        <strong>{{ formatDate(absentsStore.settlementTargetDate) }}</strong>
-                      </template>
-                    </i18n-t>
-                  </div>
-                </v-alert>
-                <v-alert
-                  v-else
-                  type="success"
-                  variant="tonal"
-                  icon="mdi-shield-check"
-                  class="mt-3 text-caption"
-                  density="compact"
-                >
-                  <i18n-t keypath="absence.visa_cover_verified_body" scope="global">
-                    <template #expiry>
-                      <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong>
-                    </template>
-                    <template #target>
-                      {{ formatDate(absentsStore.settlementTargetDate) }}
-                    </template>
-                  </i18n-t>
-                </v-alert>
-              </v-card-text>
-            </v-card>
-
-            <!-- SECTION 1: ILR / Settlement Card -->
-            <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
-              <v-card-title
-                class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
-              >
-                <div class="d-flex align-center ga-2">
-                  <v-icon icon="mdi-shield-check-outline" color="primary"></v-icon>
-                  <span class="text-h5 font-weight-bold">{{ $t('absence.ilr_title') }}</span>
-                </div>
-
-                <v-chip
-                  :color="absentsStore.ruleStatusColor"
-                  size="small"
-                  variant="tonal"
-                  class="font-weight-bold"
-                >
-                  <v-icon
-                    :icon="
-                      absentsStore.ilrQualifyingPeriod.is10YearExceeded
-                        ? 'mdi-alert-circle'
-                        : absentsStore.isIlrWindowShifted
-                          ? 'mdi-clock-alert-outline'
-                          : 'mdi-check-circle'
-                    "
-                    start
-                  ></v-icon>
-                  {{
-                    absentsStore.ilrQualifyingPeriod.is10YearExceeded
-                      ? $t('absence.ilr_limit_exceeded')
-                      : absentsStore.isIlrWindowShifted
-                        ? $t('absence.ilr_window_delayed')
-                        : $t('absence.within_ilr_limit')
-                  }}
-                </v-chip>
-              </v-card-title>
-
-              <v-card-text class="px-0 pb-0">
-                <p class="text-caption text-medium-emphasis mb-4">
-                  5 Yrs:
-                  {{
-                    formatDate(
-                      absentsStore.ilrQualifyingPeriod.windowStartDate ||
-                        absentsStore.visaStartDate,
-                    )
-                  }}
-                  –
-                  {{ formatDate(absentsStore.settlementTargetDate) }}
-                </p>
-
-                <v-row density="compact">
-                  <!-- 180-Day Rolling Rule -->
-                  <v-col cols="12" xl="6">
-                    <v-card
-                      variant="tonal"
-                      :color="absentsStore.ruleStatusColor"
-                      class="pa-3 rounded-lg"
-                    >
-                      <div class="d-flex align-center justify-space-between mb-1">
-                        <span class="text-caption font-weight-bold">{{ $t('absence.rolling_180_rule') }}</span>
-                        <v-chip
-                          :color="absentsStore.ruleStatusColor"
-                          size="x-small"
-                          variant="flat"
-                          class="font-weight-bold"
-                        >
-                          {{ absentsStore.max12MonthAbsence }} / 180 {{ $t('absence.full_days') }}
-                        </v-chip>
-                      </div>
-                      <div class="text-caption opacity-90 mb-1">
-                        {{ $t('absence.rolling_180_desc') }}
-                      </div>
-                      <div
-                        v-if="absentsStore.max12MonthAbsenceInfo.peakStartDate"
-                        class="text-caption font-weight-bold"
-                      >
-                        {{ $t('absence.peak_label', { start: formatDate(absentsStore.max12MonthAbsenceInfo.peakStartDate), end: formatDate(absentsStore.max12MonthAbsenceInfo.peakEndDate) }) }}
-                      </div>
-                    </v-card>
-                  </v-col>
-
-                  <!-- 5-Year Total Absences -->
-                  <v-col cols="12" xl="6">
-                    <v-card variant="tonal" color="info" class="pa-3 rounded-lg">
-                      <div class="d-flex align-center justify-space-between mb-1">
-                        <span class="text-caption font-weight-bold">{{ $t('absence.total_5yr_absences') }}</span>
-                        <v-chip color="info" size="x-small" variant="flat" class="font-weight-bold">
-                          {{ absentsStore.ilr5YearTotalAbsence }} {{ $t('absence.full_days') }}
-                        </v-chip>
-                      </div>
-                      <div class="text-caption opacity-90">
-                        {{ $t('absence.total_5yr_desc') }}
-                      </div>
-                    </v-card>
-                  </v-col>
-                </v-row>
-
-                <!-- Earliest ILR Application Banner -->
-                <v-alert
-                  v-if="absentsStore.isIlrWindowShifted"
-                  type="warning"
-                  variant="tonal"
-                  icon="mdi-clock-alert-outline"
-                  class="mt-3 text-caption"
-                  density="compact"
-                >
-                  <div class="d-flex align-center justify-space-between flex-wrap ga-2">
-                    <span>
-                      <strong>{{ $t('absence.earliest_delayed_app_date') }}</strong>
-                    </span>
-                    <strong class="text-subtitle-2 font-weight-bold">
-                      {{ earliestIlrApplicationDate }}
-                    </strong>
-                  </div>
-                  <div class="mt-1 opacity-90 text-caption">
-                    <i18n-t keypath="absence.qualifying_period_delayed_notice" scope="global">
-                      <template #baseline>
-                        <strong>{{ formatDate(absentsStore.ilrQualifyingPeriod.baselineTargetDate) }}</strong>
-                      </template>
-                      <template #windowStart>
-                        {{ formatDate(absentsStore.ilrQualifyingPeriod.windowStartDate) }}
-                      </template>
-                      <template #settlementTarget>
-                        {{ formatDate(absentsStore.settlementTargetDate) }}
-                      </template>
-                    </i18n-t>
-                  </div>
-                </v-alert>
-
-                <v-alert
-                  v-else
-                  type="info"
-                  variant="tonal"
-                  icon="mdi-clock-start"
-                  class="mt-3 text-caption"
-                  density="compact"
-                >
-                  <div class="d-flex align-center justify-space-between flex-wrap ga-2">
-                    <span>
-                      <strong>{{ $t('absence.earliest_application_date') }}</strong>
-                    </span>
-                    <strong class="text-subtitle-2 text-primary font-weight-bold">
-                      {{ earliestIlrApplicationDate }}
-                    </strong>
-                  </div>
-                  <div class="mt-1 opacity-90 text-caption">
-                    {{ $t('absence.ilr_app_notice') }}
-                  </div>
-                </v-alert>
-              </v-card-text>
-            </v-card>
-
-            <!-- SECTION 2: Naturalisation / Citizenship Card -->
-            <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
-              <v-card-title
-                class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
-              >
-                <div class="d-flex align-center ga-2">
-                  <v-icon
-                    icon="mdi-flag-checkered"
-                    :color="absentsStore.naturalizationStatusColor"
-                  ></v-icon>
-                  <span class="text-h5 font-weight-bold">{{ $t('absence.citizenship_title') }}</span>
-                </div>
-
-                <v-chip
-                  :color="absentsStore.naturalizationStatusColor"
-                  size="small"
-                  variant="tonal"
-                  class="font-weight-bold"
-                >
-                  <v-icon
-                    :icon="
-                      absentsStore.isNaturalization10YearExceeded
-                        ? 'mdi-alert-circle'
-                        : absentsStore.isNaturalizationWindowShifted
-                          ? 'mdi-clock-alert-outline'
-                          : 'mdi-check-circle'
-                    "
-                    start
-                  ></v-icon>
-                  {{
-                    absentsStore.isNaturalization10YearExceeded
-                      ? $t('absence.out_of_tracker_range')
-                      : absentsStore.isNaturalizationWindowShifted
-                        ? $t('absence.within_cit_limit_delayed')
-                        : $t('absence.within_cit_limit')
-                  }}
-                </v-chip>
-              </v-card-title>
-
-              <v-card-text class="px-0 pb-0">
-                <p class="text-caption text-medium-emphasis mb-4">
-                  5 Yrs: {{ formatDate(absentsStore.naturalizationWindowStartDate) }} –
-                  {{ formatDate(absentsStore.naturalizationTargetDate) }}
-                  <span v-if="absentsStore.ilrApprovedDate" class="ml-1 font-weight-bold">
-                    {{ $t('absence.based_on_ilr', { date: formatDate(absentsStore.ilrApprovedDate) }) }}
-                  </span>
-                  <span v-else class="ml-1 font-weight-bold">
-                    {{ $t('absence.based_on_visa', { date: formatDate(absentsStore.visaStartDate) }) }}
-                  </span>
-                </p>
-
-                <v-row density="compact">
-                  <!-- 5-Year Citizenship Limit (Max 450 Days) -->
-                  <v-col cols="12" xl="6">
-                    <v-card
-                      variant="tonal"
-                      :color="absentsStore.naturalizationStatusColor"
-                      class="pa-3 rounded-lg"
-                    >
-                      <div class="d-flex align-center justify-space-between mb-1">
-                        <span class="text-caption font-weight-bold">{{ $t('absence.cit_5yr_limit') }}</span>
-                        <v-chip
-                          :color="absentsStore.naturalizationStatusColor"
-                          size="x-small"
-                          variant="flat"
-                          class="font-weight-bold"
-                        >
-                          {{ absentsStore.naturalization5YearAbsence }} / 450 {{ $t('absence.full_days') }}
-                        </v-chip>
-                      </div>
-                      <div class="text-caption opacity-90 mb-1">
-                        {{ $t('absence.cit_5yr_desc') }}
-                      </div>
-                    </v-card>
-                  </v-col>
-
-                  <!-- Final 12-Month Limit (Max 90 Days) -->
-                  <v-col cols="12" xl="6">
-                    <v-card
-                      variant="tonal"
-                      :color="absentsStore.naturalizationStatusColor"
-                      class="pa-3 rounded-lg"
-                    >
-                      <div class="d-flex align-center justify-space-between mb-1">
-                        <span class="text-caption font-weight-bold">{{ $t('absence.cit_final_12mo_limit') }}</span>
-                        <v-chip
-                          :color="absentsStore.naturalizationStatusColor"
-                          size="x-small"
-                          variant="flat"
-                          class="font-weight-bold"
-                        >
-                          {{ absentsStore.naturalizationFinal12MoAbsence }} / 90 {{ $t('absence.full_days') }}
-                        </v-chip>
-                      </div>
-                      <div class="text-caption opacity-90">
-                        {{ $t('absence.cit_final_12mo_desc') }}
-                      </div>
-                    </v-card>
-                  </v-col>
-                </v-row>
-
-                <!-- Earliest Naturalisation Application Banners -->
-                <v-alert
-                  v-if="absentsStore.isNaturalization10YearExceeded"
-                  type="error"
-                  variant="tonal"
-                  icon="mdi-alert-circle"
-                  class="mt-3 text-caption"
-                  density="compact"
-                >
-                  <div class="d-flex align-center justify-space-between flex-wrap ga-2">
-                    <span>
-                      <strong>{{ $t('absence.out_of_tracker_range') }}</strong>
-                    </span>
-                  </div>
-                </v-alert>
-
-                <v-alert
-                  v-else-if="absentsStore.isNaturalizationWindowShifted"
-                  type="warning"
-                  variant="tonal"
-                  icon="mdi-clock-alert-outline"
-                  class="mt-3 text-caption"
-                  density="compact"
-                >
-                  <div class="d-flex align-center justify-space-between flex-wrap ga-2">
-                    <span>
-                      <strong>{{ $t('absence.earliest_delayed_app_date') }}</strong>
-                    </span>
-                    <strong class="text-subtitle-2 font-weight-bold">
-                      {{ formatDate(absentsStore.naturalizationTargetDate) }}
-                    </strong>
-                  </div>
-                </v-alert>
-
-                <v-alert
-                  v-else
-                  type="info"
-                  variant="tonal"
-                  icon="mdi-clock-start"
-                  class="mt-3 text-caption"
-                  density="compact"
-                >
-                  <div class="d-flex align-center justify-space-between flex-wrap ga-2">
-                    <span>
-                      <strong>{{ $t('absence.earliest_application_date') }}</strong>
-                    </span>
-                    <strong class="text-subtitle-2 text-primary font-weight-bold">
-                      {{ formatDate(absentsStore.naturalizationTargetDate) }}
-                    </strong>
-                  </div>
-                  <div class="mt-1 opacity-90 text-caption">
-                    {{ $t('absence.cit_app_notice') }}
-                  </div>
-                </v-alert>
-              </v-card-text>
-            </v-card>
-          </div>
-
-          <!-- 2. Custom Date Range Card -->
-          <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
-            <v-card-title
-              class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
-            >
-              <div class="d-flex align-center ga-2">
-                <v-icon icon="mdi-calendar-range" color="primary"></v-icon>
-                <span class="text-h5 font-weight-bold">{{ $t('absence.custom_range_title') }}</span>
-                <v-chip
-                  color="primary"
-                  variant="tonal"
-                  size="x-small"
-                  prepend-icon="mdi-lightning-bolt"
-                >
-                  {{ $t('absence.instant_query') }}
-                </v-chip>
-              </div>
-            </v-card-title>
-
-            <v-card-text class="px-0 pb-0">
-              <p class="text-caption text-medium-emphasis mb-4">
-                {{ $t('absence.custom_range_desc') }}
-              </p>
-
-              <v-row density="compact">
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="queryForm.startDate"
-                    :label="$t('absence.query_start')"
-                    type="date"
-                    variant="outlined"
-                    density="compact"
-                    prepend-inner-icon="mdi-calendar-start-outline"
-                    :min="minQueryStartDate"
-                    :max="maxSegmentTreeReturnDate"
-                    :error-messages="queryStartDateError"
-                    hide-details="auto"
-                    class="mb-3"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model="queryForm.endDate"
-                    :label="$t('absence.query_end')"
-                    type="date"
-                    variant="outlined"
-                    density="compact"
-                    prepend-inner-icon="mdi-calendar-end-outline"
-                    :min="minQueryEndDate"
-                    :max="maxSegmentTreeReturnDate"
-                    :error-messages="queryEndDateError"
-                    hide-details="auto"
-                    class="mb-3"
-                  ></v-text-field>
-                </v-col>
-
-                <v-col cols="12">
-                  <v-card
-                    variant="tonal"
-                    :color="queryStartDateError || queryEndDateError ? 'error' : 'primary'"
-                    class="pa-3 text-center rounded-lg d-flex align-center justify-space-between"
-                  >
-                    <span class="text-subtitle-2 font-weight-medium">{{ $t('absence.queried_range_absences') }}</span>
-                    <span class="text-h5 font-weight-bold">{{ queriedRangeDays }} {{ $t('absence.full_days') }}</span>
                   </v-card>
                 </v-col>
               </v-row>
 
-              <div class="d-flex justify-end mt-3">
-                <v-btn
-                  color="primary"
-                  size="small"
-                  prepend-icon="mdi-restore"
-                  title="Reset query range to maximum 10-year period"
-                  @click="resetQueryDateRangeToMax"
-                >
-                  {{ $t('absence.reset_max_range') }}
-                </v-btn>
-              </div>
+              <!-- Warning/Success Status Alert -->
+              <v-alert
+                v-if="absentsStore.isVisaExtensionNeeded"
+                type="warning"
+                variant="tonal"
+                icon="mdi-alert-outline"
+                class="mt-3 text-caption"
+                density="compact"
+              >
+                <div class="font-weight-bold text-subtitle-2 mb-1">
+                  {{ $t('absence.visa_extension_needed_title') }}
+                </div>
+                <div>
+                  <i18n-t keypath="absence.visa_extension_needed_body" scope="global">
+                    <template #expiry>
+                      <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong>
+                    </template>
+                    <template #target>
+                      <strong>{{ formatDate(absentsStore.settlementTargetDate) }}</strong>
+                    </template>
+                  </i18n-t>
+                </div>
+              </v-alert>
+              <v-alert
+                v-else
+                type="success"
+                variant="tonal"
+                icon="mdi-shield-check"
+                class="mt-3 text-caption"
+                density="compact"
+              >
+                <i18n-t keypath="absence.visa_cover_verified_body" scope="global">
+                  <template #expiry>
+                    <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong>
+                  </template>
+                  <template #target>
+                    {{ formatDate(absentsStore.settlementTargetDate) }}
+                  </template>
+                </i18n-t>
+              </v-alert>
             </v-card-text>
-          </v-card>
-        </template>
+          </div>
+
+          <!-- Edit Key Dates Button -->
+          <div class="d-flex justify-end mt-3">
+            <v-btn
+              color="primary"
+              size="small"
+              prepend-icon="mdi-pencil"
+              @click="openVisaDateDialog"
+            >
+              {{ $t('absence.edit_key_dates') }}
+            </v-btn>
+          </div>
+        </v-card>
       </v-col>
     </v-row>
+
+    <!-- 3. Add Absence Record -->
+    <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
+      <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
+        <v-icon :icon="editingId ? 'mdi-pencil' : 'mdi-plus-circle'" color="primary"></v-icon>
+        <span class="text-h5 font-weight-bold">
+          {{ editingId ? $t('absence.edit_record') : $t('absence.add_record') }}
+        </span>
+      </v-card-title>
+
+      <v-card-text class="px-0 pb-0">
+        <v-form @submit.prevent="handleSave">
+          <!-- Horizontal Graph Timeline Flow for Multi-Stop Trip Editor -->
+          <div class="editor-timeline-container pa-3 rounded-lg border bg-surface mb-3 w-100">
+            <div class="d-flex align-center flex-nowrap ga-3 overflow-x-auto py-2 px-1 w-100">
+              <template v-for="(stop, index) in form.stops" :key="index">
+                <!-- NODE Card (Date) -->
+                <div class="timeline-node-card elevation-1 rounded-lg pa-3 border bg-card">
+                  <div class="d-flex align-center justify-space-between ga-2 mb-2">
+                    <span class="text-caption font-weight-bold text-primary d-flex align-center ga-1">
+                      <v-icon
+                        :icon="
+                          index === 0
+                            ? 'mdi-airplane-takeoff'
+                            : index === form.stops.length - 1
+                              ? 'mdi-airplane-landing'
+                              : 'mdi-map-marker'
+                        "
+                        :color="
+                          index === 0
+                            ? 'primary'
+                            : index === form.stops.length - 1
+                              ? 'success'
+                              : 'info'
+                        "
+                        size="x-small"
+                      ></v-icon>
+                      <span>
+                        {{
+                          index === 0
+                            ? $t('absence.dep_uk')
+                            : index === form.stops.length - 1
+                              ? $t('absence.ret_uk')
+                              : $t('absence.stop_number', { n: index })
+                        }}
+                      </span>
+                    </span>
+
+                    <v-btn
+                      v-if="index > 0 && index < form.stops.length - 1"
+                      icon="mdi-close"
+                      variant="text"
+                      color="error"
+                      size="x-small"
+                      :title="$t('absence.remove_stop')"
+                      @click="removeStopNode(index)"
+                    ></v-btn>
+                  </div>
+
+                  <!-- Date Input (Node) -->
+                  <v-text-field
+                    v-model="stop.date"
+                    type="date"
+                    :label="
+                      index === 0
+                        ? $t('absence.departure_date')
+                        : index === form.stops.length - 1
+                          ? $t('absence.return_date')
+                          : 'Date'
+                    "
+                    variant="outlined"
+                    density="compact"
+                    hide-details="auto"
+                    :error-messages="
+                      index === 0
+                        ? startDateError
+                        : index === form.stops.length - 1
+                          ? endDateError
+                          : ''
+                    "
+                    class="w-100"
+                    required
+                  ></v-text-field>
+                </div>
+
+                <!-- EDGE Connector (Destination to Next Node) -->
+                <div
+                  v-if="index < form.stops.length - 1"
+                  class="timeline-edge-connector d-flex flex-column align-center justify-center px-2"
+                >
+                  <div class="text-caption font-weight-medium text-medium-emphasis mb-1 d-flex align-center ga-1">
+                    <v-icon icon="mdi-map-marker-outline" size="12"></v-icon>
+                    <span>{{ $t('absence.leg_dest') }}</span>
+                  </div>
+
+                  <v-text-field
+                    v-model="stop.dest"
+                    placeholder="e.g. Hong Kong, Japan"
+                    variant="outlined"
+                    density="compact"
+                    hide-details="auto"
+                    class="w-100"
+                  ></v-text-field>
+
+                  <div class="edge-line-arrow d-flex align-center justify-center w-100 mt-2">
+                    <div class="line-flex"></div>
+                    <v-icon icon="mdi-chevron-right" size="small" color="primary"></v-icon>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Controls to Add Stop -->
+          <div class="d-flex align-center ga-3 mb-4">
+            <v-btn
+              variant="tonal"
+              color="info"
+              size="small"
+              prepend-icon="mdi-plus"
+              @click="addStopNode"
+            >
+              {{ $t('absence.add_stop') }}
+            </v-btn>
+            <span v-if="nodeDateError" class="text-caption text-error">
+              {{ nodeDateError }}
+            </span>
+          </div>
+
+          <!-- Form Days Calculation Badge & Actions -->
+          <div class="d-flex align-center justify-space-between flex-wrap ga-4 mt-4">
+            <div class="d-flex align-center">
+              <v-chip
+                v-if="startDate && endDate && !dateRangeError"
+                color="secondary"
+                variant="tonal"
+                prepend-icon="mdi-calculator"
+                size="small"
+                class="font-weight-medium"
+              >
+                <i18n-t keypath="absence.calculated_full_days" scope="global">
+                  <template #days>
+                    <strong class="ml-1 text-primary">{{ calculatedDaysForForm }}</strong>
+                  </template>
+                </i18n-t>
+              </v-chip>
+            </div>
+
+            <div class="d-flex ga-2">
+              <v-btn
+                v-if="editingId"
+                variant="outlined"
+                color="secondary"
+                size="small"
+                prepend-icon="mdi-close"
+                @click="cancelEdit"
+              >
+                {{ $t('absence.cancel') }}
+              </v-btn>
+
+              <v-btn
+                type="submit"
+                color="primary"
+                size="small"
+                :disabled="!isFormValid"
+                :prepend-icon="editingId ? 'mdi-check' : 'mdi-plus'"
+              >
+                {{ editingId ? $t('absence.update_record') : $t('absence.add_record') }}
+              </v-btn>
+            </div>
+          </div>
+        </v-form>
+      </v-card-text>
+    </v-card>
+
+    <!-- 4. Absence Records -->
+    <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
+      <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
+        <v-icon icon="mdi-format-list-bulleted" color="primary"></v-icon>
+        <span class="text-h5 font-weight-bold">{{ $t('absence.records_title') }}</span>
+        <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold">
+          {{ absentsStore.sortedAbsences.length }}
+        </v-chip>
+      </v-card-title>
+
+      <v-card-text class="px-0 pb-0">
+        <!-- Records Table -->
+        <v-table
+          v-if="absentsStore.sortedAbsences.length > 0"
+          density="comfortable"
+          hover
+          class="border rounded-lg"
+        >
+          <thead>
+            <tr>
+              <th class="text-left font-weight-bold" style="width: 100px">
+                {{ $t('absence.table_status') }}
+              </th>
+              <th class="text-left font-weight-bold">{{ $t('absence.trip_timeline') }}</th>
+              <th class="text-center font-weight-bold" style="width: 140px">
+                {{ $t('absence.full_days') }}
+              </th>
+              <th class="text-right font-weight-bold" style="width: 110px">
+                {{ $t('absence.table_actions') }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="item in absentsStore.sortedAbsences"
+              :key="item.id"
+              :class="{
+                'bg-action-hover': editingId === item.id,
+                'row-planned-event':
+                  isFutureEvent(item) && !isOngoingEvent(item) && editingId !== item.id,
+                'row-ongoing-event': isOngoingEvent(item) && editingId !== item.id,
+              }"
+            >
+              <td class="align-middle" style="width: 100px">
+                <!-- Event Status Chip -->
+                <v-chip
+                  v-if="item.isAutoArrival"
+                  size="x-small"
+                  color="secondary"
+                  variant="flat"
+                  class="font-weight-bold"
+                >
+                  {{ $t('absence.initial') }}
+                </v-chip>
+                <v-chip
+                  v-else-if="isOngoingEvent(item)"
+                  size="x-small"
+                  color="warning"
+                  variant="flat"
+                  class="font-weight-bold"
+                >
+                  {{ $t('absence.ongoing') }}
+                </v-chip>
+                <v-chip
+                  v-else-if="isFutureEvent(item)"
+                  size="x-small"
+                  color="info"
+                  variant="outlined"
+                  class="font-weight-medium"
+                >
+                  {{ $t('absence.planned') }}
+                </v-chip>
+                <v-chip
+                  v-else
+                  size="x-small"
+                  color="grey"
+                  variant="tonal"
+                  class="font-weight-regular text-caption"
+                >
+                  {{ $t('absence.past') }}
+                </v-chip>
+              </td>
+
+              <td class="py-3 align-middle">
+                <!-- FULL Mode Timeline -->
+                <div
+                  v-if="timelineViewMode === 'full'"
+                  class="d-flex align-center flex-nowrap ga-1 overflow-x-auto py-1 w-100"
+                >
+                  <template v-for="(stop, idx) in getRecordStops(item)" :key="idx">
+                    <!-- List NODE -->
+                    <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
+                      <v-icon
+                        :icon="
+                          idx === 0
+                            ? 'mdi-airplane-takeoff'
+                            : idx === getRecordStops(item).length - 1
+                              ? 'mdi-airplane-landing'
+                              : 'mdi-map-marker'
+                        "
+                        :color="
+                          idx === 0
+                            ? 'primary'
+                            : idx === getRecordStops(item).length - 1
+                              ? 'success'
+                              : 'info'
+                        "
+                        size="x-small"
+                      ></v-icon>
+                      <span class="text-caption font-weight-bold text-no-wrap">
+                        {{ formatDate(stop.date) }}
+                      </span>
+                    </div>
+
+                    <!-- List EDGE Connector -->
+                    <div
+                      v-if="idx < getRecordStops(item).length - 1"
+                      class="d-flex align-center justify-center ga-1 px-1 flex-grow-1"
+                      style="min-width: 50px"
+                    >
+                      <div class="edge-line flex-grow-1"></div>
+                      <v-chip
+                        v-if="stop.dest"
+                        size="x-small"
+                        color="primary"
+                        variant="tonal"
+                        class="font-weight-medium text-no-wrap"
+                      >
+                        <v-icon start icon="mdi-map-marker-outline" size="10"></v-icon>
+                        {{ stop.dest }}
+                      </v-chip>
+                      <div class="edge-line flex-grow-1"></div>
+                      <v-icon icon="mdi-chevron-right" size="x-small" color="primary"></v-icon>
+                    </div>
+                  </template>
+                </div>
+
+                <!-- COMPACT Mode Timeline -->
+                <div
+                  v-else
+                  class="d-flex align-center flex-nowrap ga-1 overflow-x-auto py-1 w-100"
+                >
+                  <!-- Departure Node -->
+                  <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
+                    <v-icon icon="mdi-airplane-takeoff" color="primary" size="x-small"></v-icon>
+                    <span class="text-caption font-weight-bold text-no-wrap">
+                      {{ formatDate(item.startDate) }}
+                    </span>
+                  </div>
+
+                  <!-- Summary Edge -->
+                  <div class="d-flex align-center justify-center ga-1 px-1 flex-grow-1" style="min-width: 60px">
+                    <div class="edge-line flex-grow-1"></div>
+                    <v-chip
+                      size="x-small"
+                      color="primary"
+                      variant="tonal"
+                      class="font-weight-medium text-no-wrap"
+                    >
+                      <v-icon start icon="mdi-map-marker-outline" size="10"></v-icon>
+                      {{ item.dest || $t('absence.unspecified') }}
+                    </v-chip>
+                    <div class="edge-line flex-grow-1"></div>
+                    <v-icon icon="mdi-chevron-right" size="x-small" color="primary"></v-icon>
+                  </div>
+
+                  <!-- Return Node -->
+                  <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
+                    <v-icon icon="mdi-airplane-landing" color="success" size="x-small"></v-icon>
+                    <span class="text-caption font-weight-bold text-no-wrap">
+                      {{ formatDate(item.endDate) }}
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td class="text-center align-middle">
+                <v-chip
+                  :color="
+                    isOngoingEvent(item)
+                      ? 'warning'
+                      : isFutureEvent(item)
+                        ? 'info'
+                        : calculateDays(item.startDate, item.endDate) > 0
+                          ? 'primary'
+                          : 'grey'
+                  "
+                  size="x-small"
+                  :variant="
+                    isFutureEvent(item) && !isOngoingEvent(item) ? 'outlined' : 'tonal'
+                  "
+                  :class="{
+                    'font-weight-bold': !isFutureEvent(item) || isOngoingEvent(item),
+                    'font-weight-medium opacity-90':
+                      isFutureEvent(item) && !isOngoingEvent(item),
+                  }"
+                >
+                  {{ calculateDays(item.startDate, item.endDate) }} day(s)
+                </v-chip>
+              </td>
+              <td class="text-right align-middle">
+                <template v-if="item.isAutoArrival || item.id === 'auto_uk_arrival_record'">
+                  <v-chip
+                    size="x-small"
+                    color="secondary"
+                    variant="tonal"
+                    prepend-icon="mdi-lock-outline"
+                    title="Initial UK Entry record is managed via Key Dates"
+                    class="font-weight-medium"
+                  >
+                    {{ $t('absence.managed') }}
+                  </v-chip>
+                </template>
+                <template v-else>
+                  <v-menu location="bottom end">
+                    <template #activator="{ props }">
+                      <v-btn
+                        icon="mdi-dots-vertical"
+                        variant="text"
+                        size="small"
+                        v-bind="props"
+                        title="Actions menu"
+                      ></v-btn>
+                    </template>
+                    <v-list density="compact" class="rounded-lg elevation-4">
+                      <v-list-item
+                        prepend-icon="mdi-pencil-outline"
+                        :title="$t('absence.edit_record_title')"
+                        @click="startEdit(item)"
+                      ></v-list-item>
+                      <v-list-item
+                        prepend-icon="mdi-delete-outline"
+                        :title="$t('absence.delete_record_title')"
+                        @click="confirmDelete(item)"
+                      ></v-list-item>
+                    </v-list>
+                  </v-menu>
+                </template>
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
+
+        <!-- Empty State -->
+        <div v-else class="pa-6 text-center">
+          <v-avatar color="surface-variant" size="56" class="mb-2">
+            <v-icon icon="mdi-airplane-off" size="28" color="medium-emphasis"></v-icon>
+          </v-avatar>
+          <h3 class="text-subtitle-1 font-weight-bold mb-1">{{ $t('absence.no_records_title') }}</h3>
+          <p class="text-caption text-medium-emphasis mb-0">
+            {{ $t('absence.no_records_desc') }}
+          </p>
+        </div>
+
+        <!-- Card Bottom Actions: View Mode Toggle -->
+        <div v-if="absentsStore.sortedAbsences.length > 0" class="d-flex align-center justify-end mt-3">
+          <v-btn-toggle
+            v-model="timelineViewMode"
+            mandatory
+            density="compact"
+            size="x-small"
+            color="primary"
+            variant="outlined"
+            class="rounded-lg"
+          >
+            <v-btn value="full" prepend-icon="mdi-timeline-text-outline">
+              {{ $t('absence.view_full') }}
+            </v-btn>
+            <v-btn value="compact" prepend-icon="mdi-view-compact-outline">
+              {{ $t('absence.view_compact') }}
+            </v-btn>
+          </v-btn-toggle>
+        </div>
+      </v-card-text>
+    </v-card>
+
+    <!-- 5. ILR / Settlement | British Citizenship -->
+    <v-row v-if="absentsStore.isVisaDateSet" density="default">
+      <!-- ILR / Settlement Card -->
+      <v-col cols="12" md="6">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
+          <v-card-title
+            class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
+          >
+            <div class="d-flex align-center ga-2">
+              <v-icon icon="mdi-shield-check-outline" color="primary"></v-icon>
+              <span class="text-h5 font-weight-bold">{{ $t('absence.ilr_title') }}</span>
+            </div>
+
+            <v-chip
+              :color="absentsStore.ruleStatusColor"
+              size="small"
+              variant="tonal"
+              class="font-weight-bold"
+            >
+              <v-icon
+                :icon="
+                  absentsStore.ilrQualifyingPeriod.is10YearExceeded
+                    ? 'mdi-alert-circle'
+                    : absentsStore.isIlrWindowShifted
+                      ? 'mdi-clock-alert-outline'
+                      : 'mdi-check-circle'
+                "
+                start
+              ></v-icon>
+              {{
+                absentsStore.ilrQualifyingPeriod.is10YearExceeded
+                  ? $t('absence.ilr_limit_exceeded')
+                  : absentsStore.isIlrWindowShifted
+                    ? $t('absence.ilr_window_delayed')
+                    : $t('absence.within_ilr_limit')
+              }}
+            </v-chip>
+          </v-card-title>
+
+          <v-card-text class="px-0 pb-0">
+            <p class="text-caption text-medium-emphasis mb-4">
+              5 Yrs:
+              {{
+                formatDate(
+                  absentsStore.ilrQualifyingPeriod.windowStartDate ||
+                    absentsStore.visaStartDate,
+                )
+              }}
+              –
+              {{ formatDate(absentsStore.settlementTargetDate) }}
+            </p>
+
+            <v-row density="compact">
+              <!-- 180-Day Rolling Rule -->
+              <v-col cols="12" sm="6">
+                <v-card
+                  variant="tonal"
+                  :color="absentsStore.ruleStatusColor"
+                  class="pa-3 rounded-lg h-100"
+                >
+                  <div class="d-flex align-center justify-space-between mb-1">
+                    <span class="text-caption font-weight-bold">{{ $t('absence.rolling_180_rule') }}</span>
+                    <v-chip
+                      :color="absentsStore.ruleStatusColor"
+                      size="x-small"
+                      variant="flat"
+                      class="font-weight-bold"
+                    >
+                      {{ absentsStore.max12MonthAbsence }} / 180 {{ $t('absence.full_days') }}
+                    </v-chip>
+                  </div>
+                  <div class="text-caption opacity-90 mb-1">
+                    {{ $t('absence.rolling_180_desc') }}
+                  </div>
+                  <div
+                    v-if="absentsStore.max12MonthAbsenceInfo.peakStartDate"
+                    class="text-caption font-weight-bold"
+                  >
+                    {{ $t('absence.peak_label', { start: formatDate(absentsStore.max12MonthAbsenceInfo.peakStartDate), end: formatDate(absentsStore.max12MonthAbsenceInfo.peakEndDate) }) }}
+                  </div>
+                </v-card>
+              </v-col>
+
+              <!-- 5-Year Total Absences -->
+              <v-col cols="12" sm="6">
+                <v-card variant="tonal" color="info" class="pa-3 rounded-lg h-100">
+                  <div class="d-flex align-center justify-space-between mb-1">
+                    <span class="text-caption font-weight-bold">{{ $t('absence.total_5yr_absences') }}</span>
+                    <v-chip color="info" size="x-small" variant="flat" class="font-weight-bold">
+                      {{ absentsStore.ilr5YearTotalAbsence }} {{ $t('absence.full_days') }}
+                    </v-chip>
+                  </div>
+                  <div class="text-caption opacity-90">
+                    {{ $t('absence.total_5yr_desc') }}
+                  </div>
+                </v-card>
+              </v-col>
+            </v-row>
+
+            <!-- Earliest ILR Application Banner -->
+            <v-alert
+              v-if="absentsStore.isIlrWindowShifted"
+              type="warning"
+              variant="tonal"
+              icon="mdi-clock-alert-outline"
+              class="mt-3 text-caption"
+              density="compact"
+            >
+              <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+                <span>
+                  <strong>{{ $t('absence.earliest_delayed_app_date') }}</strong>
+                </span>
+                <strong class="text-subtitle-2 font-weight-bold">
+                  {{ earliestIlrApplicationDate }}
+                </strong>
+              </div>
+              <div class="mt-1 opacity-90 text-caption">
+                <i18n-t keypath="absence.qualifying_period_delayed_notice" scope="global">
+                  <template #baseline>
+                    <strong>{{ formatDate(absentsStore.ilrQualifyingPeriod.baselineTargetDate) }}</strong>
+                  </template>
+                  <template #windowStart>
+                    {{ formatDate(absentsStore.ilrQualifyingPeriod.windowStartDate) }}
+                  </template>
+                  <template #settlementTarget>
+                    {{ formatDate(absentsStore.settlementTargetDate) }}
+                  </template>
+                </i18n-t>
+              </div>
+            </v-alert>
+
+            <v-alert
+              v-else
+              type="info"
+              variant="tonal"
+              icon="mdi-clock-start"
+              class="mt-3 text-caption"
+              density="compact"
+            >
+              <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+                <span>
+                  <strong>{{ $t('absence.earliest_application_date') }}</strong>
+                </span>
+                <strong class="text-subtitle-2 text-primary font-weight-bold">
+                  {{ earliestIlrApplicationDate }}
+                </strong>
+              </div>
+              <div class="mt-1 opacity-90 text-caption">
+                {{ $t('absence.ilr_app_notice') }}
+              </div>
+            </v-alert>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- British Citizenship Card -->
+      <v-col cols="12" md="6">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
+          <v-card-title
+            class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
+          >
+            <div class="d-flex align-center ga-2">
+              <v-icon
+                icon="mdi-flag-checkered"
+                :color="absentsStore.naturalizationStatusColor"
+              ></v-icon>
+              <span class="text-h5 font-weight-bold">{{ $t('absence.citizenship_title') }}</span>
+            </div>
+
+            <v-chip
+              :color="absentsStore.naturalizationStatusColor"
+              size="small"
+              variant="tonal"
+              class="font-weight-bold"
+            >
+              <v-icon
+                :icon="
+                  absentsStore.isNaturalization10YearExceeded
+                    ? 'mdi-alert-circle'
+                    : absentsStore.isNaturalizationWindowShifted
+                      ? 'mdi-clock-alert-outline'
+                      : 'mdi-check-circle'
+                "
+                start
+              ></v-icon>
+              {{
+                absentsStore.isNaturalization10YearExceeded
+                  ? $t('absence.out_of_tracker_range')
+                  : absentsStore.isNaturalizationWindowShifted
+                    ? $t('absence.within_cit_limit_delayed')
+                    : $t('absence.within_cit_limit')
+              }}
+            </v-chip>
+          </v-card-title>
+
+          <v-card-text class="px-0 pb-0">
+            <p class="text-caption text-medium-emphasis mb-4">
+              5 Yrs: {{ formatDate(absentsStore.naturalizationWindowStartDate) }} –
+              {{ formatDate(absentsStore.naturalizationTargetDate) }}
+              <span v-if="absentsStore.ilrApprovedDate" class="ml-1 font-weight-bold">
+                {{ $t('absence.based_on_ilr', { date: formatDate(absentsStore.ilrApprovedDate) }) }}
+              </span>
+              <span v-else class="ml-1 font-weight-bold">
+                {{ $t('absence.based_on_visa', { date: formatDate(absentsStore.visaStartDate) }) }}
+              </span>
+            </p>
+
+            <v-row density="compact">
+              <!-- 5-Year Citizenship Limit (Max 450 Days) -->
+              <v-col cols="12" sm="6">
+                <v-card
+                  variant="tonal"
+                  :color="absentsStore.naturalizationStatusColor"
+                  class="pa-3 rounded-lg h-100"
+                >
+                  <div class="d-flex align-center justify-space-between mb-1">
+                    <span class="text-caption font-weight-bold">{{ $t('absence.cit_5yr_limit') }}</span>
+                    <v-chip
+                      :color="absentsStore.naturalizationStatusColor"
+                      size="x-small"
+                      variant="flat"
+                      class="font-weight-bold"
+                    >
+                      {{ absentsStore.naturalization5YearAbsence }} / 450 {{ $t('absence.full_days') }}
+                    </v-chip>
+                  </div>
+                  <div class="text-caption opacity-90 mb-1">
+                    {{ $t('absence.cit_5yr_desc') }}
+                  </div>
+                </v-card>
+              </v-col>
+
+              <!-- Final 12-Month Limit (Max 90 Days) -->
+              <v-col cols="12" sm="6">
+                <v-card
+                  variant="tonal"
+                  :color="absentsStore.naturalizationStatusColor"
+                  class="pa-3 rounded-lg h-100"
+                >
+                  <div class="d-flex align-center justify-space-between mb-1">
+                    <span class="text-caption font-weight-bold">{{ $t('absence.cit_final_12mo_limit') }}</span>
+                    <v-chip
+                      :color="absentsStore.naturalizationStatusColor"
+                      size="x-small"
+                      variant="flat"
+                      class="font-weight-bold"
+                    >
+                      {{ absentsStore.naturalizationFinal12MoAbsence }} / 90 {{ $t('absence.full_days') }}
+                    </v-chip>
+                  </div>
+                  <div class="text-caption opacity-90">
+                    {{ $t('absence.cit_final_12mo_desc') }}
+                  </div>
+                </v-card>
+              </v-col>
+            </v-row>
+
+            <!-- Earliest Naturalisation Application Banners -->
+            <v-alert
+              v-if="absentsStore.isNaturalization10YearExceeded"
+              type="error"
+              variant="tonal"
+              icon="mdi-alert-circle"
+              class="mt-3 text-caption"
+              density="compact"
+            >
+              <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+                <span>
+                  <strong>{{ $t('absence.out_of_tracker_range') }}</strong>
+                </span>
+              </div>
+            </v-alert>
+
+            <v-alert
+              v-else-if="absentsStore.isNaturalizationWindowShifted"
+              type="warning"
+              variant="tonal"
+              icon="mdi-clock-alert-outline"
+              class="mt-3 text-caption"
+              density="compact"
+            >
+              <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+                <span>
+                  <strong>{{ $t('absence.earliest_delayed_app_date') }}</strong>
+                </span>
+                <strong class="text-subtitle-2 font-weight-bold">
+                  {{ formatDate(absentsStore.naturalizationTargetDate) }}
+                </strong>
+              </div>
+            </v-alert>
+
+            <v-alert
+              v-else
+              type="info"
+              variant="tonal"
+              icon="mdi-clock-start"
+              class="mt-3 text-caption"
+              density="compact"
+            >
+              <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+                <span>
+                  <strong>{{ $t('absence.earliest_application_date') }}</strong>
+                </span>
+                <strong class="text-subtitle-2 text-primary font-weight-bold">
+                  {{ formatDate(absentsStore.naturalizationTargetDate) }}
+                </strong>
+              </div>
+              <div class="mt-1 opacity-90 text-caption">
+                {{ $t('absence.cit_app_notice') }}
+              </div>
+            </v-alert>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- 6. Custom Date Range -->
+    <v-card v-if="absentsStore.isVisaDateSet" elevation="2" class="pa-3 rounded-lg bg-surface">
+      <v-card-title
+        class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
+      >
+        <div class="d-flex align-center ga-2">
+          <v-icon icon="mdi-calendar-range" color="primary"></v-icon>
+          <span class="text-h5 font-weight-bold">{{ $t('absence.custom_range_title') }}</span>
+          <v-chip
+            color="primary"
+            variant="tonal"
+            size="x-small"
+            prepend-icon="mdi-lightning-bolt"
+          >
+            {{ $t('absence.instant_query') }}
+          </v-chip>
+        </div>
+      </v-card-title>
+
+      <v-card-text class="px-0 pb-0">
+        <p class="text-caption text-medium-emphasis mb-4">
+          {{ $t('absence.custom_range_desc') }}
+        </p>
+
+        <v-row density="compact">
+          <v-col cols="12" sm="6">
+            <v-text-field
+              v-model="queryForm.startDate"
+              :label="$t('absence.query_start')"
+              type="date"
+              variant="outlined"
+              density="compact"
+              prepend-inner-icon="mdi-calendar-start-outline"
+              :min="minQueryStartDate"
+              :max="maxSegmentTreeReturnDate"
+              :error-messages="queryStartDateError"
+              hide-details="auto"
+              class="mb-3"
+            ></v-text-field>
+          </v-col>
+
+          <v-col cols="12" sm="6">
+            <v-text-field
+              v-model="queryForm.endDate"
+              :label="$t('absence.query_end')"
+              type="date"
+              variant="outlined"
+              density="compact"
+              prepend-inner-icon="mdi-calendar-end-outline"
+              :min="minQueryEndDate"
+              :max="maxSegmentTreeReturnDate"
+              :error-messages="queryEndDateError"
+              hide-details="auto"
+              class="mb-3"
+            ></v-text-field>
+          </v-col>
+
+          <v-col cols="12">
+            <v-card
+              variant="tonal"
+              :color="queryStartDateError || queryEndDateError ? 'error' : 'primary'"
+              class="pa-3 text-center rounded-lg d-flex align-center justify-space-between"
+            >
+              <span class="text-subtitle-2 font-weight-medium">{{ $t('absence.queried_range_absences') }}</span>
+              <span class="text-h5 font-weight-bold">{{ queriedRangeDays }} {{ $t('absence.full_days') }}</span>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <div class="d-flex justify-end mt-3">
+          <v-btn
+            color="primary"
+            size="small"
+            prepend-icon="mdi-restore"
+            title="Reset query range to maximum 10-year period"
+            @click="resetQueryDateRangeToMax"
+          >
+            {{ $t('absence.reset_max_range') }}
+          </v-btn>
+        </div>
+      </v-card-text>
+    </v-card>
 
     <!-- Delete Single Confirmation Dialog -->
     <v-dialog v-model="deleteDialog.show" max-width="400px">

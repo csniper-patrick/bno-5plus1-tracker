@@ -2,8 +2,9 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { normalizeDate } from '../utils/date.js'
 import { generateId } from '../utils/id.js'
+import * as dbService from '../services/dbService.js'
 
-/** Storage key for persisting document tracker state in localStorage */
+/** Storage key for persisting document tracker state in IndexedDB */
 const STORAGE_KEY = 'bno_tracker_documents_v1'
 
 /**
@@ -82,55 +83,59 @@ function sortAddresses(arr) {
  * 5-Year continuous residence supporting evidence, and UK Address History.
  */
 export const useDocumentsStore = defineStore('documents', () => {
-  // Load saved state from localStorage or initialize defaults
-  const savedDataRaw = localStorage.getItem(STORAGE_KEY)
-  let savedData = {}
-  try {
-    if (savedDataRaw) savedData = JSON.parse(savedDataRaw)
-  } catch (e) {
-    console.error('Failed to parse saved document store data:', e)
-  }
+  const isInitialized = ref(false)
 
   /** Life in the UK Test State */
-  const lifeInUk = ref(
-    savedData.lifeInUk || {
-      status: 'not_started', // 'not_started' | 'scheduled' | 'passed'
-      testDate: '',
-      urn: '',
-      testCenter: '',
-      notes: '',
-    },
-  )
+  const lifeInUk = ref({
+    status: 'not_started', // 'not_started' | 'scheduled' | 'passed'
+    testDate: '',
+    urn: '',
+    testCenter: '',
+    notes: '',
+  })
 
   /** English Language Qualification State */
-  const englishTest = ref(
-    savedData.englishTest || {
-      type: 'b1_selt', // 'b1_selt' | 'uk_degree' | 'enic_statement' | 'exempt'
-      provider: 'Trinity College London',
-      status: 'not_started', // 'not_started' | 'scheduled' | 'passed'
-      referenceNo: '',
-      testDate: '',
-      notes: '',
-    },
-  )
+  const englishTest = ref({
+    type: 'b1_selt', // 'b1_selt' | 'uk_degree' | 'enic_statement' | 'exempt'
+    provider: 'Trinity College London',
+    status: 'not_started', // 'not_started' | 'scheduled' | 'passed'
+    referenceNo: '',
+    testDate: '',
+    notes: '',
+  })
 
   /** 5-Year Continuous Residence Evidence Checklist State */
-  const residenceChecklist = ref(savedData.residenceChecklist || getDefaultResidenceChecklist())
+  const residenceChecklist = ref(getDefaultResidenceChecklist())
 
   /** UK Address History Log State */
-  const initialAddresses = savedData.addressHistory || []
-  sortAddresses(initialAddresses)
-  const addressHistory = ref(initialAddresses)
+  const addressHistory = ref([])
 
-  /** Saves current store state to localStorage. */
-  function saveToStorage() {
+  /** Loads state from IndexedDB (migrating from localStorage if needed). */
+  async function initStore() {
+    await dbService.migrateFromLocalStorage([STORAGE_KEY])
+    const savedData = await dbService.getItem(STORAGE_KEY)
+    if (savedData && typeof savedData === 'object') {
+      if (savedData.lifeInUk) lifeInUk.value = savedData.lifeInUk
+      if (savedData.englishTest) englishTest.value = savedData.englishTest
+      if (savedData.residenceChecklist) residenceChecklist.value = savedData.residenceChecklist
+      if (Array.isArray(savedData.addressHistory)) {
+        const sorted = [...savedData.addressHistory]
+        sortAddresses(sorted)
+        addressHistory.value = sorted
+      }
+    }
+    isInitialized.value = true
+  }
+
+  /** Saves current store state to IndexedDB. */
+  async function saveToStorage() {
     const payload = {
       lifeInUk: lifeInUk.value,
       englishTest: englishTest.value,
       residenceChecklist: residenceChecklist.value,
       addressHistory: addressHistory.value,
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+    await dbService.setItem(STORAGE_KEY, payload)
   }
 
   function updateLifeInUk(payload) {
@@ -405,6 +410,8 @@ export const useDocumentsStore = defineStore('documents', () => {
   watch(addressHistory, () => saveToStorage(), { deep: true })
 
   return {
+    isInitialized,
+    initStore,
     lifeInUk,
     englishTest,
     residenceChecklist,

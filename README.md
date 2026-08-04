@@ -51,7 +51,7 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 - **🎨 Modern Responsive Vuetify 3 UI**
   - Features Union Jack Dark/Light theme toggling, 3-dots vertical action menus for table rows, context-aware form controls, status chips, and intuitive 2-line Key Dates modal forms.
 - **💾 Local Device Storage & Data Privacy**
-  - All data input (travel dates, visa details, test certificates, continuous residence checklists, and address history) is stored strictly locally on your device in browser `localStorage`. No data is uploaded, collected, or transmitted to any external server.
+  - All data input (travel dates, visa details, test certificates, continuous residence checklists, and address history) is stored strictly locally on your device in browser `IndexedDB` (with automatic migration from legacy `localStorage`). No data is uploaded, collected, or transmitted to any external server.
 - **⚡ PWA Offline Support**
   - Progressive Web App capability via `vite-plugin-pwa` allowing full offline usage on mobile and desktop devices.
 
@@ -185,4 +185,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## ⚠️ Disclaimer & Privacy Notice
 
-*This application is an **independent, 3rd-party utility** provided for informational and personal tracking purposes only. It is **NOT an official application**, nor is it affiliated with, endorsed by, or connected to the UK Home Office or the UK Government. It does not constitute official legal or immigration advice. All data input into this application (absence history, key dates, qualification details, address history) is stored strictly locally on your device in your browser's `localStorage`. No server or remote database is used, and no personal data is collected or transmitted to external services. Always verify your eligibility, rules, and dates against official UK Home Office guidelines before submitting an ILR or Naturalisation application.*
+*This application is an **independent, 3rd-party utility** provided for informational and personal tracking purposes only. It is **NOT an official application**, nor is it affiliated with, endorsed by, or connected to the UK Home Office or the UK Government. It does not constitute official legal or immigration advice. All data input into this application (absence history, key dates, qualification details, address history) is stored strictly locally on your device in your browser's `IndexedDB`. No server or remote database is used, and no personal data is collected or transmitted to external services. Always verify your eligibility, rules, and dates against official UK Home Office guidelines before submitting an ILR or Naturalisation application.*

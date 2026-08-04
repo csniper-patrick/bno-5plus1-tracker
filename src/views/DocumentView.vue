@@ -464,7 +464,7 @@ export default {
       >
         <strong>Local Storage Notice:</strong> All data input (test certificates, reference numbers,
         address history, checklists) is saved strictly locally on your device in browser
-        <code>localStorage</code>. No data is uploaded or transmitted to external servers.
+        <code>IndexedDB</code>. No data is uploaded or transmitted to external servers.
       </v-alert>
 
       <v-alert

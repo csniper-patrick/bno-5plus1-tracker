@@ -41,7 +41,9 @@ function handleSystemThemeChange(e) {
   theme.global.name.value = e.matches ? 'dark' : 'light'
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await Promise.all([absentsStore.initStore(), documentsStore.initStore()])
+
   if (typeof window !== 'undefined' && window.matchMedia) {
     mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     if (mediaQuery.addEventListener) {
@@ -356,7 +358,7 @@ function confirmClearAll() {
               density="compact"
             >
               <strong>Privacy Note:</strong> All data input is stored locally on your device in
-              browser <code>localStorage</code>. No data is sent to external servers.
+              browser <code>IndexedDB</code>. No data is sent to external servers.
             </v-alert>
             <div class="text-caption text-medium-emphasis" style="font-size: 11px">
               BNO 5+1 Tracker • Unofficial 3rd-Party App

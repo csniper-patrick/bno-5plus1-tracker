@@ -14,6 +14,8 @@ import { AbsenceSegmentTree } from '../src/utils/segmentTree.js'
 import { generateId } from '../src/utils/id.js'
 import { exportAbsencesBackup, exportFullBackup, parseYAML } from '../src/services/backupService.js'
 import { useAbsentsStore } from '../src/stores/absents.js'
+import { useDocumentsStore } from '../src/stores/documents.js'
+import * as dbService from '../src/services/dbService.js'
 
 describe('Date Utilities', () => {
   it('should parse YYYY-MM-DD correctly in UTC', () => {
@@ -450,5 +452,64 @@ absences:
     assert.strictEqual(store.ukArrivalDate, '2021-03-10')
     assert.strictEqual(store.ilrApprovedDate, '2026-03-01')
     assert.strictEqual(store.absences.filter((a) => !a.isAutoArrival).length, 1)
+  })
+})
+
+describe('IndexedDB & Storage Migration', () => {
+  it('should store, retrieve, and delete items via dbService', async () => {
+    await dbService.clear()
+    await dbService.setItem('test_key', { foo: 'bar' })
+    const val = await dbService.getItem('test_key')
+    assert.deepStrictEqual(val, { foo: 'bar' })
+
+    await dbService.removeItem('test_key')
+    const valAfter = await dbService.getItem('test_key')
+    assert.strictEqual(valAfter, null)
+  })
+
+  it('should automatically migrate legacy localStorage keys to IndexedDB', async () => {
+    await dbService.clear()
+    if (typeof globalThis.localStorage === 'undefined') {
+      const storage = new Map()
+      globalThis.localStorage = {
+        getItem: (k) => storage.get(k) || null,
+        setItem: (k, v) => storage.set(k, String(v)),
+        removeItem: (k) => storage.delete(k),
+        clear: () => storage.clear(),
+      }
+    }
+    localStorage.clear()
+    localStorage.setItem('bno_visa_start_date', '2022-05-01')
+    localStorage.setItem(
+      'bno_tracker_documents_v1',
+      JSON.stringify({ lifeInUk: { status: 'passed' } }),
+    )
+
+    await dbService.migrateFromLocalStorage(['bno_visa_start_date', 'bno_tracker_documents_v1'])
+
+    assert.strictEqual(localStorage.getItem('bno_visa_start_date'), null)
+    assert.strictEqual(localStorage.getItem('bno_tracker_documents_v1'), null)
+
+    const visaStart = await dbService.getItem('bno_visa_start_date')
+    const docs = await dbService.getItem('bno_tracker_documents_v1')
+
+    assert.strictEqual(visaStart, '2022-05-01')
+    assert.deepStrictEqual(docs, { lifeInUk: { status: 'passed' } })
+  })
+
+  it('should initialize absents and documents stores asynchronously via initStore', async () => {
+    await dbService.clear()
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
+
+    setActivePinia(createPinia())
+    const absentsStore = useAbsentsStore()
+    const documentsStore = useDocumentsStore()
+
+    await absentsStore.initStore()
+    await documentsStore.initStore()
+
+    assert.strictEqual(absentsStore.visaStartDate, '2021-01-01')
+    assert.strictEqual(absentsStore.isInitialized, true)
+    assert.strictEqual(documentsStore.isInitialized, true)
   })
 })

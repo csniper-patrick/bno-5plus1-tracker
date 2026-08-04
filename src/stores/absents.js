@@ -12,12 +12,13 @@ import {
 } from '../utils/date.js'
 import { generateId } from '../utils/id.js'
 import { exportAbsencesBackup, parseYAML } from '../services/backupService.js'
+import * as dbService from '../services/dbService.js'
 
 // Re-export utilities for backwards compatibility
 export { AbsenceSegmentTree, calculateDays, getMaxSegmentTreeReturnDate }
 
 /**
- * LocalStorage keys used to persist user data across browser sessions.
+ * Storage keys used to persist user data across browser sessions in IndexedDB.
  */
 const STORAGE_KEY = 'bno_absences'
 const STORAGE_VISA_KEY = 'bno_visa_start_date'
@@ -54,24 +55,53 @@ export const useAbsentsStore = defineStore('absents', () => {
   // State Initialization
   // ---------------------------------------------------------------------------
 
-  const storedData = localStorage.getItem(STORAGE_KEY)
-  const initialAbsences = storedData ? JSON.parse(storedData) : []
-  sortAbsencesArray(initialAbsences)
+  const isInitialized = ref(false)
 
   /** Primary reactive list of absence records, maintained in chronological order. */
-  const absences = ref(initialAbsences)
+  const absences = ref([])
 
   /** The start date of the user's BNO visa (YYYY-MM-DD format). */
-  const visaStartDate = ref(localStorage.getItem(STORAGE_VISA_KEY) || '')
+  const visaStartDate = ref('')
 
   /** The optional expiry date of the user's BNO visa (YYYY-MM-DD format). */
-  const visaExpiryDate = ref(localStorage.getItem(STORAGE_VISA_EXPIRY_KEY) || '')
+  const visaExpiryDate = ref('')
 
   /** The UK arrival date of the user (YYYY-MM-DD format). */
-  const ukArrivalDate = ref(localStorage.getItem(STORAGE_ARRIVAL_KEY) || '')
+  const ukArrivalDate = ref('')
 
   /** The ILR approved date of the user (YYYY-MM-DD format). */
-  const ilrApprovedDate = ref(localStorage.getItem(STORAGE_ILR_APPROVED_KEY) || '')
+  const ilrApprovedDate = ref('')
+
+  /** Loads state from IndexedDB (migrating from localStorage if needed). */
+  async function initStore() {
+    await dbService.migrateFromLocalStorage([
+      STORAGE_KEY,
+      STORAGE_VISA_KEY,
+      STORAGE_VISA_EXPIRY_KEY,
+      STORAGE_ARRIVAL_KEY,
+      STORAGE_ILR_APPROVED_KEY,
+    ])
+
+    const loadedAbsences = await dbService.getItem(STORAGE_KEY)
+    const loadedVisaStart = await dbService.getItem(STORAGE_VISA_KEY)
+    const loadedVisaExpiry = await dbService.getItem(STORAGE_VISA_EXPIRY_KEY)
+    const loadedArrival = await dbService.getItem(STORAGE_ARRIVAL_KEY)
+    const loadedIlrApproved = await dbService.getItem(STORAGE_ILR_APPROVED_KEY)
+
+    if (Array.isArray(loadedAbsences)) {
+      const sorted = [...loadedAbsences]
+      sortAbsencesArray(sorted)
+      absences.value = sorted
+    }
+    if (typeof loadedVisaStart === 'string') visaStartDate.value = loadedVisaStart
+    if (typeof loadedVisaExpiry === 'string') visaExpiryDate.value = loadedVisaExpiry
+    if (typeof loadedArrival === 'string') ukArrivalDate.value = loadedArrival
+    if (typeof loadedIlrApproved === 'string') ilrApprovedDate.value = loadedIlrApproved
+
+    syncArrivalRecord()
+    rebuildSegmentTree()
+    isInitialized.value = true
+  }
 
   // Persistent Segment Tree & Coverage Tracking State
   const segmentTree = ref(null)
@@ -268,16 +298,16 @@ export const useAbsentsStore = defineStore('absents', () => {
   watch(
     absences,
     (newVal) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newVal))
+      dbService.setItem(STORAGE_KEY, newVal)
     },
     { deep: true },
   )
 
   watch(visaStartDate, (newVal) => {
     if (newVal) {
-      localStorage.setItem(STORAGE_VISA_KEY, newVal)
+      dbService.setItem(STORAGE_VISA_KEY, newVal)
     } else {
-      localStorage.removeItem(STORAGE_VISA_KEY)
+      dbService.removeItem(STORAGE_VISA_KEY)
     }
     syncArrivalRecord()
     rebuildSegmentTree()
@@ -285,17 +315,17 @@ export const useAbsentsStore = defineStore('absents', () => {
 
   watch(visaExpiryDate, (newVal) => {
     if (newVal) {
-      localStorage.setItem(STORAGE_VISA_EXPIRY_KEY, newVal)
+      dbService.setItem(STORAGE_VISA_EXPIRY_KEY, newVal)
     } else {
-      localStorage.removeItem(STORAGE_VISA_EXPIRY_KEY)
+      dbService.removeItem(STORAGE_VISA_EXPIRY_KEY)
     }
   })
 
   watch(ukArrivalDate, (newVal) => {
     if (newVal) {
-      localStorage.setItem(STORAGE_ARRIVAL_KEY, newVal)
+      dbService.setItem(STORAGE_ARRIVAL_KEY, newVal)
     } else {
-      localStorage.removeItem(STORAGE_ARRIVAL_KEY)
+      dbService.removeItem(STORAGE_ARRIVAL_KEY)
     }
     syncArrivalRecord()
     rebuildSegmentTree()
@@ -303,9 +333,9 @@ export const useAbsentsStore = defineStore('absents', () => {
 
   watch(ilrApprovedDate, (newVal) => {
     if (newVal) {
-      localStorage.setItem(STORAGE_ILR_APPROVED_KEY, newVal)
+      dbService.setItem(STORAGE_ILR_APPROVED_KEY, newVal)
     } else {
-      localStorage.removeItem(STORAGE_ILR_APPROVED_KEY)
+      dbService.removeItem(STORAGE_ILR_APPROVED_KEY)
     }
   })
 
@@ -1085,12 +1115,19 @@ export const useAbsentsStore = defineStore('absents', () => {
     }
   }
 
-  function clearAbsences() {
+  async function clearAbsences() {
     absences.value = []
     visaStartDate.value = ''
     visaExpiryDate.value = ''
     ukArrivalDate.value = ''
     ilrApprovedDate.value = ''
+    await Promise.all([
+      dbService.removeItem(STORAGE_KEY),
+      dbService.removeItem(STORAGE_VISA_KEY),
+      dbService.removeItem(STORAGE_VISA_EXPIRY_KEY),
+      dbService.removeItem(STORAGE_ARRIVAL_KEY),
+      dbService.removeItem(STORAGE_ILR_APPROVED_KEY),
+    ])
     syncArrivalRecord()
     rebuildSegmentTree()
   }
@@ -1187,6 +1224,8 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   return {
+    isInitialized,
+    initStore,
     absences,
     visaStartDate,
     isVisaDateSet,

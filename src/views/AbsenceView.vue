@@ -730,7 +730,7 @@ export default {
             density="compact"
           >
             <strong>Local Storage Notice:</strong> All data input (travel records, visa & arrival
-            dates) is saved strictly locally on your device in browser <code>localStorage</code>. No
+            dates) is saved strictly locally on your device in browser <code>IndexedDB</code>. No
             data is sent to external servers.
           </v-alert>
 

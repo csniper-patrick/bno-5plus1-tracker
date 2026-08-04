@@ -2,34 +2,38 @@
  * Vue Router Configuration
  * Maps route paths to views for single-page navigation.
  */
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, createMemoryHistory } from 'vue-router'
 import AbsenceView from '../views/AbsenceView.vue'
 import DocumentView from '../views/DocumentView.vue'
 import ReferenceView from '../views/ReferenceView.vue'
 
+export const routes = [
+  {
+    path: '/',
+    name: 'home',
+    component: AbsenceView,
+  },
+  {
+    path: '/documents',
+    name: 'documents',
+    component: DocumentView,
+  },
+  {
+    path: '/reference',
+    name: 'reference',
+    component: ReferenceView,
+  },
+  {
+    path: '/info',
+    redirect: '/reference',
+  },
+]
+
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: AbsenceView,
-    },
-    {
-      path: '/documents',
-      name: 'documents',
-      component: DocumentView,
-    },
-    {
-      path: '/reference',
-      name: 'reference',
-      component: ReferenceView,
-    },
-    {
-      path: '/info',
-      redirect: '/reference',
-    },
-  ],
+  history: import.meta.env.SSR
+    ? createMemoryHistory(import.meta.env.BASE_URL)
+    : createWebHistory(import.meta.env.BASE_URL),
+  routes,
 })
 
 export default router

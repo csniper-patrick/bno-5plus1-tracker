@@ -8,16 +8,16 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import { useTheme } from 'vuetify'
+import { useI18n } from 'vue-i18n'
 import { useAbsentsStore } from './stores/absents'
 import { useDocumentsStore } from './stores/documents'
 import { exportFullBackup, parseYAML } from './services/backupService'
 import ReloadPrompt from './components/ReloadPrompt.vue'
 
-// Vuetify theme & router instances
+// Vuetify theme, router, i18n, and store instances
 const theme = useTheme()
 const route = useRoute()
-
-// Store instances
+const { locale, t } = useI18n()
 const absentsStore = useAbsentsStore()
 const documentsStore = useDocumentsStore()
 
@@ -71,6 +71,17 @@ function toggleTheme() {
   theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
 }
 
+/**
+ * Toggles current active locale between English and Traditional Chinese (HK).
+ */
+function toggleLanguage() {
+  const nextLocale = locale.value === 'en' ? 'zh-HK' : 'en'
+  locale.value = nextLocale
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.setItem('bno_tracker_locale', nextLocale)
+  }
+}
+
 function showSnackbar(text, color = 'success') {
   snackbar.value = {
     show: true,
@@ -96,9 +107,9 @@ function exportAllData() {
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
 
-    showSnackbar('All tracker data exported with comments to YAML!', 'success')
+    showSnackbar(t('app.export_success'), 'success')
   } catch (err) {
-    showSnackbar('Export failed: ' + err.message, 'error')
+    showSnackbar(t('app.export_failed') + err.message, 'error')
   }
 }
 
@@ -136,11 +147,14 @@ function handleImportFileSelect(event) {
       const docsImported = documentsStore.importData(parsed)
 
       showSnackbar(
-        `Import complete! (${absenceCount} absence(s)${docsImported ? ', document tracker data' : ''})`,
+        t('app.import_success', {
+          absenceCount,
+          docs: docsImported ? t('app.import_docs_suffix') : '',
+        }),
         'success',
       )
     } catch (err) {
-      showSnackbar('Failed to import YAML: ' + err.message, 'error')
+      showSnackbar(t('app.import_failed') + err.message, 'error')
     }
   }
   reader.readAsText(file)
@@ -154,7 +168,7 @@ function confirmClearAll() {
   documentsStore.resetAll()
   clearAllDialog.value = false
   drawer.value = false
-  showSnackbar('All application records & document checklists cleared.', 'warning')
+  showSnackbar(t('app.cleared_all'), 'warning')
 }
 </script>
 
@@ -174,7 +188,7 @@ function confirmClearAll() {
       <div class="w-100 mx-auto d-flex align-center" style="max-width: 1600px">
         <v-icon icon="mdi-passport" size="large" class="ml-2 ml-sm-3 mr-2"></v-icon>
         <v-app-bar-title class="font-weight-bold text-truncate flex-shrink-1">
-          BNO 5+1 Tracker
+          {{ $t('app.title') }}
           <v-chip
             size="x-small"
             color="amber-darken-2"
@@ -182,7 +196,7 @@ function confirmClearAll() {
             class="d-none d-sm-inline-flex ml-2 font-weight-bold"
             style="vertical-align: middle"
           >
-            Unofficial 3rd-Party App
+            {{ $t('app.badge_unofficial') }}
           </v-chip>
           <v-chip
             size="small"
@@ -192,17 +206,28 @@ function confirmClearAll() {
             style="vertical-align: middle"
             prepend-icon="mdi-shield-check"
           >
-            100% Local Device Storage
+            {{ $t('app.badge_local_storage') }}
           </v-chip>
         </v-app-bar-title>
 
         <v-spacer></v-spacer>
 
+        <!-- Language Switcher -->
+        <v-btn
+          variant="text"
+          class="px-2"
+          :title="$t('app.language')"
+          @click="toggleLanguage"
+        >
+          <v-icon icon="mdi-translate" class="mr-1"></v-icon>
+          <span class="text-caption font-weight-bold">{{ locale === 'en' ? '繁' : 'EN' }}</span>
+        </v-btn>
+
         <!-- Theme Switcher -->
         <v-btn
           :icon="theme.global.current.value.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
           variant="text"
-          title="Toggle Theme"
+          :title="$t('app.toggle_theme')"
           @click="toggleTheme"
         ></v-btn>
 
@@ -211,7 +236,7 @@ function confirmClearAll() {
           icon="mdi-menu"
           variant="text"
           class="ml-1"
-          title="Navigation Menu"
+          :title="$t('app.nav_menu')"
           @click="drawer = !drawer"
         ></v-btn>
       </div>
@@ -231,10 +256,10 @@ function confirmClearAll() {
           <v-icon icon="mdi-passport" color="primary" size="large"></v-icon>
         </template>
         <v-list-item-title class="font-weight-bold text-subtitle-1">
-          Navigation & Data
+          {{ $t('app.drawer_title') }}
         </v-list-item-title>
         <v-list-item-subtitle class="text-caption">
-          UK BNO 5+1 Settlement Path (3rd-Party Tool)
+          {{ $t('app.drawer_subtitle') }}
         </v-list-item-subtitle>
         <template v-slot:append>
           <v-btn icon="mdi-close" variant="text" size="small" @click="drawer = false"></v-btn>
@@ -245,7 +270,7 @@ function confirmClearAll() {
 
       <!-- Section: Navigation Trackers -->
       <v-list-subheader class="font-weight-bold text-uppercase text-caption px-4 pt-3 pb-1">
-        Trackers
+        {{ $t('app.trackers') }}
       </v-list-subheader>
 
       <v-list nav class="px-2 py-1">
@@ -253,9 +278,9 @@ function confirmClearAll() {
           <template v-slot:prepend>
             <v-icon icon="mdi-airplane-takeoff" color="primary"></v-icon>
           </template>
-          <v-list-item-title class="font-weight-bold"> Absence </v-list-item-title>
+          <v-list-item-title class="font-weight-bold"> {{ $t('app.nav_absence') }} </v-list-item-title>
           <v-list-item-subtitle class="text-caption">
-            180-day rolling & 450-day limits
+            {{ $t('app.nav_absence_sub') }}
           </v-list-item-subtitle>
         </v-list-item>
 
@@ -270,9 +295,9 @@ function confirmClearAll() {
           <template v-slot:prepend>
             <v-icon icon="mdi-file-document-check-outline" color="primary"></v-icon>
           </template>
-          <v-list-item-title class="font-weight-bold"> Document </v-list-item-title>
+          <v-list-item-title class="font-weight-bold"> {{ $t('app.nav_document') }} </v-list-item-title>
           <v-list-item-subtitle class="text-caption">
-            Life in UK, B1 English & Residence proof
+            {{ $t('app.nav_document_sub') }}
           </v-list-item-subtitle>
         </v-list-item>
 
@@ -287,9 +312,9 @@ function confirmClearAll() {
           <template v-slot:prepend>
             <v-icon icon="mdi-bookshelf" color="primary"></v-icon>
           </template>
-          <v-list-item-title class="font-weight-bold"> Reference </v-list-item-title>
+          <v-list-item-title class="font-weight-bold"> {{ $t('app.nav_reference') }} </v-list-item-title>
           <v-list-item-subtitle class="text-caption">
-            Official GOV.UK guidance & policy resources
+            {{ $t('app.nav_reference_sub') }}
           </v-list-item-subtitle>
         </v-list-item>
       </v-list>
@@ -297,7 +322,7 @@ function confirmClearAll() {
       <template v-slot:append>
         <div class="border-top pa-3">
           <v-list-subheader class="font-weight-bold text-uppercase text-caption px-2 pb-1">
-            Data Management (All Trackers)
+            {{ $t('app.data_management') }}
           </v-list-subheader>
 
           <v-list nav density="compact" class="pa-0">
@@ -306,7 +331,7 @@ function confirmClearAll() {
                 <v-icon icon="mdi-download-outline" color="primary" size="small"></v-icon>
               </template>
               <v-list-item-title class="font-weight-bold text-caption">
-                Export All Data (YAML)
+                {{ $t('app.export_data') }}
               </v-list-item-title>
             </v-list-item>
 
@@ -315,7 +340,7 @@ function confirmClearAll() {
                 <v-icon icon="mdi-upload-outline" color="primary" size="small"></v-icon>
               </template>
               <v-list-item-title class="font-weight-bold text-caption">
-                Import Data (YAML)
+                {{ $t('app.import_data') }}
               </v-list-item-title>
             </v-list-item>
 
@@ -324,7 +349,7 @@ function confirmClearAll() {
                 <v-icon icon="mdi-delete-sweep-outline" color="error" size="small"></v-icon>
               </template>
               <v-list-item-title class="font-weight-bold text-caption text-error">
-                Clear All Data
+                {{ $t('app.clear_data') }}
               </v-list-item-title>
             </v-list-item>
           </v-list>
@@ -337,14 +362,17 @@ function confirmClearAll() {
               class="mb-3 text-caption text-left"
               density="compact"
             >
-              <strong>Privacy Note:</strong> All data input is stored locally on your device in
-              browser <code>IndexedDB</code>. No data is sent to external servers.
+              <i18n-t keypath="app.privacy_note_text" scope="global">
+                <template #code>
+                  <code>IndexedDB</code>
+                </template>
+              </i18n-t>
             </v-alert>
             <div class="text-caption text-medium-emphasis" style="font-size: 11px">
-              BNO 5+1 Tracker • Unofficial 3rd-Party App
+              {{ $t('app.footer_unofficial') }}
             </div>
             <div class="text-caption text-medium-emphasis mt-1" style="font-size: 10px">
-              Not affiliated with the UK Home Office • Stored Locally on Device
+              {{ $t('app.footer_disclaimer') }}
             </div>
           </div>
         </div>
@@ -363,19 +391,15 @@ function confirmClearAll() {
       <v-card color="surface">
         <v-card-title class="text-h6 font-weight-bold pt-4 px-6 text-error">
           <v-icon icon="mdi-alert" color="error" class="mr-2"></v-icon>
-          Clear All Tracker Data?
+          {{ $t('app.clear_dialog_title') }}
         </v-card-title>
         <v-card-text class="px-6 py-2">
-          This action will permanently delete all <strong>Absence Records</strong>,
-          <strong>Visa & Arrival Dates</strong>, <strong>Life in the UK Test details</strong>,
-          <strong>English Qualification details</strong>, and
-          <strong>Continuous Residence Checklists</strong> across all trackers. <br /><br />
-          This cannot be undone unless you have a YAML backup.
+          {{ $t('app.clear_dialog_body') }}
         </v-card-text>
         <v-card-actions class="px-6 pb-4">
           <v-spacer></v-spacer>
-          <v-btn variant="text" @click="clearAllDialog = false">Cancel</v-btn>
-          <v-btn color="error" variant="flat" @click="confirmClearAll">Clear Everything</v-btn>
+          <v-btn variant="text" @click="clearAllDialog = false">{{ $t('app.clear_dialog_cancel') }}</v-btn>
+          <v-btn color="error" variant="flat" @click="confirmClearAll">{{ $t('app.clear_dialog_confirm') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -389,7 +413,7 @@ function confirmClearAll() {
     >
       {{ snackbar.text }}
       <template v-slot:actions>
-        <v-btn variant="text" size="small" @click="snackbar.show = false">Close</v-btn>
+        <v-btn variant="text" size="small" @click="snackbar.show = false">{{ $t('app.close') }}</v-btn>
       </template>
     </v-snackbar>
 

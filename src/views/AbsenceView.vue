@@ -1020,32 +1020,12 @@ export default {
 
         <!-- 3. Absence Record List -->
         <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
-          <v-card-title class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2">
-            <div class="d-flex align-center ga-2">
-              <v-icon icon="mdi-format-list-bulleted" color="primary"></v-icon>
-              <span class="text-h5 font-weight-bold">{{ $t('absence.records_title') }}</span>
-              <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold">
-                {{ absentsStore.sortedAbsences.length }}
-              </v-chip>
-            </div>
-
-            <!-- View Mode Toggle Button Group -->
-            <v-btn-toggle
-              v-model="timelineViewMode"
-              mandatory
-              density="compact"
-              size="x-small"
-              color="primary"
-              variant="outlined"
-              class="rounded-lg"
-            >
-              <v-btn value="full" prepend-icon="mdi-timeline-text-outline">
-                {{ $t('absence.view_full') }}
-              </v-btn>
-              <v-btn value="compact" prepend-icon="mdi-view-compact-outline">
-                {{ $t('absence.view_compact') }}
-              </v-btn>
-            </v-btn-toggle>
+          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
+            <v-icon icon="mdi-format-list-bulleted" color="primary"></v-icon>
+            <span class="text-h5 font-weight-bold">{{ $t('absence.records_title') }}</span>
+            <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold">
+              {{ absentsStore.sortedAbsences.length }}
+            </v-chip>
           </v-card-title>
 
           <v-card-text class="px-0 pb-0">
@@ -1286,6 +1266,26 @@ export default {
               <p class="text-caption text-medium-emphasis mb-0">
                 {{ $t('absence.no_records_desc') }}
               </p>
+            </div>
+
+            <!-- Card Bottom Actions: View Mode Toggle -->
+            <div v-if="absentsStore.sortedAbsences.length > 0" class="d-flex align-center justify-end mt-3">
+              <v-btn-toggle
+                v-model="timelineViewMode"
+                mandatory
+                density="compact"
+                size="x-small"
+                color="primary"
+                variant="outlined"
+                class="rounded-lg"
+              >
+                <v-btn value="full" prepend-icon="mdi-timeline-text-outline">
+                  {{ $t('absence.view_full') }}
+                </v-btn>
+                <v-btn value="compact" prepend-icon="mdi-view-compact-outline">
+                  {{ $t('absence.view_compact') }}
+                </v-btn>
+              </v-btn-toggle>
             </div>
           </v-card-text>
         </v-card>

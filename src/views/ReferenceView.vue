@@ -269,12 +269,58 @@ export default {
   },
 
   computed: {
+    categoriesMap() {
+      return [
+        { key: 'All', label: this.$t('reference.all') },
+        { key: 'Visa Extension', label: this.$t('reference.cat_visa_extension') },
+        { key: 'BNO Settlement', label: this.$t('reference.cat_bno_settlement') },
+        { key: 'Policy & Guidance', label: this.$t('reference.cat_policy_guidance') },
+        { key: 'Qualifications & Tests', label: this.$t('reference.cat_qualifications') },
+        { key: 'Citizenship', label: this.$t('reference.cat_citizenship') },
+        { key: 'Tools & Source', label: this.$t('reference.cat_tools') },
+      ]
+    },
+
+    sourceTypesMap() {
+      return [
+        { key: 'All', label: this.$t('reference.all') },
+        { key: 'Official', label: this.$t('reference.official_source') },
+        { key: '3rd Party', label: this.$t('reference.third_party_source') },
+      ]
+    },
+
+    translatedLinks() {
+      return this.links.map((link) => {
+        const key = link.id.replace(/-/g, '_')
+        const i18nPath = `reference.links.${key}`
+        const hasI18n = this.$te(`${i18nPath}.title`)
+        const catMap = this.categoriesMap.find((c) => c.key === link.category)
+
+        return {
+          ...link,
+          title: hasI18n ? this.$t(`${i18nPath}.title`) : link.title,
+          categoryLabel: catMap ? catMap.label : link.category,
+          badge: hasI18n && this.$te(`${i18nPath}.badge`) ? this.$t(`${i18nPath}.badge`) : link.badge,
+          description:
+            hasI18n && this.$te(`${i18nPath}.description`)
+              ? this.$t(`${i18nPath}.description`)
+              : link.description,
+          highlights:
+            hasI18n &&
+            Array.isArray(this.$tm(`${i18nPath}.highlights`)) &&
+            this.$tm(`${i18nPath}.highlights`).length > 0
+              ? this.$tm(`${i18nPath}.highlights`)
+              : link.highlights,
+        }
+      })
+    },
+
     /**
      * Filtered list of links based on selected category, source type, and text query.
      * @returns {Array}
      */
     filteredLinks() {
-      return this.links.filter((link) => {
+      return this.translatedLinks.filter((link) => {
         const matchesCategory =
           this.selectedCategory === 'All' || link.category === this.selectedCategory
         const matchesSourceType =
@@ -286,7 +332,9 @@ export default {
 
         const matchesTitle = link.title.toLowerCase().includes(query)
         const matchesDesc = link.description.toLowerCase().includes(query)
-        const matchesHighlights = link.highlights.some((h) => h.toLowerCase().includes(query))
+        const matchesHighlights = link.highlights.some((h) =>
+          String(h).toLowerCase().includes(query),
+        )
 
         return (
           matchesCategory && matchesSourceType && (matchesTitle || matchesDesc || matchesHighlights)
@@ -312,7 +360,7 @@ export default {
     async copyLinkUrl(url) {
       try {
         await navigator.clipboard.writeText(url)
-        this.showSnackbar('Link URL copied to clipboard!', 'success')
+        this.showSnackbar(this.$t('reference.link_copied'), 'success')
       } catch (err) {
         const textArea = document.createElement('textarea')
         textArea.value = url
@@ -320,7 +368,7 @@ export default {
         textArea.select()
         document.execCommand('copy')
         document.body.removeChild(textArea)
-        this.showSnackbar('Link URL copied to clipboard!', 'success')
+        this.showSnackbar(this.$t('reference.link_copied'), 'success')
       }
     },
 
@@ -347,7 +395,7 @@ export default {
       <v-card-title class="px-0 pt-0 d-flex align-center flex-wrap ga-2">
         <div class="d-flex align-center">
           <v-icon icon="mdi-bookshelf" color="primary" class="mr-2" size="large"></v-icon>
-          <span class="text-h5 font-weight-bold">Reference & Guidance Resources</span>
+          <span class="text-h5 font-weight-bold">{{ $t('reference.title') }}</span>
         </div>
         <v-chip
           size="small"
@@ -356,14 +404,12 @@ export default {
           class="font-weight-bold ml-sm-auto"
           prepend-icon="mdi-format-list-checks"
         >
-          Curated Resources
+          {{ $t('reference.curated_badge') }}
         </v-chip>
       </v-card-title>
 
       <p class="text-body-2 text-medium-emphasis ma-0">
-        Direct links to official UK Home Office publications, policy statements, qualification test
-        portals, settlement application forms, and relevant open-source project repositories for
-        British National (Overseas) visa holders.
+        {{ $t('reference.subtitle') }}
       </p>
 
       <v-alert
@@ -373,26 +419,33 @@ export default {
         class="mt-3 text-caption"
         density="compact"
       >
-        <strong>Sources Notice:</strong> Links include both official UK Government
-        (<code>gov.uk</code>) portals and 3rd-party/open-source project resources. Look for the
-        <v-chip
-          size="x-small"
-          color="success"
-          variant="flat"
-          density="compact"
-          class="mx-1 font-weight-bold"
-          >Official Source</v-chip
-        >
-        and
-        <v-chip
-          size="x-small"
-          color="warning"
-          variant="flat"
-          density="compact"
-          class="mx-1 font-weight-bold"
-          >3rd Party Source</v-chip
-        >
-        chips to distinguish source origins.
+        <i18n-t keypath="reference.sources_notice_body" scope="global">
+          <template #code>
+            <code>gov.uk</code>
+          </template>
+          <template #officialTag>
+            <v-chip
+              size="x-small"
+              color="success"
+              variant="flat"
+              density="compact"
+              class="mx-1 font-weight-bold"
+            >
+              {{ $t('reference.official_source') }}
+            </v-chip>
+          </template>
+          <template #thirdPartyTag>
+            <v-chip
+              size="x-small"
+              color="warning"
+              variant="flat"
+              density="compact"
+              class="mx-1 font-weight-bold"
+            >
+              {{ $t('reference.third_party_source') }}
+            </v-chip>
+          </template>
+        </i18n-t>
       </v-alert>
     </v-card>
 
@@ -403,7 +456,7 @@ export default {
           <v-text-field
             v-model="searchQuery"
             prepend-inner-icon="mdi-magnify"
-            label="Search links & topics..."
+            :label="$t('reference.search_placeholder')"
             variant="outlined"
             density="compact"
             hide-details
@@ -413,7 +466,7 @@ export default {
 
         <v-col cols="12" md="8" class="d-flex align-center flex-wrap ga-2 justify-md-end">
           <div class="d-flex align-center ga-1 mr-sm-2">
-            <span class="text-caption text-medium-emphasis font-weight-bold">Source:</span>
+            <span class="text-caption text-medium-emphasis font-weight-bold">{{ $t('reference.source_filter') }}</span>
             <v-chip-group
               v-model="selectedSourceType"
               selected-class="v-chip--selected"
@@ -421,21 +474,21 @@ export default {
               filter
             >
               <v-chip
-                v-for="st in sourceTypes"
-                :key="st"
-                :value="st"
+                v-for="st in sourceTypesMap"
+                :key="st.key"
+                :value="st.key"
                 size="small"
                 variant="outlined"
                 color="primary"
                 class="font-weight-medium"
               >
-                {{ st }}
+                {{ st.label }}
               </v-chip>
             </v-chip-group>
           </div>
 
           <div class="d-flex align-center ga-1">
-            <span class="text-caption text-medium-emphasis font-weight-bold">Category:</span>
+            <span class="text-caption text-medium-emphasis font-weight-bold">{{ $t('reference.category_filter') }}</span>
             <v-chip-group
               v-model="selectedCategory"
               selected-class="v-chip--selected"
@@ -443,15 +496,15 @@ export default {
               filter
             >
               <v-chip
-                v-for="cat in categories"
-                :key="cat"
-                :value="cat"
+                v-for="cat in categoriesMap"
+                :key="cat.key"
+                :value="cat.key"
                 size="small"
                 variant="outlined"
                 color="primary"
                 class="font-weight-medium"
               >
-                {{ cat }}
+                {{ cat.label }}
               </v-chip>
             </v-chip-group>
           </div>
@@ -494,7 +547,7 @@ export default {
                       item.isOfficial ? 'mdi-shield-check-outline' : 'mdi-account-group-outline'
                     "
                   >
-                    {{ item.isOfficial ? 'Official Source' : '3rd Party Source' }}
+                    {{ item.isOfficial ? $t('reference.official_source') : $t('reference.third_party_source') }}
                   </v-chip>
                   <v-chip
                     size="x-small"
@@ -502,7 +555,7 @@ export default {
                     variant="flat"
                     class="font-weight-bold"
                   >
-                    {{ item.category }}
+                    {{ item.categoryLabel || item.category }}
                   </v-chip>
                   <v-chip
                     size="x-small"
@@ -526,7 +579,7 @@ export default {
             </p>
 
             <div class="text-caption font-weight-bold text-uppercase text-medium-emphasis mb-2">
-              Key Takeaways & Highlights
+              {{ $t('reference.key_takeaways') }}
             </div>
 
             <v-list density="compact" class="pa-0 bg-transparent">
@@ -565,7 +618,7 @@ export default {
               prepend-icon="mdi-content-copy"
               @click="copyLinkUrl(item.url)"
             >
-              Copy Link
+              {{ $t('reference.copy_link') }}
             </v-btn>
 
             <v-btn
@@ -578,7 +631,7 @@ export default {
               append-icon="mdi-open-in-new"
               class="font-weight-bold"
             >
-              {{ item.isOfficial ? 'Visit Official Page' : 'Visit Repository' }}
+              {{ item.isOfficial ? $t('reference.visit_official') : $t('reference.visit_repo') }}
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -588,9 +641,9 @@ export default {
     <!-- Empty Search Results State -->
     <v-card v-else elevation="1" class="pa-8 text-center rounded-lg bg-surface">
       <v-icon icon="mdi-link-off" size="64" color="medium-emphasis" class="mb-3"></v-icon>
-      <div class="text-h6 font-weight-bold mb-1">No links matched your search</div>
+      <div class="text-h6 font-weight-bold mb-1">{{ $t('reference.no_results_title') }}</div>
       <div class="text-body-2 text-medium-emphasis mb-4">
-        Try adjusting your search query or selecting "All" categories.
+        {{ $t('reference.no_results_desc') }}
       </div>
       <v-btn
         color="primary"
@@ -599,7 +652,7 @@ export default {
         prepend-icon="mdi-refresh"
         @click="resetFilters"
       >
-        Reset Filters
+        {{ $t('reference.reset_filters') }}
       </v-btn>
     </v-card>
 
@@ -612,7 +665,7 @@ export default {
     >
       {{ snackbar.text }}
       <template v-slot:actions>
-        <v-btn variant="text" size="small" @click="snackbar.show = false">Close</v-btn>
+        <v-btn variant="text" size="small" @click="snackbar.show = false">{{ $t('app.close') }}</v-btn>
       </template>
     </v-snackbar>
   </div>

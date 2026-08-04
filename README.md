@@ -4,6 +4,8 @@
 [![Vite](https://img.shields.io/badge/Vite-8.1-646cff.svg?logo=vite)](https://vite.dev/)
 [![Vuetify 3](https://img.shields.io/badge/Vuetify-3.7-1867c0.svg?logo=vuetify)](https://vuetifyjs.com/)
 [![Pinia](https://img.shields.io/badge/Pinia-4.0-yellow.svg)](https://pinia.vuejs.org/)
+[![vue-i18n](https://img.shields.io/badge/vue--i18n-11.4-green.svg)](https://vue-i18n.intlify.dev/)
+[![i18n](https://img.shields.io/badge/i18n-English%20%7C%20%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-blue.svg)](src/locales)
 [![PWA](https://img.shields.io/badge/PWA-Ready-5A0FC8.svg?logo=pwa)](https://github.com/vite-pwa/vite-plugin-pwa)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -15,6 +17,9 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 
 ## 🌟 Key Features
 
+- **🌐 Full Internationalization (i18n) Support**
+  - Complete dual-language support for **English (`en`)** and **Traditional Chinese (Hong Kong) (`zh-HK`)** across all UI views, forms, modals, tables, badges, and official guidance pages powered by `vue-i18n`.
+  - Convenient top app bar language switcher button (`EN` / `繁`) with automatic `localStorage` (`bno_tracker_locale`) user preference persistence.
 - **✈️ UK Home Office Rules-Aligned Absence Calculation**
   - Automatically excludes departure (start) and return (end) dates from full-day absence counts, matching UK Home Office guidance (days where part of the 24 hours is spent in the UK do not count as full days absent).
 - **📅 Visa & Arrival Date Synchronization & Optional Visa Expiry**
@@ -122,7 +127,10 @@ bno-5plus1-tracker/
 ├── src/
 │   ├── assets/            # Global styles (main.css)
 │   ├── components/        # UI components (ReloadPrompt.vue)
-│   ├── plugins/           # Vuetify 3 theme configuration (vuetify.js)
+│   ├── locales/           # i18n translation dictionaries
+│   │   ├── en.js          # English localization dictionary
+│   │   └── zh-HK.js       # Traditional Chinese (HK) localization dictionary
+│   ├── plugins/           # Vuetify 3 theme & i18n configuration (vuetify.js, i18n.js)
 │   ├── router/            # Vue Router routes (index.js)
 │   ├── services/          # Services & Data I/O
 │   │   └── backupService.js # YAML export/import service with node-level comments
@@ -137,8 +145,8 @@ bno-5plus1-tracker/
 │   │   ├── AbsenceView.vue  # Absence tracker dashboard
 │   │   ├── DocumentView.vue # Qualifications & Document tracker
 │   │   └── ReferenceView.vue # Useful links & official guidance page
-│   ├── App.vue            # Root layout with right navigation drawer
-│   └── main.js            # Vue app entrypoint
+│   ├── App.vue            # Root layout with right navigation drawer & language switcher
+│   └── main.js            # Vue app entrypoint with i18n plugin initialization
 ├── tests/                 # Automated test suite
 │   └── tracker.test.js    # Unit tests for date math, segment tree & backup service
 ├── .antigravity.md        # AI Agent workspace context & guidelines
@@ -153,6 +161,7 @@ bno-5plus1-tracker/
 - **[AbsenceSegmentTree](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/segmentTree.js)**: 1-indexed array-backed segment tree (`Int32Array`) using standard `leftNode = 2 * node` and `rightNode = 2 * node + 1` child indexing (0th index unused), initialized to zero by default, supporting $O(1)$ point queries (`queryPoint`), $O(1)$ per-step sliding window rolling updates, $O(D \log N)$ interval range updates (`updateRange`, $D = \text{range length}$), and $O(\log N)$ range sum queries (`query`) over a 10-year period (3,653 days).
 - **[date.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/date.js)**: Centralized UTC date parsing (`parseDateUTC`), formatting (`formatDateUTC`, `formatDisplayDate`), normalization (`normalizeDate`), day arithmetic (`calculateDays`, `getOneDayBefore`), and tree boundary calculations (`getMaxSegmentTreeReturnDate`).
 - **[backupService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/backupService.js)**: Consolidated YAML backup service for full application and absence-only exports with node-level comments and YAML parsing.
+- **[locales/](file:///Users/csniper/Projects/bno-5plus1-tracker/src/locales)**: Internationalization translation dictionaries (`en.js` & `zh-HK.js`) providing full English and Traditional Chinese (HK) translations for all application views, forms, dialogs, badges, and official link cards.
 - **[useAbsentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/absents.js)**: Pinia store handling absence records, visa/arrival/ILR dates, auto-arrival record sync, and $O(1)$ sliding-window rolling calculation getters (`max12MonthAbsenceInfo`, `naturalizationQualifyingPeriod`).
 - **[useDocumentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/documents.js)**: Pinia store managing Life in the UK test details, English B1 qualification, 5-year continuous residence checklist, and UK address history log.
 

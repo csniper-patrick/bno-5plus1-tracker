@@ -55,14 +55,10 @@ function close() {
         ></v-icon>
         <div>
           <div class="font-weight-bold">
-            {{ needRefresh ? 'New Version Available!' : 'App Ready for Offline Use' }}
+            {{ needRefresh ? $t('pwa.new_version') : $t('pwa.offline_ready') }}
           </div>
           <div class="text-caption">
-            {{
-              needRefresh
-                ? 'A new version of BNO 5+1 Tracker is available. Click refresh to update.'
-                : 'Content cached for offline browsing.'
-            }}
+            {{ needRefresh ? $t('pwa.new_version_desc') : $t('pwa.offline_desc') }}
           </div>
         </div>
       </div>
@@ -77,7 +73,7 @@ function close() {
           class="font-weight-bold"
           @click="handleUpdate"
         >
-          Refresh & Update
+          {{ $t('pwa.refresh') }}
         </v-btn>
         <v-btn variant="text" size="small" icon="mdi-close" @click="close"></v-btn>
       </template>

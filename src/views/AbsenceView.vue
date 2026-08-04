@@ -95,16 +95,16 @@ export default {
 
       const vStart = this.absentsStore.visaStartDate
       if (vStart && this.form.startDate < vStart) {
-        return `Departure date cannot be earlier than Visa Start Date (${vStart}).`
+        return this.$t('absence.start_date_err_vstart', { vStart })
       }
 
       const uArrival = this.absentsStore.ukArrivalDate
       if (uArrival && this.form.startDate < uArrival) {
-        return `Departure date cannot be earlier than UK Arrival Date (${uArrival}).`
+        return this.$t('absence.start_date_err_uarrival', { uArrival })
       }
 
       if (this.form.endDate && this.form.endDate < this.form.startDate) {
-        return 'Departure date cannot be later than return date.'
+        return this.$t('absence.start_date_err_return')
       }
 
       return ''
@@ -118,12 +118,12 @@ export default {
       if (!this.form.endDate) return ''
 
       if (this.form.startDate && this.form.endDate < this.form.startDate) {
-        return 'Return date cannot be earlier than departure date.'
+        return this.$t('absence.end_date_err_departure')
       }
 
       const maxReturn = this.maxSegmentTreeReturnDate
       if (maxReturn && this.form.endDate > maxReturn) {
-        return `Return date cannot be later than 10 years from Visa Start Date (${maxReturn}).`
+        return this.$t('absence.end_date_err_max', { maxReturn })
       }
 
       return ''
@@ -224,16 +224,16 @@ export default {
 
       const vStart = this.absentsStore.visaStartDate
       if (vStart && this.queryForm.startDate < vStart) {
-        return `Start date cannot be earlier than Visa Start Date (${vStart}).`
+        return this.$t('absence.start_date_err_vstart', { vStart })
       }
 
       if (this.queryForm.endDate && this.queryForm.endDate < this.queryForm.startDate) {
-        return 'Start date cannot be later than end date.'
+        return this.$t('absence.start_date_err_return')
       }
 
       const maxReturn = this.maxSegmentTreeReturnDate
       if (maxReturn && this.queryForm.startDate > maxReturn) {
-        return `Start date cannot be later than 10 years from Visa Start Date (${maxReturn}).`
+        return this.$t('absence.end_date_err_max', { maxReturn })
       }
 
       return ''
@@ -247,17 +247,17 @@ export default {
       if (!this.queryForm.endDate) return ''
 
       if (this.queryForm.startDate && this.queryForm.endDate < this.queryForm.startDate) {
-        return 'End date cannot be earlier than start date.'
+        return this.$t('absence.end_date_err_departure')
       }
 
       const vStart = this.absentsStore.visaStartDate
       if (vStart && this.queryForm.endDate < vStart) {
-        return `End date cannot be earlier than Visa Start Date (${vStart}).`
+        return this.$t('absence.start_date_err_vstart', { vStart })
       }
 
       const maxReturn = this.maxSegmentTreeReturnDate
       if (maxReturn && this.queryForm.endDate > maxReturn) {
-        return `End date cannot be later than 10 years from Visa Start Date (${maxReturn}).`
+        return this.$t('absence.end_date_err_max', { maxReturn })
       }
 
       return ''
@@ -366,7 +366,7 @@ export default {
         ilrApprovedDate: this.ilrApprovedDateInput,
       })
       this.visaDateDialog = false
-      this.showSnackbar('Key Travel & Visa Dates saved successfully!', 'success')
+      this.showSnackbar(this.$t('absence.key_dates_updated'), 'success')
     },
 
     /**
@@ -398,7 +398,7 @@ export default {
             endDate: this.form.endDate,
             dest: this.form.dest,
           })
-          this.showSnackbar('Absence record updated successfully!', 'success')
+          this.showSnackbar(this.$t('absence.updated_success'), 'success')
           this.resetForm()
         } else {
           this.absentsStore.addAbsence({
@@ -406,7 +406,7 @@ export default {
             endDate: this.form.endDate,
             dest: this.form.dest,
           })
-          this.showSnackbar('Absence record added successfully!', 'success')
+          this.showSnackbar(this.$t('absence.added_success'), 'success')
           this.resetForm()
         }
         this.focusDestInput()
@@ -464,7 +464,7 @@ export default {
     executeDelete() {
       if (this.deleteDialog.id) {
         this.absentsStore.removeAbsence(this.deleteDialog.id)
-        this.showSnackbar('Record deleted', 'info')
+        this.showSnackbar(this.$t('absence.deleted_success'), 'info')
       }
       this.deleteDialog.show = false
       if (this.editingId === this.deleteDialog.id) {
@@ -607,7 +607,7 @@ export default {
           <v-card-title class="px-0 pt-0 d-flex align-center flex-wrap ga-2">
             <div class="d-flex align-center">
               <v-icon icon="mdi-passport" color="primary" class="mr-2"></v-icon>
-              <span class="text-h5 font-weight-bold">Absence Tracker</span>
+              <span class="text-h5 font-weight-bold">{{ $t('absence.title') }}</span>
             </div>
             <v-chip
               size="small"
@@ -616,111 +616,12 @@ export default {
               class="font-weight-bold ml-sm-auto"
               prepend-icon="mdi-shield-check"
             >
-              Stored Locally on Device
+              {{ $t('app.badge_local_storage') }}
             </v-chip>
           </v-card-title>
           <p class="text-body-2 text-medium-emphasis ma-0">
-            Track travel dates and continuous residence for UK ILR and Citizenship. (Unofficial
-            3rd-Party Tool)
+            {{ $t('absence.subtitle') }}
           </p>
-
-          <!-- Feature Breakdown / What is Tracked & Calculated -->
-          <v-expansion-panels class="mt-3 border rounded-lg overflow-hidden" density="compact">
-            <v-expansion-panel elevation="0">
-              <v-expansion-panel-title class="text-caption font-weight-bold py-1 px-3">
-                <v-icon
-                  icon="mdi-information-outline"
-                  color="primary"
-                  class="mr-2"
-                  size="small"
-                ></v-icon>
-                Rules & Calculation Summary
-              </v-expansion-panel-title>
-              <v-expansion-panel-text class="text-caption pt-1">
-                <v-row density="compact">
-                  <v-col cols="12" sm="6">
-                    <div class="d-flex ga-2">
-                      <v-icon
-                        icon="mdi-calendar-sync"
-                        color="primary"
-                        size="x-small"
-                        class="mt-1"
-                      ></v-icon>
-                      <div>
-                        <strong class="text-caption font-weight-bold"
-                          >180-Day Rolling Rule (ILR)</strong
-                        >
-                        <p class="text-caption text-medium-emphasis mb-0">
-                          Tracks peak absences in any 365-day rolling window strictly within
-                          qualifying period (max 180 days for ILR).
-                        </p>
-                      </div>
-                    </div>
-                  </v-col>
-
-                  <v-col cols="12" sm="6">
-                    <div class="d-flex ga-2">
-                      <v-icon
-                        icon="mdi-flag-checkered"
-                        color="success"
-                        size="x-small"
-                        class="mt-1"
-                      ></v-icon>
-                      <div>
-                        <strong class="text-caption font-weight-bold"
-                          >British Citizenship Limits</strong
-                        >
-                        <p class="text-caption text-medium-emphasis mb-0">
-                          Monitors 5-year total (max 450 days) and final 12-month (max 90 days)
-                          limits.
-                        </p>
-                      </div>
-                    </div>
-                  </v-col>
-
-                  <v-col cols="12" sm="6">
-                    <div class="d-flex ga-2">
-                      <v-icon
-                        icon="mdi-clock-start"
-                        color="info"
-                        size="x-small"
-                        class="mt-1"
-                      ></v-icon>
-                      <div>
-                        <strong class="text-caption font-weight-bold"
-                          >Settlement Target Date</strong
-                        >
-                        <p class="text-caption text-medium-emphasis mb-0">
-                          Calculates 5-year ILR target date and earliest application date (28 days
-                          prior).
-                        </p>
-                      </div>
-                    </div>
-                  </v-col>
-
-                  <v-col cols="12" sm="6">
-                    <div class="d-flex ga-2">
-                      <v-icon
-                        icon="mdi-calculator-variant"
-                        color="secondary"
-                        size="x-small"
-                        class="mt-1"
-                      ></v-icon>
-                      <div>
-                        <strong class="text-caption font-weight-bold"
-                          >Full-Day UK Absence Rule</strong
-                        >
-                        <p class="text-caption text-medium-emphasis mb-0">
-                          Departure and arrival days are excluded. Only full 24-hour days abroad
-                          count.
-                        </p>
-                      </div>
-                    </div>
-                  </v-col>
-                </v-row>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
-          </v-expansion-panels>
 
           <v-alert
             type="info"
@@ -729,9 +630,11 @@ export default {
             class="mt-3 text-caption"
             density="compact"
           >
-            <strong>Local Storage Notice:</strong> All data input (travel records, visa & arrival
-            dates) is saved strictly locally on your device in browser <code>IndexedDB</code>. No
-            data is sent to external servers.
+            <i18n-t keypath="app.privacy_note_text" scope="global">
+              <template #code>
+                <code>IndexedDB</code>
+              </template>
+            </i18n-t>
           </v-alert>
 
           <v-alert
@@ -741,9 +644,7 @@ export default {
             class="mt-3 text-caption"
             density="compact"
           >
-            <strong>Unofficial 3rd-Party Application:</strong> Provided for personal tracking only.
-            Not affiliated with or endorsed by the UK Home Office or UK Government. Always verify
-            dates against official UK Home Office guidelines before applying.
+            {{ $t('app.disclaimer_text') }}
           </v-alert>
         </v-card>
 
@@ -760,10 +661,9 @@ export default {
           >
             <div class="d-flex align-center justify-space-between flex-wrap ga-4 pa-2">
               <div>
-                <h3 class="text-h6 font-weight-bold">BNO Visa & UK Arrival Dates Required</h3>
+                <h3 class="text-h6 font-weight-bold">{{ $t('absence.key_dates_required') }}</h3>
                 <p class="text-body-2 mb-0">
-                  Please set your BNO Visa Start Date and UK Arrival Date to calculate your 5-year
-                  residency path and settlement milestones accurately.
+                  {{ $t('absence.key_dates_desc') }}
                 </p>
               </div>
               <v-btn
@@ -773,7 +673,7 @@ export default {
                 prepend-icon="mdi-calendar-plus"
                 @click="openVisaDateDialog"
               >
-                Set Key Dates
+                {{ $t('absence.set_key_dates') }}
               </v-btn>
             </div>
           </v-alert>
@@ -786,7 +686,7 @@ export default {
                 <div class="d-flex align-center ga-3">
                   <v-icon icon="mdi-calendar-check" color="primary" size="large"></v-icon>
                   <div>
-                    <div class="text-caption text-medium-emphasis">BNO Visa Start Date</div>
+                    <div class="text-caption text-medium-emphasis">{{ $t('absence.visa_start') }}</div>
                     <div class="text-subtitle-1 font-weight-bold">
                       {{ formatDate(absentsStore.visaStartDate) }}
                     </div>
@@ -799,12 +699,12 @@ export default {
                 <div class="d-flex align-center ga-3">
                   <v-icon icon="mdi-airplane-landing" color="success" size="large"></v-icon>
                   <div>
-                    <div class="text-caption text-medium-emphasis">UK Arrival Date</div>
+                    <div class="text-caption text-medium-emphasis">{{ $t('absence.uk_arrival') }}</div>
                     <div class="text-subtitle-1 font-weight-bold">
                       {{
                         absentsStore.ukArrivalDate
                           ? formatDate(absentsStore.ukArrivalDate)
-                          : 'Not Set'
+                          : $t('absence.not_set')
                       }}
                     </div>
                   </div>
@@ -816,12 +716,12 @@ export default {
                 <div class="d-flex align-center ga-3">
                   <v-icon icon="mdi-certificate-outline" color="purple" size="large"></v-icon>
                   <div>
-                    <div class="text-caption text-medium-emphasis">ILR Approved Date</div>
+                    <div class="text-caption text-medium-emphasis">{{ $t('absence.ilr_approved') }}</div>
                     <div class="text-subtitle-1 font-weight-bold">
                       {{
                         absentsStore.ilrApprovedDate
                           ? formatDate(absentsStore.ilrApprovedDate)
-                          : 'Not Set'
+                          : $t('absence.not_set')
                       }}
                     </div>
                   </div>
@@ -834,7 +734,7 @@ export default {
                 prepend-icon="mdi-pencil"
                 @click="openVisaDateDialog"
               >
-                Edit Key Dates
+                {{ $t('absence.edit_key_dates') }}
               </v-btn>
             </div>
           </v-card>
@@ -845,7 +745,7 @@ export default {
           <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
             <v-icon :icon="editingId ? 'mdi-pencil' : 'mdi-plus-circle'" color="primary"></v-icon>
             <span class="text-h5 font-weight-bold">
-              {{ editingId ? 'Edit Absence Record' : 'Add Absence Record' }}
+              {{ editingId ? $t('absence.edit_record') : $t('absence.add_record') }}
             </span>
           </v-card-title>
 
@@ -857,7 +757,7 @@ export default {
                   <v-text-field
                     ref="destInput"
                     v-model="form.dest"
-                    label="Destination / Notes"
+                    :label="$t('absence.dest_notes')"
                     placeholder="e.g. Hong Kong, Japan"
                     prepend-inner-icon="mdi-map-marker-outline"
                     variant="outlined"
@@ -871,7 +771,7 @@ export default {
                 <v-col cols="12" sm="6" md="4">
                   <v-text-field
                     v-model="form.startDate"
-                    label="Departure Date (Start)"
+                    :label="$t('absence.departure_date')"
                     type="date"
                     prepend-inner-icon="mdi-airplane-takeoff"
                     variant="outlined"
@@ -887,7 +787,7 @@ export default {
                 <v-col cols="12" sm="6" md="4">
                   <v-text-field
                     v-model="form.endDate"
-                    label="Return Date (End)"
+                    :label="$t('absence.return_date')"
                     type="date"
                     prepend-inner-icon="mdi-airplane-landing"
                     variant="outlined"
@@ -901,18 +801,6 @@ export default {
                 </v-col>
               </v-row>
 
-              <v-alert
-                type="info"
-                variant="tonal"
-                icon="mdi-information-outline"
-                class="mt-3 text-caption"
-                density="compact"
-              >
-                <strong>UK Absence Rule Notice:</strong> Departure (start) and return (end) dates
-                are partially spent in the UK and are <strong>excluded</strong>. Only complete
-                24-hour days spent abroad are counted.
-              </v-alert>
-
               <!-- Form Days Calculation Badge & Actions -->
               <div class="d-flex align-center justify-space-between flex-wrap ga-4 mt-4">
                 <div class="d-flex align-center">
@@ -924,12 +812,12 @@ export default {
                     size="small"
                     class="font-weight-medium"
                   >
-                    Calculated Full Days Absent:
-                    <strong class="ml-1 text-primary">{{ calculatedDaysForForm }} day(s)</strong>
+                    <i18n-t keypath="absence.calculated_full_days" scope="global">
+                      <template #days>
+                        <strong class="ml-1 text-primary">{{ calculatedDaysForForm }}</strong>
+                      </template>
+                    </i18n-t>
                   </v-chip>
-                  <span v-else class="text-caption text-medium-emphasis">
-                    Select departure and return dates to calculate days absent.
-                  </span>
                 </div>
 
                 <div class="d-flex ga-2">
@@ -941,7 +829,7 @@ export default {
                     prepend-icon="mdi-close"
                     @click="cancelEdit"
                   >
-                    Cancel
+                    {{ $t('absence.cancel') }}
                   </v-btn>
 
                   <v-btn
@@ -951,7 +839,7 @@ export default {
                     :disabled="!isFormValid"
                     :prepend-icon="editingId ? 'mdi-check' : 'mdi-plus'"
                   >
-                    {{ editingId ? 'Update Record' : 'Add Record' }}
+                    {{ editingId ? $t('absence.update_record') : $t('absence.add_record') }}
                   </v-btn>
                 </div>
               </div>
@@ -964,7 +852,7 @@ export default {
           <v-card-title class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2">
             <div class="d-flex align-center ga-2">
               <v-icon icon="mdi-format-list-bulleted" color="primary"></v-icon>
-              <span class="text-h5 font-weight-bold">Absence Records</span>
+              <span class="text-h5 font-weight-bold">{{ $t('absence.records_title') }}</span>
               <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold">
                 {{ absentsStore.sortedAbsences.length }}
               </v-chip>
@@ -972,10 +860,6 @@ export default {
           </v-card-title>
 
           <v-card-text class="px-0 pb-0">
-            <p class="text-caption text-medium-emphasis mb-4">
-              Log of travel absences spent outside the UK during your 5-year qualifying period.
-            </p>
-
             <!-- Records Table -->
             <v-table
               v-if="absentsStore.sortedAbsences.length > 0"
@@ -985,11 +869,11 @@ export default {
             >
               <thead>
                 <tr>
-                  <th class="text-left font-weight-bold">Destination / Purpose</th>
-                  <th class="text-right font-weight-bold">Departure</th>
-                  <th class="text-right font-weight-bold">Return</th>
-                  <th class="text-center font-weight-bold">Full Days Absent</th>
-                  <th class="text-right font-weight-bold">Actions</th>
+                  <th class="text-left font-weight-bold">{{ $t('absence.dest_purpose') }}</th>
+                  <th class="text-right font-weight-bold">{{ $t('absence.departure') }}</th>
+                  <th class="text-right font-weight-bold">{{ $t('absence.return') }}</th>
+                  <th class="text-center font-weight-bold">{{ $t('absence.full_days') }}</th>
+                  <th class="text-right font-weight-bold">{{ $t('absence.table_actions') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1010,7 +894,7 @@ export default {
                           'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item),
                         }"
                       >
-                        {{ item.dest || 'Unspecified' }}
+                        {{ item.dest || $t('absence.unspecified') }}
                       </span>
 
                       <!-- Event Status Chip -->
@@ -1021,7 +905,7 @@ export default {
                         variant="flat"
                         class="font-weight-bold"
                       >
-                        Initial
+                        {{ $t('absence.initial') }}
                       </v-chip>
                       <v-chip
                         v-else-if="isOngoingEvent(item)"
@@ -1030,7 +914,7 @@ export default {
                         variant="flat"
                         class="font-weight-bold"
                       >
-                        Ongoing
+                        {{ $t('absence.ongoing') }}
                       </v-chip>
                       <v-chip
                         v-else-if="isFutureEvent(item)"
@@ -1039,7 +923,7 @@ export default {
                         variant="outlined"
                         class="font-weight-medium"
                       >
-                        Planned
+                        {{ $t('absence.planned') }}
                       </v-chip>
                       <v-chip
                         v-else
@@ -1048,7 +932,7 @@ export default {
                         variant="tonal"
                         class="font-weight-regular text-caption"
                       >
-                        Past
+                        {{ $t('absence.past') }}
                       </v-chip>
                     </div>
                   </td>
@@ -1110,7 +994,7 @@ export default {
                         title="Initial UK Entry record is managed via Key Dates"
                         class="font-weight-medium"
                       >
-                        Managed
+                        {{ $t('absence.managed') }}
                       </v-chip>
                     </template>
                     <template v-else>
@@ -1127,12 +1011,12 @@ export default {
                         <v-list density="compact" class="rounded-lg elevation-4">
                           <v-list-item
                             prepend-icon="mdi-pencil-outline"
-                            title="Edit Record"
+                            :title="$t('absence.edit_record_title')"
                             @click="startEdit(item)"
                           ></v-list-item>
                           <v-list-item
                             prepend-icon="mdi-delete-outline"
-                            title="Delete Record"
+                            :title="$t('absence.delete_record_title')"
                             @click="confirmDelete(item)"
                           ></v-list-item>
                         </v-list>
@@ -1148,10 +1032,9 @@ export default {
               <v-avatar color="surface-variant" size="56" class="mb-2">
                 <v-icon icon="mdi-airplane-off" size="28" color="medium-emphasis"></v-icon>
               </v-avatar>
-              <h3 class="text-subtitle-1 font-weight-bold mb-1">No Absence Records</h3>
+              <h3 class="text-subtitle-1 font-weight-bold mb-1">{{ $t('absence.no_records_title') }}</h3>
               <p class="text-caption text-medium-emphasis mb-0">
-                You haven't logged any travel absence records yet. Use the form above to add your
-                first entry.
+                {{ $t('absence.no_records_desc') }}
               </p>
             </div>
           </v-card-text>
@@ -1169,10 +1052,9 @@ export default {
           <v-avatar color="primary" variant="tonal" size="64" class="mb-4">
             <v-icon icon="mdi-shield-lock-outline" size="36"></v-icon>
           </v-avatar>
-          <h3 class="text-h6 font-weight-bold mb-2">Checkers & Query Tool Locked</h3>
+          <h3 class="text-h6 font-weight-bold mb-2">{{ $t('absence.locked_title') }}</h3>
           <p class="text-body-2 text-medium-emphasis mb-4">
-            Please set your BNO Visa Start Date on the left to unlock residency & naturalisation
-            limit checking and custom date range queries.
+            {{ $t('absence.locked_desc') }}
           </p>
           <v-btn
             color="primary"
@@ -1181,7 +1063,7 @@ export default {
             prepend-icon="mdi-calendar-plus"
             @click="openVisaDateDialog"
           >
-            Set Visa Start Date
+            {{ $t('absence.set_key_dates') }}
           </v-btn>
         </v-card>
 
@@ -1195,7 +1077,7 @@ export default {
               >
                 <div class="d-flex align-center ga-2">
                   <v-icon icon="mdi-passport-biometric" color="primary"></v-icon>
-                  <span class="text-h5 font-weight-bold">BNO Visa Overview</span>
+                  <span class="text-h5 font-weight-bold">{{ $t('absence.visa_overview') }}</span>
                 </div>
 
                 <v-chip
@@ -1212,8 +1094,8 @@ export default {
                   ></v-icon>
                   {{
                     absentsStore.isVisaExtensionNeeded
-                      ? 'Visa Extension Required'
-                      : 'Visa Cover Intact'
+                      ? $t('absence.visa_extension_required')
+                      : $t('absence.visa_cover_intact')
                   }}
                 </v-chip>
               </v-card-title>
@@ -1223,7 +1105,7 @@ export default {
                   <!-- Visa Start Date -->
                   <v-col cols="12" sm="6">
                     <v-card variant="tonal" color="primary" class="pa-3 rounded-lg">
-                      <div class="text-caption text-medium-emphasis">BNO Visa Start Date</div>
+                      <div class="text-caption text-medium-emphasis">{{ $t('absence.visa_start') }}</div>
                       <div class="text-subtitle-1 font-weight-bold text-primary">
                         {{ formatDate(absentsStore.visaStartDate) }}
                       </div>
@@ -1238,14 +1120,14 @@ export default {
                       class="pa-3 rounded-lg"
                     >
                       <div class="d-flex align-center justify-space-between mb-1">
-                        <span class="text-caption text-medium-emphasis">Visa Expiry Date</span>
+                        <span class="text-caption text-medium-emphasis">{{ $t('absence.visa_expiry') }}</span>
                         <v-chip
                           size="x-small"
                           :color="absentsStore.isVisaExpiryDateSet ? 'purple' : 'info'"
                           variant="flat"
                           class="font-weight-bold"
                         >
-                          {{ absentsStore.isVisaExpiryDateSet ? 'Custom Expiry' : 'Default 5-Yr' }}
+                          {{ absentsStore.isVisaExpiryDateSet ? $t('absence.custom_expiry') : $t('absence.default_5yr') }}
                         </v-chip>
                       </div>
                       <div class="text-subtitle-1 font-weight-bold">
@@ -1265,15 +1147,17 @@ export default {
                   density="compact"
                 >
                   <div class="font-weight-bold text-subtitle-2 mb-1">
-                    Visa Extension Needed to Complete ILR
+                    {{ $t('absence.visa_extension_needed_title') }}
                   </div>
                   <div>
-                    Your current visa expires on
-                    <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong
-                    >, which is before your earliest ILR settlement date
-                    <strong>{{ formatDate(absentsStore.settlementTargetDate) }}</strong
-                    >. You must extend your BNO visa (e.g. by 30 months) to complete your 5-year
-                    continuous residence for ILR.
+                    <i18n-t keypath="absence.visa_extension_needed_body" scope="global">
+                      <template #expiry>
+                        <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong>
+                      </template>
+                      <template #target>
+                        <strong>{{ formatDate(absentsStore.settlementTargetDate) }}</strong>
+                      </template>
+                    </i18n-t>
                   </div>
                 </v-alert>
                 <v-alert
@@ -1284,11 +1168,14 @@ export default {
                   class="mt-3 text-caption"
                   density="compact"
                 >
-                  <strong>Visa Cover Verified:</strong> Your current visa is valid until
-                  <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong
-                  >, which covers your earliest ILR settlement date ({{
-                    formatDate(absentsStore.settlementTargetDate)
-                  }}).
+                  <i18n-t keypath="absence.visa_cover_verified_body" scope="global">
+                    <template #expiry>
+                      <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong>
+                    </template>
+                    <template #target>
+                      {{ formatDate(absentsStore.settlementTargetDate) }}
+                    </template>
+                  </i18n-t>
                 </v-alert>
               </v-card-text>
             </v-card>
@@ -1300,7 +1187,7 @@ export default {
               >
                 <div class="d-flex align-center ga-2">
                   <v-icon icon="mdi-shield-check-outline" color="primary"></v-icon>
-                  <span class="text-h5 font-weight-bold">ILR / Settlement</span>
+                  <span class="text-h5 font-weight-bold">{{ $t('absence.ilr_title') }}</span>
                 </div>
 
                 <v-chip
@@ -1321,10 +1208,10 @@ export default {
                   ></v-icon>
                   {{
                     absentsStore.ilrQualifyingPeriod.is10YearExceeded
-                      ? 'ILR Limit Exceeded (>10 Yrs)'
+                      ? $t('absence.ilr_limit_exceeded')
                       : absentsStore.isIlrWindowShifted
-                        ? 'ILR Window Delayed'
-                        : 'Within ILR Limit'
+                        ? $t('absence.ilr_window_delayed')
+                        : $t('absence.within_ilr_limit')
                   }}
                 </v-chip>
               </v-card-title>
@@ -1351,25 +1238,24 @@ export default {
                       class="pa-3 rounded-lg"
                     >
                       <div class="d-flex align-center justify-space-between mb-1">
-                        <span class="text-caption font-weight-bold">180-Day Rolling Rule</span>
+                        <span class="text-caption font-weight-bold">{{ $t('absence.rolling_180_rule') }}</span>
                         <v-chip
                           :color="absentsStore.ruleStatusColor"
                           size="x-small"
                           variant="flat"
                           class="font-weight-bold"
                         >
-                          {{ absentsStore.max12MonthAbsence }} / 180 Days
+                          {{ absentsStore.max12MonthAbsence }} / 180 {{ $t('absence.full_days') }}
                         </v-chip>
                       </div>
                       <div class="text-caption opacity-90 mb-1">
-                        Max absent days in any 365-day rolling window within qualifying period.
+                        {{ $t('absence.rolling_180_desc') }}
                       </div>
                       <div
                         v-if="absentsStore.max12MonthAbsenceInfo.peakStartDate"
                         class="text-caption font-weight-bold"
                       >
-                        Peak: {{ formatDate(absentsStore.max12MonthAbsenceInfo.peakStartDate) }} –
-                        {{ formatDate(absentsStore.max12MonthAbsenceInfo.peakEndDate) }}
+                        {{ $t('absence.peak_label', { start: formatDate(absentsStore.max12MonthAbsenceInfo.peakStartDate), end: formatDate(absentsStore.max12MonthAbsenceInfo.peakEndDate) }) }}
                       </div>
                     </v-card>
                   </v-col>
@@ -1378,13 +1264,13 @@ export default {
                   <v-col cols="12" xl="6">
                     <v-card variant="tonal" color="info" class="pa-3 rounded-lg">
                       <div class="d-flex align-center justify-space-between mb-1">
-                        <span class="text-caption font-weight-bold">Total 5-Year Absences</span>
+                        <span class="text-caption font-weight-bold">{{ $t('absence.total_5yr_absences') }}</span>
                         <v-chip color="info" size="x-small" variant="flat" class="font-weight-bold">
-                          {{ absentsStore.ilr5YearTotalAbsence }} Days Total
+                          {{ absentsStore.ilr5YearTotalAbsence }} {{ $t('absence.full_days') }}
                         </v-chip>
                       </div>
                       <div class="text-caption opacity-90">
-                        Total cumulative full days absent over the 5-year route.
+                        {{ $t('absence.total_5yr_desc') }}
                       </div>
                     </v-card>
                   </v-col>
@@ -1401,23 +1287,24 @@ export default {
                 >
                   <div class="d-flex align-center justify-space-between flex-wrap ga-2">
                     <span>
-                      <strong>Earliest Delayed ILR Application Date:</strong>
+                      <strong>{{ $t('absence.earliest_delayed_app_date') }}</strong>
                     </span>
                     <strong class="text-subtitle-2 font-weight-bold">
                       {{ earliestIlrApplicationDate }}
                     </strong>
                   </div>
                   <div class="mt-1 opacity-90 text-caption">
-                    <strong>Qualifying Period Delayed:</strong> Baseline calculated date was
-                    <strong>{{
-                      formatDate(absentsStore.ilrQualifyingPeriod.baselineTargetDate)
-                    }}</strong
-                    >. Because rolling 12-month absences exceeded 180 days in the initial 5 years,
-                    the 5-year ILR qualifying window automatically delayed to
-                    <strong
-                      >{{ formatDate(absentsStore.ilrQualifyingPeriod.windowStartDate) }} –
-                      {{ formatDate(absentsStore.settlementTargetDate) }}</strong
-                    >.
+                    <i18n-t keypath="absence.qualifying_period_delayed_notice" scope="global">
+                      <template #baseline>
+                        <strong>{{ formatDate(absentsStore.ilrQualifyingPeriod.baselineTargetDate) }}</strong>
+                      </template>
+                      <template #windowStart>
+                        {{ formatDate(absentsStore.ilrQualifyingPeriod.windowStartDate) }}
+                      </template>
+                      <template #settlementTarget>
+                        {{ formatDate(absentsStore.settlementTargetDate) }}
+                      </template>
+                    </i18n-t>
                   </div>
                 </v-alert>
 
@@ -1431,15 +1318,14 @@ export default {
                 >
                   <div class="d-flex align-center justify-space-between flex-wrap ga-2">
                     <span>
-                      <strong>Earliest Application Date:</strong>
+                      <strong>{{ $t('absence.earliest_application_date') }}</strong>
                     </span>
                     <strong class="text-subtitle-2 text-primary font-weight-bold">
                       {{ earliestIlrApplicationDate }}
                     </strong>
                   </div>
                   <div class="mt-1 opacity-90 text-caption">
-                    <strong>Notice:</strong> Applications can be submitted up to 28 days before
-                    completing the 5-year qualifying period.
+                    {{ $t('absence.ilr_app_notice') }}
                   </div>
                 </v-alert>
               </v-card-text>
@@ -1455,7 +1341,7 @@ export default {
                     icon="mdi-flag-checkered"
                     :color="absentsStore.naturalizationStatusColor"
                   ></v-icon>
-                  <span class="text-h5 font-weight-bold">British Citizenship</span>
+                  <span class="text-h5 font-weight-bold">{{ $t('absence.citizenship_title') }}</span>
                 </div>
 
                 <v-chip
@@ -1476,10 +1362,10 @@ export default {
                   ></v-icon>
                   {{
                     absentsStore.isNaturalization10YearExceeded
-                      ? 'Period Exceeds 10-Yr Tracker Range'
+                      ? $t('absence.out_of_tracker_range')
                       : absentsStore.isNaturalizationWindowShifted
-                        ? 'Within Citizenship Limit (Delayed)'
-                        : 'Within Citizenship Limit'
+                        ? $t('absence.within_cit_limit_delayed')
+                        : $t('absence.within_cit_limit')
                   }}
                 </v-chip>
               </v-card-title>
@@ -1489,10 +1375,10 @@ export default {
                   5 Yrs: {{ formatDate(absentsStore.naturalizationWindowStartDate) }} –
                   {{ formatDate(absentsStore.naturalizationTargetDate) }}
                   <span v-if="absentsStore.ilrApprovedDate" class="ml-1 font-weight-bold">
-                    (Based on ILR Approved Date: {{ formatDate(absentsStore.ilrApprovedDate) }})
+                    {{ $t('absence.based_on_ilr', { date: formatDate(absentsStore.ilrApprovedDate) }) }}
                   </span>
                   <span v-else class="ml-1 font-weight-bold">
-                    (Based on BNO Visa Start Date: {{ formatDate(absentsStore.visaStartDate) }})
+                    {{ $t('absence.based_on_visa', { date: formatDate(absentsStore.visaStartDate) }) }}
                   </span>
                 </p>
 
@@ -1505,18 +1391,18 @@ export default {
                       class="pa-3 rounded-lg"
                     >
                       <div class="d-flex align-center justify-space-between mb-1">
-                        <span class="text-caption font-weight-bold">5-Year Absence Limit</span>
+                        <span class="text-caption font-weight-bold">{{ $t('absence.cit_5yr_limit') }}</span>
                         <v-chip
                           :color="absentsStore.naturalizationStatusColor"
                           size="x-small"
                           variant="flat"
                           class="font-weight-bold"
                         >
-                          {{ absentsStore.naturalization5YearAbsence }} / 450 Days
+                          {{ absentsStore.naturalization5YearAbsence }} / 450 {{ $t('absence.full_days') }}
                         </v-chip>
                       </div>
                       <div class="text-caption opacity-90 mb-1">
-                        Total full days absent in 5-year qualifying period.
+                        {{ $t('absence.cit_5yr_desc') }}
                       </div>
                     </v-card>
                   </v-col>
@@ -1529,18 +1415,18 @@ export default {
                       class="pa-3 rounded-lg"
                     >
                       <div class="d-flex align-center justify-space-between mb-1">
-                        <span class="text-caption font-weight-bold">Final 12-Month Limit</span>
+                        <span class="text-caption font-weight-bold">{{ $t('absence.cit_final_12mo_limit') }}</span>
                         <v-chip
                           :color="absentsStore.naturalizationStatusColor"
                           size="x-small"
                           variant="flat"
                           class="font-weight-bold"
                         >
-                          {{ absentsStore.naturalizationFinal12MoAbsence }} / 90 Days
+                          {{ absentsStore.naturalizationFinal12MoAbsence }} / 90 {{ $t('absence.full_days') }}
                         </v-chip>
                       </div>
                       <div class="text-caption opacity-90">
-                        Total absent days in final 12 months pre-application.
+                        {{ $t('absence.cit_final_12mo_desc') }}
                       </div>
                     </v-card>
                   </v-col>
@@ -1557,22 +1443,8 @@ export default {
                 >
                   <div class="d-flex align-center justify-space-between flex-wrap ga-2">
                     <span>
-                      <strong>Out of Tracker Range:</strong>
+                      <strong>{{ $t('absence.out_of_tracker_range') }}</strong>
                     </span>
-                    <strong class="text-subtitle-2 font-weight-bold"> Cannot Track Period </strong>
-                  </div>
-                  <div class="mt-1 opacity-90 text-caption">
-                    <strong>Tracking Limit Reached:</strong> The earliest qualifying period
-                    satisfying physical presence and absence limits extends beyond 10 years from
-                    your visa start date
-                    <span v-if="absentsStore.naturalizationQualifyingPeriod?.tenYearDeadlineDate">
-                      (Tracker Limit:
-                      {{
-                        formatDate(absentsStore.naturalizationQualifyingPeriod.tenYearDeadlineDate)
-                      }}).
-                    </span>
-                    This application cannot track date ranges past 10 years. This does not mean you
-                    are legally disqualified; please evaluate periods beyond 10 years manually.
                   </div>
                 </v-alert>
 
@@ -1586,21 +1458,11 @@ export default {
                 >
                   <div class="d-flex align-center justify-space-between flex-wrap ga-2">
                     <span>
-                      <strong>Earliest Delayed Application Date:</strong>
+                      <strong>{{ $t('absence.earliest_delayed_app_date') }}</strong>
                     </span>
                     <strong class="text-subtitle-2 font-weight-bold">
                       {{ formatDate(absentsStore.naturalizationTargetDate) }}
                     </strong>
-                  </div>
-                  <div class="mt-1 opacity-90 text-caption">
-                    <strong>Qualifying Period Delayed:</strong> Baseline calculated earliest date
-                    was
-                    <strong>{{
-                      formatDate(absentsStore.naturalizationCalculatedEarliestDate)
-                    }}</strong
-                    >. Due to rule criteria (physical presence on start date, 5-year absence limit ≤
-                    450 days, or final 12-month limit ≤ 90 days), the 5-year period was
-                    automatically delayed to the earliest compliant period.
                   </div>
                 </v-alert>
 
@@ -1614,22 +1476,14 @@ export default {
                 >
                   <div class="d-flex align-center justify-space-between flex-wrap ga-2">
                     <span>
-                      <strong>Earliest Application Date:</strong>
+                      <strong>{{ $t('absence.earliest_application_date') }}</strong>
                     </span>
                     <strong class="text-subtitle-2 text-primary font-weight-bold">
                       {{ formatDate(absentsStore.naturalizationTargetDate) }}
                     </strong>
                   </div>
                   <div class="mt-1 opacity-90 text-caption">
-                    <strong>Notice:</strong> Requires physical presence in the UK exactly 5 years
-                    before naturalisation application.
-                    <span v-if="absentsStore.ilrApprovedDate">
-                      Calculated from ILR Approved Date ({{
-                        formatDate(absentsStore.ilrApprovedDate)
-                      }}).
-                    </span>
-                    <span v-else> Calculated assuming ILR 5 years post-visa start. </span>
-                    Dates on absent days automatically shift forward to the next present UK day.
+                    {{ $t('absence.cit_app_notice') }}
                   </div>
                 </v-alert>
               </v-card-text>
@@ -1643,29 +1497,28 @@ export default {
             >
               <div class="d-flex align-center ga-2">
                 <v-icon icon="mdi-calendar-range" color="primary"></v-icon>
-                <span class="text-h5 font-weight-bold">Custom Date Range</span>
+                <span class="text-h5 font-weight-bold">{{ $t('absence.custom_range_title') }}</span>
                 <v-chip
                   color="primary"
                   variant="tonal"
                   size="x-small"
                   prepend-icon="mdi-lightning-bolt"
                 >
-                  Instant Query
+                  {{ $t('absence.instant_query') }}
                 </v-chip>
               </div>
             </v-card-title>
 
             <v-card-text class="px-0 pb-0">
               <p class="text-caption text-medium-emphasis mb-4">
-                Query total absent days within any custom interval across 10 years from Visa Start
-                Date.
+                {{ $t('absence.custom_range_desc') }}
               </p>
 
               <v-row density="compact">
                 <v-col cols="12" sm="6">
                   <v-text-field
                     v-model="queryForm.startDate"
-                    label="Query Start Date"
+                    :label="$t('absence.query_start')"
                     type="date"
                     variant="outlined"
                     density="compact"
@@ -1681,7 +1534,7 @@ export default {
                 <v-col cols="12" sm="6">
                   <v-text-field
                     v-model="queryForm.endDate"
-                    label="Query End Date"
+                    :label="$t('absence.query_end')"
                     type="date"
                     variant="outlined"
                     density="compact"
@@ -1700,8 +1553,8 @@ export default {
                     :color="queryStartDateError || queryEndDateError ? 'error' : 'primary'"
                     class="pa-3 text-center rounded-lg d-flex align-center justify-space-between"
                   >
-                    <span class="text-subtitle-2 font-weight-medium">Queried Range Absences:</span>
-                    <span class="text-h5 font-weight-bold">{{ queriedRangeDays }} day(s)</span>
+                    <span class="text-subtitle-2 font-weight-medium">{{ $t('absence.queried_range_absences') }}</span>
+                    <span class="text-h5 font-weight-bold">{{ queriedRangeDays }} {{ $t('absence.full_days') }}</span>
                   </v-card>
                 </v-col>
               </v-row>
@@ -1714,7 +1567,7 @@ export default {
                   title="Reset query range to maximum 10-year period"
                   @click="resetQueryDateRangeToMax"
                 >
-                  Reset to Max Range
+                  {{ $t('absence.reset_max_range') }}
                 </v-btn>
               </div>
             </v-card-text>
@@ -1727,15 +1580,14 @@ export default {
     <v-dialog v-model="deleteDialog.show" max-width="400px">
       <v-card elevation="2" class="rounded-lg pa-3" color="surface">
         <v-card-title class="px-0 pt-0 font-weight-bold text-h6 text-error">
-          Delete Absence Record?
+          {{ $t('absence.delete_record_title') }}
         </v-card-title>
         <v-card-text class="px-0 py-2">
-          Are you sure you want to delete the absence record for
-          <strong>"{{ deleteDialog.dest }}"</strong>?
+          {{ $t('absence.delete_confirm_body', { dest: deleteDialog.dest }) }}
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="deleteDialog.show = false">Cancel</v-btn>
-          <v-btn color="error" variant="flat" @click="executeDelete">Delete</v-btn>
+          <v-btn variant="text" @click="deleteDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
+          <v-btn color="error" variant="flat" @click="executeDelete">{{ $t('absence.delete_confirm') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1744,15 +1596,14 @@ export default {
     <v-dialog v-model="clearAllDialog" max-width="450px">
       <v-card elevation="2" class="rounded-lg pa-3" color="surface">
         <v-card-title class="px-0 pt-0 font-weight-bold text-h6 text-error">
-          Clear All Records?
+          {{ $t('app.clear_all_title') }}
         </v-card-title>
         <v-card-text class="px-0 py-2">
-          This action will permanently delete all logged absence records and reset your key visa &
-          arrival dates. This cannot be undone.
+          {{ $t('app.clear_all_body') }}
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="clearAllDialog = false">Cancel</v-btn>
-          <v-btn color="error" variant="flat" @click="executeClearAll">Clear All</v-btn>
+          <v-btn variant="text" @click="clearAllDialog = false">{{ $t('absence.cancel') }}</v-btn>
+          <v-btn color="error" variant="flat" @click="executeClearAll">{{ $t('absence.clear_all') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1762,19 +1613,17 @@ export default {
       <v-card elevation="2" class="rounded-lg pa-3" color="surface">
         <v-card-title class="px-0 pt-0 font-weight-bold text-h6">
           <v-icon icon="mdi-calendar-edit" color="primary" class="mr-2"></v-icon>
-          Set Key Travel & Visa Dates
+          {{ $t('absence.set_key_dates') }}
         </v-card-title>
         <v-card-text class="px-0 py-2">
           <p class="text-caption text-medium-emphasis mb-4">
-            Enter your BNO Visa Start Date, optional Visa Expiry Date (defaults to 5 years), UK
-            Arrival Date, and optional ILR Approved Date to enable accurate residency, settlement,
-            and naturalisation tracking.
+            {{ $t('absence.key_dates_desc') }}
           </p>
           <v-row density="compact">
             <v-col cols="12" sm="6">
               <v-text-field
                 v-model="visaDateInput"
-                label="BNO Visa Start Date"
+                :label="$t('absence.visa_start')"
                 type="date"
                 variant="outlined"
                 density="compact"
@@ -1788,7 +1637,7 @@ export default {
             <v-col cols="12" sm="6">
               <v-text-field
                 v-model="visaExpiryDateInput"
-                label="Visa Expiry Date (Optional)"
+                :label="$t('absence.visa_expiry')"
                 type="date"
                 variant="outlined"
                 density="compact"
@@ -1801,7 +1650,7 @@ export default {
             <v-col cols="12" sm="6">
               <v-text-field
                 v-model="arrivalDateInput"
-                label="UK Arrival Date"
+                :label="$t('absence.uk_arrival')"
                 type="date"
                 variant="outlined"
                 density="compact"
@@ -1814,7 +1663,7 @@ export default {
             <v-col cols="12" sm="6">
               <v-text-field
                 v-model="ilrApprovedDateInput"
-                label="ILR Approved Date (Optional)"
+                :label="$t('absence.ilr_approved')"
                 type="date"
                 variant="outlined"
                 density="compact"
@@ -1826,14 +1675,14 @@ export default {
           </v-row>
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="visaDateDialog = false">Cancel</v-btn>
+          <v-btn variant="text" @click="visaDateDialog = false">{{ $t('absence.cancel') }}</v-btn>
           <v-btn
             color="primary"
             variant="flat"
             :disabled="!visaDateInput"
             @click="saveVisaAndArrivalDates"
           >
-            Save Dates
+            {{ $t('absence.save_dates') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -1848,7 +1697,7 @@ export default {
     >
       {{ snackbar.text }}
       <template v-slot:actions>
-        <v-btn variant="text" size="small" @click="snackbar.show = false">Close</v-btn>
+        <v-btn variant="text" size="small" @click="snackbar.show = false">{{ $t('app.close') }}</v-btn>
       </template>
     </v-snackbar>
   </div>

@@ -78,27 +78,6 @@ export default {
         text: '',
         color: 'success',
       },
-
-      // Category options for custom document creation
-      categoryOptions: [
-        'Official Housing',
-        'Tax & Income',
-        'Financial',
-        'Housing',
-        'Utilities',
-        'Education & Employment',
-        'Medical & Insurance',
-        'Custom Evidence',
-      ],
-
-      // Housing status options
-      housingStatusOptions: [
-        { title: 'Rented (Private / Social)', value: 'rented' },
-        { title: 'Owned / Mortgage', value: 'owned' },
-        { title: 'Living with Family / Friends', value: 'family' },
-        { title: 'Student Accommodation', value: 'student' },
-        { title: 'Other', value: 'other' },
-      ],
     }
   },
 
@@ -127,6 +106,29 @@ export default {
 
     overallReadinessPercent() {
       return this.documentsStore.overallReadinessPercent
+    },
+
+    categoryOptions() {
+      return [
+        this.$t('document.cat_housing_official'),
+        this.$t('document.cat_tax_income'),
+        this.$t('document.cat_financial'),
+        this.$t('document.cat_housing'),
+        this.$t('document.cat_utilities'),
+        this.$t('document.cat_education_employment'),
+        this.$t('document.cat_medical_insurance'),
+        this.$t('document.cat_custom'),
+      ]
+    },
+
+    housingStatusOptions() {
+      return [
+        { title: this.$t('document.rented'), value: 'rented' },
+        { title: this.$t('document.owned'), value: 'owned' },
+        { title: this.$t('document.family'), value: 'family' },
+        { title: this.$t('document.student'), value: 'student' },
+        { title: this.$t('document.other'), value: 'other' },
+      ]
     },
   },
 
@@ -161,7 +163,7 @@ export default {
      */
     saveLifeInUk() {
       this.documentsStore.updateLifeInUk(this.lifeForm)
-      this.showSnackbar('Life in the UK Test details saved!', 'success')
+      this.showSnackbar(this.$t('document.life_saved'), 'success')
     },
 
     /**
@@ -169,7 +171,7 @@ export default {
      */
     saveEnglishTest() {
       this.documentsStore.updateEnglishTest(this.englishForm)
-      this.showSnackbar('English Language requirement details saved!', 'success')
+      this.showSnackbar(this.$t('document.english_saved'), 'success')
     },
 
     /**
@@ -180,7 +182,7 @@ export default {
      */
     updateItemStatus(year, itemId, newStatus) {
       this.documentsStore.updateDocumentItem(year, itemId, { status: newStatus })
-      this.showSnackbar('Document status updated!', 'info')
+      this.showSnackbar(this.$t('document.status_updated'), 'info')
     },
 
     /**
@@ -206,7 +208,7 @@ export default {
         category: this.customDocDialog.category,
       })
       this.customDocDialog.show = false
-      this.showSnackbar('Custom evidence item added!', 'success')
+      this.showSnackbar(this.$t('document.custom_added'), 'success')
     },
 
     /**
@@ -216,7 +218,7 @@ export default {
      */
     deleteDocItem(year, itemId) {
       this.documentsStore.deleteDocumentItem(year, itemId)
-      this.showSnackbar('Item removed.', 'warning')
+      this.showSnackbar(this.$t('document.item_removed'), 'warning')
     },
 
     /**
@@ -242,7 +244,7 @@ export default {
         notes: this.notesDialog.notes,
       })
       this.notesDialog.show = false
-      this.showSnackbar('Document notes saved!', 'success')
+      this.showSnackbar(this.$t('document.notes_saved'), 'success')
     },
 
     /**
@@ -293,16 +295,16 @@ export default {
      */
     saveAddress() {
       if (!this.addressDialog.form.addressLine1.trim() || !this.addressDialog.form.startDate) {
-        this.showSnackbar('Please enter Address Line 1 and Move-In Date.', 'error')
+        this.showSnackbar(this.$t('document.enter_address_start'), 'error')
         return
       }
 
       if (this.addressDialog.editingId) {
         this.documentsStore.updateAddress(this.addressDialog.editingId, this.addressDialog.form)
-        this.showSnackbar('UK Address entry updated!', 'success')
+        this.showSnackbar(this.$t('document.address_updated'), 'success')
       } else {
         this.documentsStore.addAddress(this.addressDialog.form)
-        this.showSnackbar('UK Address entry added!', 'success')
+        this.showSnackbar(this.$t('document.address_added'), 'success')
       }
 
       this.addressDialog.show = false
@@ -327,7 +329,7 @@ export default {
       if (!this.deleteAddressDialog.id) return
       this.documentsStore.deleteAddress(this.deleteAddressDialog.id)
       this.deleteAddressDialog.show = false
-      this.showSnackbar('Address record deleted.', 'warning')
+      this.showSnackbar(this.$t('document.address_deleted'), 'warning')
     },
 
     /**
@@ -358,17 +360,17 @@ export default {
     getStatusText(status) {
       switch (status) {
         case 'verified':
-          return 'Verified'
+          return this.$t('document.status_verified')
         case 'collected':
-          return 'Collected'
+          return this.$t('document.status_collected')
         case 'pending':
-          return 'Pending'
+          return this.$t('document.status_pending')
         case 'passed':
-          return 'Passed'
+          return this.$t('document.status_passed')
         case 'scheduled':
-          return 'Scheduled'
+          return this.$t('document.status_scheduled')
         case 'not_started':
-          return 'Not Started'
+          return this.$t('document.status_not_started')
         default:
           return status
       }
@@ -382,15 +384,15 @@ export default {
     getHousingStatusText(status) {
       switch (status) {
         case 'rented':
-          return 'Rented'
+          return this.$t('document.rented')
         case 'owned':
-          return 'Owned'
+          return this.$t('document.owned')
         case 'family':
-          return 'Living with Family'
+          return this.$t('document.family')
         case 'student':
-          return 'Student'
+          return this.$t('document.student')
         default:
-          return status || 'Rented'
+          return status || this.$t('document.rented')
       }
     },
 
@@ -401,10 +403,10 @@ export default {
      */
     getYearDateRangeHint(year) {
       const baseDateStr = this.absentsStore.ukArrivalDate || this.absentsStore.visaStartDate
-      if (!baseDateStr) return `Year ${year}`
+      if (!baseDateStr) return this.$t('document.year', { n: year })
 
       const start = new Date(baseDateStr)
-      if (isNaN(start.getTime())) return `Year ${year}`
+      if (isNaN(start.getTime())) return this.$t('document.year', { n: year })
 
       const yearStart = new Date(start)
       yearStart.setFullYear(start.getFullYear() + (year - 1))
@@ -415,6 +417,44 @@ export default {
 
       const formatDate = (d) => d.toISOString().split('T')[0]
       return `${formatDate(yearStart)} to ${formatDate(yearEnd)}`
+    },
+
+    /**
+     * Translates default item titles dynamically.
+     * @param {Object} item - Evidence item object.
+     * @returns {string} Translated title or original title.
+     */
+    getItemTitle(item) {
+      if (!item || !item.id) return ''
+      if (item.id.includes('council_tax')) return this.$t('document.item_council_tax')
+      if (item.id.includes('p60_employment')) return this.$t('document.item_p60')
+      if (item.id.includes('bank_statements')) return this.$t('document.item_bank')
+      if (item.id.includes('housing_proof')) return this.$t('document.item_housing')
+      if (item.id.includes('utility_bill')) return this.$t('document.item_utility')
+      return item.title
+    },
+
+    /**
+     * Translates default item category names dynamically.
+     * @param {Object} item - Evidence item object.
+     * @returns {string} Translated category name.
+     */
+    getItemCategory(item) {
+      if (!item || !item.category) return ''
+      switch (item.category) {
+        case 'Official Housing':
+          return this.$t('document.cat_housing_official')
+        case 'Tax & Income':
+          return this.$t('document.cat_tax_income')
+        case 'Financial':
+          return this.$t('document.cat_financial')
+        case 'Housing':
+          return this.$t('document.cat_housing')
+        case 'Utilities':
+          return this.$t('document.cat_utilities')
+        default:
+          return item.category
+      }
     },
 
     /**
@@ -437,7 +477,7 @@ export default {
       <v-card-title class="px-0 pt-0 d-flex align-center flex-wrap ga-2">
         <div class="d-flex align-center">
           <v-icon icon="mdi-file-document-check-outline" color="primary" class="mr-2"></v-icon>
-          <span class="text-h5 font-weight-bold">Document & Qualification Tracker</span>
+          <span class="text-h5 font-weight-bold">{{ $t('document.title') }}</span>
         </div>
         <v-chip
           size="small"
@@ -446,13 +486,11 @@ export default {
           class="font-weight-bold ml-sm-auto"
           prepend-icon="mdi-shield-check"
         >
-          Stored Locally on Device
+          {{ $t('app.badge_local_storage') }}
         </v-chip>
       </v-card-title>
       <p class="text-body-2 text-medium-emphasis ma-0">
-        Manage your <strong>Life in the UK Test</strong>, <strong>English B1 Qualification</strong>,
-        <strong>5-Year Residence Proof</strong>, and <strong>UK Address History Log</strong> for ILR
-        & Citizenship. (Unofficial 3rd-Party Tool)
+        {{ $t('document.subtitle') }}
       </p>
 
       <v-alert
@@ -462,21 +500,11 @@ export default {
         class="mt-3 text-caption"
         density="compact"
       >
-        <strong>Local Storage Notice:</strong> All data input (test certificates, reference numbers,
-        address history, checklists) is saved strictly locally on your device in browser
-        <code>IndexedDB</code>. No data is uploaded or transmitted to external servers.
-      </v-alert>
-
-      <v-alert
-        type="warning"
-        variant="tonal"
-        icon="mdi-alert-circle-outline"
-        class="mt-2 text-caption"
-        density="compact"
-      >
-        <strong>Unofficial 3rd-Party Application:</strong> Provided for personal tracking only. Not
-        affiliated with or endorsed by the UK Home Office or UK Government. Always verify
-        requirements against official UK Home Office guidance before applying.
+        <i18n-t keypath="app.privacy_note_text" scope="global">
+          <template #code>
+            <code>IndexedDB</code>
+          </template>
+        </i18n-t>
       </v-alert>
 
       <!-- Overall Readiness Metric Banner -->
@@ -484,7 +512,7 @@ export default {
 
       <v-row class="align-center">
         <v-col cols="12" md="4" class="text-center text-md-left">
-          <div class="text-overline text-medium-emphasis mb-1">Overall ILR Document Readiness</div>
+          <div class="text-overline text-medium-emphasis mb-1">{{ $t('document.overall_readiness') }}</div>
           <div class="d-flex align-center justify-center justify-md-start ga-3">
             <v-progress-circular
               :model-value="overallReadinessPercent"
@@ -496,11 +524,10 @@ export default {
             </v-progress-circular>
             <div>
               <div class="text-h6 font-weight-bold">
-                {{ overallReadinessPercent === 100 ? 'Ready for Application 🎉' : 'In Progress' }}
+                {{ overallReadinessPercent === 100 ? $t('document.ready_for_app') : $t('document.in_progress') }}
               </div>
               <div class="text-caption text-medium-emphasis">
-                {{ residenceStats.collectedItems }} of {{ residenceStats.totalItems }} proof items
-                collected
+                {{ $t('document.items_collected', { collected: residenceStats.collectedItems, total: residenceStats.totalItems }) }}
               </div>
             </div>
           </div>
@@ -516,7 +543,7 @@ export default {
                 class="pa-3 rounded-lg"
               >
                 <div class="d-flex align-center justify-space-between mb-1">
-                  <span class="text-caption font-weight-bold">Life in the UK</span>
+                  <span class="text-caption font-weight-bold">{{ $t('document.life_in_uk') }}</span>
                   <v-icon icon="mdi-book-education-outline" size="small"></v-icon>
                 </div>
                 <div class="text-subtitle-2 font-weight-bold">
@@ -537,7 +564,7 @@ export default {
                   <v-icon icon="mdi-translate" size="small"></v-icon>
                 </div>
                 <div class="text-subtitle-2 font-weight-bold">
-                  {{ englishTest.type === 'exempt' ? 'Exempt' : getStatusText(englishTest.status) }}
+                  {{ englishTest.type === 'exempt' ? $t('document.type_exempt') : getStatusText(englishTest.status) }}
                 </div>
               </v-card>
             </v-col>
@@ -546,11 +573,11 @@ export default {
             <v-col cols="12" sm="3">
               <v-card variant="tonal" color="primary" class="pa-3 rounded-lg">
                 <div class="d-flex align-center justify-space-between mb-1">
-                  <span class="text-caption font-weight-bold">5-Yr Proof</span>
+                  <span class="text-caption font-weight-bold">{{ $t('document.proof_5yr') }}</span>
                   <v-icon icon="mdi-folder-check-outline" size="small"></v-icon>
                 </div>
                 <div class="text-subtitle-2 font-weight-bold">
-                  {{ residenceStats.overallPercent }}% Done
+                  {{ $t('document.percent_done', { percent: residenceStats.overallPercent }) }}
                 </div>
               </v-card>
             </v-col>
@@ -563,11 +590,11 @@ export default {
                 class="pa-3 rounded-lg"
               >
                 <div class="d-flex align-center justify-space-between mb-1">
-                  <span class="text-caption font-weight-bold">UK Addresses</span>
+                  <span class="text-caption font-weight-bold">{{ $t('document.uk_addresses') }}</span>
                   <v-icon icon="mdi-home-city-outline" size="small"></v-icon>
                 </div>
                 <div class="text-subtitle-2 font-weight-bold">
-                  {{ addressHistory.length }} Logged
+                  {{ $t('document.logged_count', { count: addressHistory.length }) }}
                 </div>
               </v-card>
             </v-col>
@@ -583,7 +610,7 @@ export default {
         <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
           <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
             <v-icon icon="mdi-book-open-page-variant" color="primary"></v-icon>
-            <span class="text-h5 font-weight-bold">Life in the UK Test</span>
+            <span class="text-h5 font-weight-bold">{{ $t('document.life_in_uk') }}</span>
             <v-spacer></v-spacer>
             <v-chip
               :color="getStatusColor(lifeForm.status)"
@@ -596,12 +623,11 @@ export default {
           </v-card-title>
           <v-card-text class="px-0 pb-0">
             <p class="text-caption text-medium-emphasis mb-4">
-              Mandatory test on British customs, history, and government for ILR & Naturalisation
-              applications.
+              {{ $t('document.life_desc') }}
             </p>
 
             <div class="mb-4">
-              <label class="text-caption font-weight-bold d-block mb-1">Test Status</label>
+              <label class="text-caption font-weight-bold d-block mb-1">{{ $t('document.test_status') }}</label>
               <v-btn-toggle
                 v-model="lifeForm.status"
                 mandatory
@@ -610,10 +636,10 @@ export default {
                 class="w-100"
                 @update:model-value="saveLifeInUk"
               >
-                <v-btn value="not_started" class="flex-grow-1" size="small">Not Started</v-btn>
-                <v-btn value="scheduled" class="flex-grow-1" size="small">Scheduled</v-btn>
+                <v-btn value="not_started" class="flex-grow-1" size="small">{{ $t('document.status_not_started') }}</v-btn>
+                <v-btn value="scheduled" class="flex-grow-1" size="small">{{ $t('document.status_scheduled') }}</v-btn>
                 <v-btn value="passed" class="flex-grow-1" color="success" size="small"
-                  >Passed</v-btn
+                  >{{ $t('document.status_passed') }}</v-btn
                 >
               </v-btn-toggle>
             </div>
@@ -622,7 +648,7 @@ export default {
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="lifeForm.testDate"
-                  label="Test Date"
+                  :label="$t('document.test_date')"
                   type="date"
                   variant="outlined"
                   density="compact"
@@ -634,7 +660,7 @@ export default {
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="lifeForm.urn"
-                  label="Unique Reference Number (URN)"
+                  :label="$t('document.urn')"
                   placeholder="e.g. LITUK1234567"
                   variant="outlined"
                   density="compact"
@@ -646,7 +672,7 @@ export default {
               <v-col cols="12">
                 <v-text-field
                   v-model="lifeForm.testCenter"
-                  label="Test Center Location"
+                  :label="$t('document.test_center')"
                   placeholder="e.g. London PSI Test Centre"
                   variant="outlined"
                   density="compact"
@@ -658,7 +684,7 @@ export default {
               <v-col cols="12">
                 <v-textarea
                   v-model="lifeForm.notes"
-                  label="Notes / Certificate Reference"
+                  :label="$t('document.notes')"
                   placeholder="Add notes, pass certificate location, or booking details..."
                   variant="outlined"
                   density="compact"
@@ -677,7 +703,7 @@ export default {
         <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
           <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
             <v-icon icon="mdi-translate" color="primary"></v-icon>
-            <span class="text-h5 font-weight-bold">English Language (B1)</span>
+            <span class="text-h5 font-weight-bold">{{ $t('document.english_req') }}</span>
             <v-spacer></v-spacer>
             <v-chip
               :color="getStatusColor(englishForm.status)"
@@ -685,12 +711,12 @@ export default {
               variant="flat"
               class="font-weight-bold"
             >
-              {{ englishForm.type === 'exempt' ? 'Exempt' : getStatusText(englishForm.status) }}
+              {{ englishForm.type === 'exempt' ? $t('document.type_exempt') : getStatusText(englishForm.status) }}
             </v-chip>
           </v-card-title>
           <v-card-text class="px-0 pb-0">
             <p class="text-caption text-medium-emphasis mb-4">
-              Requires B1 SELT test, UK degree taught in English, or official exemption.
+              {{ $t('document.english_desc') }}
             </p>
 
             <v-row density="compact">
@@ -698,12 +724,12 @@ export default {
                 <v-select
                   v-model="englishForm.type"
                   :items="[
-                    { title: 'B1 SELT Speaking & Listening Test', value: 'b1_selt' },
-                    { title: 'UK Degree / Degree Taught in English', value: 'uk_degree' },
-                    { title: 'Ecctis / ENIC Statement', value: 'enic_statement' },
-                    { title: 'Exemption (Age 65+ / Medical)', value: 'exempt' },
+                    { title: $t('document.type_b1_selt'), value: 'b1_selt' },
+                    { title: $t('document.type_uk_degree'), value: 'uk_degree' },
+                    { title: $t('document.type_enic'), value: 'enic_statement' },
+                    { title: $t('document.type_exempt'), value: 'exempt' },
                   ]"
-                  label="Qualification Pathway"
+                  :label="$t('document.qual_type')"
                   variant="outlined"
                   density="compact"
                   hide-details="auto"
@@ -723,7 +749,7 @@ export default {
                     'PSI Services (UKVI)',
                     'Other',
                   ]"
-                  label="Test Provider / Institution"
+                  :label="$t('document.provider')"
                   variant="outlined"
                   density="compact"
                   hide-details="auto"
@@ -734,7 +760,7 @@ export default {
             </v-row>
 
             <div class="mb-4" v-if="englishForm.type !== 'exempt'">
-              <label class="text-caption font-weight-bold d-block mb-1">Status</label>
+              <label class="text-caption font-weight-bold d-block mb-1">{{ $t('document.test_status') }}</label>
               <v-btn-toggle
                 v-model="englishForm.status"
                 mandatory
@@ -743,10 +769,10 @@ export default {
                 class="w-100"
                 @update:model-value="saveEnglishTest"
               >
-                <v-btn value="not_started" class="flex-grow-1" size="small">Not Started</v-btn>
-                <v-btn value="scheduled" class="flex-grow-1" size="small">Scheduled</v-btn>
+                <v-btn value="not_started" class="flex-grow-1" size="small">{{ $t('document.status_not_started') }}</v-btn>
+                <v-btn value="scheduled" class="flex-grow-1" size="small">{{ $t('document.status_scheduled') }}</v-btn>
                 <v-btn value="passed" class="flex-grow-1" color="success" size="small"
-                  >Passed / Verified</v-btn
+                  >{{ $t('document.status_passed') }}</v-btn
                 >
               </v-btn-toggle>
             </div>
@@ -755,7 +781,7 @@ export default {
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="englishForm.testDate"
-                  label="Test / Award Date"
+                  :label="$t('document.test_date')"
                   type="date"
                   variant="outlined"
                   density="compact"
@@ -768,7 +794,7 @@ export default {
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="englishForm.referenceNo"
-                  label="Certificate / SELT Ref No."
+                  :label="$t('document.ref_no')"
                   placeholder="e.g. TCL/123456/2026"
                   variant="outlined"
                   density="compact"
@@ -781,7 +807,7 @@ export default {
               <v-col cols="12">
                 <v-textarea
                   v-model="englishForm.notes"
-                  label="Notes / Evidence Location"
+                  :label="$t('document.notes')"
                   placeholder="Add reference details, certificate link, or verification note..."
                   variant="outlined"
                   density="compact"
@@ -800,35 +826,31 @@ export default {
     <v-card elevation="2" class="pa-3 rounded-lg bg-surface mb-6">
       <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
         <v-icon icon="mdi-home-city-outline" color="primary"></v-icon>
-        <span class="text-h5 font-weight-bold">UK Address History</span>
-        <v-chip size="x-small" color="info" variant="tonal" class="font-weight-medium"
-          >Optional - Reference Only</v-chip
-        >
+        <span class="text-h5 font-weight-bold">{{ $t('document.address_history') }}</span>
       </v-card-title>
 
       <v-card-text class="px-0 pb-0">
         <p class="text-caption text-medium-emphasis mb-4">
-          Reference record for Home Office SET(O) ILR & Naturalisation applications covering your
-          5-year UK residence.
+          {{ $t('document.address_desc') }}
         </p>
 
         <div v-if="addressHistory.length === 0" class="text-center py-6 text-medium-emphasis">
           <v-icon icon="mdi-map-marker-off-outline" size="large" class="mb-2"></v-icon>
-          <div class="text-subtitle-2 font-weight-bold">No UK addresses logged yet.</div>
+          <div class="text-subtitle-2 font-weight-bold">{{ $t('document.no_addresses_title') }}</div>
           <div class="text-caption mb-3">
-            Click "Add Address Entry" below to log your residential history.
+            {{ $t('document.no_addresses_desc') }}
           </div>
         </div>
 
         <v-table v-else density="comfortable" hover class="border rounded-lg">
           <thead>
             <tr>
-              <th class="text-left font-weight-bold">Move-In Date</th>
-              <th class="text-left font-weight-bold">Move-Out Date</th>
-              <th class="text-left font-weight-bold">Address</th>
-              <th class="text-left font-weight-bold d-none d-sm-table-cell">Tenure</th>
-              <th class="text-left font-weight-bold d-none d-md-table-cell">Notes</th>
-              <th class="text-right font-weight-bold">Actions</th>
+              <th class="text-left font-weight-bold">{{ $t('document.move_in_date') }}</th>
+              <th class="text-left font-weight-bold">{{ $t('document.move_out_date') }}</th>
+              <th class="text-left font-weight-bold">{{ $t('document.address_line_1') }}</th>
+              <th class="text-left font-weight-bold d-none d-sm-table-cell">{{ $t('document.housing_status') }}</th>
+              <th class="text-left font-weight-bold d-none d-md-table-cell">{{ $t('document.notes') }}</th>
+              <th class="text-right font-weight-bold">{{ $t('absence.table_actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -854,7 +876,7 @@ export default {
                   prepend-icon="mdi-home-clock-outline"
                   class="font-weight-bold"
                 >
-                  Present
+                  {{ $t('document.present') }}
                 </v-chip>
                 <v-chip
                   v-else
@@ -888,7 +910,7 @@ export default {
                 style="max-width: 200px"
               >
                 <div class="text-truncate">
-                  {{ item.notes || 'No notes' }}
+                  {{ item.notes || $t('document.no_notes') }}
                 </div>
               </td>
 
@@ -900,18 +922,18 @@ export default {
                       variant="text"
                       size="small"
                       v-bind="props"
-                      title="Actions menu"
+                      :title="$t('absence.table_actions')"
                     ></v-btn>
                   </template>
                   <v-list density="compact" class="rounded-lg elevation-4">
                     <v-list-item
                       prepend-icon="mdi-pencil-outline"
-                      title="Edit Address"
+                      :title="$t('document.edit_address')"
                       @click="openEditAddressDialog(item)"
                     ></v-list-item>
                     <v-list-item
                       prepend-icon="mdi-delete-outline"
-                      title="Delete Address"
+                      :title="$t('document.delete_address_title')"
                       @click="openDeleteAddressDialog(item)"
                     ></v-list-item>
                   </v-list>
@@ -923,7 +945,7 @@ export default {
 
         <div class="d-flex justify-end mt-3">
           <v-btn color="primary" prepend-icon="mdi-plus" size="small" @click="openAddAddressDialog">
-            Add Address Entry
+            {{ $t('document.add_address') }}
           </v-btn>
         </div>
       </v-card-text>
@@ -933,13 +955,10 @@ export default {
     <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
       <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
         <v-icon icon="mdi-shield-home-outline" color="primary"></v-icon>
-        <span class="text-h5 font-weight-bold">5-Year Residence Evidence</span>
+        <span class="text-h5 font-weight-bold">{{ $t('document.residence_proof') }}</span>
       </v-card-title>
 
       <v-card-text class="px-0 pb-0">
-        <p class="text-caption text-medium-emphasis mb-4">
-          Proof of presence in the UK for every year of the 5-year qualifying period.
-        </p>
         <v-expansion-panels
           v-model="activeYearPanel"
           multiple
@@ -959,7 +978,7 @@ export default {
                   </v-avatar>
                   <div>
                     <div class="font-weight-bold text-subtitle-1">
-                      Year {{ year }} Continuous Residence
+                      {{ $t('document.year_label', { n: year }) }}
                     </div>
                     <div class="text-caption text-medium-emphasis">
                       {{ getYearDateRangeHint(year) }}
@@ -970,8 +989,7 @@ export default {
                 <div class="d-flex align-center ga-3">
                   <div class="text-right d-none d-sm-block">
                     <span class="text-caption font-weight-bold">
-                      {{ residenceStats.perYear[year]?.collected || 0 }} /
-                      {{ residenceStats.perYear[year]?.total || 0 }} Items
+                      {{ $t('document.items_count', { collected: residenceStats.perYear[year]?.collected || 0, total: residenceStats.perYear[year]?.total || 0 }) }}
                     </span>
                     <v-progress-linear
                       :model-value="residenceStats.perYear[year]?.percent || 0"
@@ -994,11 +1012,7 @@ export default {
             </v-expansion-panel-title>
 
             <v-expansion-panel-text class="pt-2 px-2 px-sm-4">
-              <div class="d-flex align-center justify-space-between mb-3 ga-2 flex-wrap">
-                <div class="text-caption text-medium-emphasis">
-                  Collect items like Council Tax, P60s, utility bills, bank statements, or tenancy
-                  agreements covering Year {{ year }}.
-                </div>
+              <div class="d-flex align-center justify-end mb-3 ga-2 flex-wrap">
                 <v-btn
                   color="primary"
                   variant="outlined"
@@ -1006,7 +1020,7 @@ export default {
                   prepend-icon="mdi-plus"
                   @click="openCustomDocDialog(year)"
                 >
-                  Add Custom Evidence Item
+                  {{ $t('document.add_custom_item') }}
                 </v-btn>
               </div>
 
@@ -1014,11 +1028,11 @@ export default {
               <v-table density="comfortable" hover class="border rounded-lg">
                 <thead>
                   <tr>
-                    <th class="text-left font-weight-bold">Status</th>
-                    <th class="text-left font-weight-bold">Evidence Item</th>
-                    <th class="text-left font-weight-bold d-none d-sm-table-cell">Category</th>
-                    <th class="text-left font-weight-bold d-none d-md-table-cell">Notes</th>
-                    <th class="text-right font-weight-bold">Actions</th>
+                    <th class="text-left font-weight-bold">{{ $t('document.test_status') }}</th>
+                    <th class="text-left font-weight-bold">{{ $t('document.evidence_item') }}</th>
+                    <th class="text-left font-weight-bold d-none d-sm-table-cell">{{ $t('document.category') }}</th>
+                    <th class="text-left font-weight-bold d-none d-md-table-cell">{{ $t('document.notes') }}</th>
+                    <th class="text-right font-weight-bold">{{ $t('absence.table_actions') }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1039,16 +1053,16 @@ export default {
                         </template>
                         <v-list density="compact">
                           <v-list-item @click="updateItemStatus(year, item.id, 'pending')">
-                            <v-list-item-title class="text-caption">Pending</v-list-item-title>
+                            <v-list-item-title class="text-caption">{{ $t('document.status_pending') }}</v-list-item-title>
                           </v-list-item>
                           <v-list-item @click="updateItemStatus(year, item.id, 'collected')">
                             <v-list-item-title class="text-caption text-info font-weight-bold"
-                              >Collected</v-list-item-title
+                              >{{ $t('document.status_collected') }}</v-list-item-title
                             >
                           </v-list-item>
                           <v-list-item @click="updateItemStatus(year, item.id, 'verified')">
                             <v-list-item-title class="text-caption text-success font-weight-bold"
-                              >Verified</v-list-item-title
+                              >{{ $t('document.status_verified') }}</v-list-item-title
                             >
                           </v-list-item>
                         </v-list>
@@ -1056,15 +1070,15 @@ export default {
                     </td>
 
                     <td>
-                      <div class="font-weight-medium text-body-2">{{ item.title }}</div>
+                      <div class="font-weight-medium text-body-2">{{ getItemTitle(item) }}</div>
                       <div class="text-caption text-medium-emphasis d-sm-none">
-                        {{ item.category }}
+                        {{ getItemCategory(item) }}
                       </div>
                     </td>
 
                     <td class="d-none d-sm-table-cell">
                       <v-chip size="x-small" variant="tonal" color="secondary">
-                        {{ item.category }}
+                        {{ getItemCategory(item) }}
                       </v-chip>
                     </td>
 
@@ -1073,7 +1087,7 @@ export default {
                       style="max-width: 220px"
                     >
                       <div class="text-truncate">
-                        {{ item.notes || 'No notes added' }}
+                        {{ item.notes || $t('document.no_notes_added') }}
                       </div>
                     </td>
 
@@ -1085,19 +1099,19 @@ export default {
                             variant="text"
                             size="small"
                             v-bind="props"
-                            title="Actions menu"
+                            :title="$t('absence.table_actions')"
                           ></v-btn>
                         </template>
                         <v-list density="compact" class="rounded-lg elevation-4">
                           <v-list-item
                             prepend-icon="mdi-notebook-edit-outline"
-                            title="Edit Notes"
+                            :title="$t('document.edit_notes')"
                             @click="openNotesDialog(year, item)"
                           ></v-list-item>
                           <v-list-item
                             v-if="item.isCustom"
                             prepend-icon="mdi-delete-outline"
-                            title="Delete Item"
+                            :title="$t('document.delete_item')"
                             @click="deleteDocItem(year, item.id)"
                           ></v-list-item>
                         </v-list>
@@ -1116,14 +1130,14 @@ export default {
     <v-dialog v-model="addressDialog.show" max-width="550px">
       <v-card elevation="2" class="rounded-lg pa-3" color="surface">
         <v-card-title class="px-0 pt-0 font-weight-bold text-h6">
-          {{ addressDialog.editingId ? 'Edit UK Address Entry' : 'Add UK Address Entry' }}
+          {{ addressDialog.editingId ? $t('document.edit_address') : $t('document.add_address') }}
         </v-card-title>
         <v-card-text class="px-0 py-2">
           <v-row density="compact">
             <v-col cols="12">
               <v-text-field
                 v-model="addressDialog.form.addressLine1"
-                label="Address Line 1 *"
+                :label="$t('document.address_line_1') + ' *'"
                 placeholder="e.g. 10 Downing Street"
                 variant="outlined"
                 density="compact"
@@ -1133,7 +1147,7 @@ export default {
             <v-col cols="12">
               <v-text-field
                 v-model="addressDialog.form.addressLine2"
-                label="Address Line 2 (Optional)"
+                :label="$t('document.address_line_2')"
                 placeholder="e.g. Flat 4B"
                 variant="outlined"
                 density="compact"
@@ -1143,7 +1157,7 @@ export default {
             <v-col cols="12" sm="6">
               <v-text-field
                 v-model="addressDialog.form.city"
-                label="Town / City"
+                :label="$t('document.city')"
                 placeholder="e.g. London"
                 variant="outlined"
                 density="compact"
@@ -1153,7 +1167,7 @@ export default {
             <v-col cols="12" sm="6">
               <v-text-field
                 v-model="addressDialog.form.postcode"
-                label="Postcode"
+                :label="$t('document.postcode')"
                 placeholder="e.g. SW1A 2AA"
                 variant="outlined"
                 density="compact"
@@ -1163,7 +1177,7 @@ export default {
             <v-col cols="12" sm="6">
               <v-text-field
                 v-model="addressDialog.form.startDate"
-                label="Move-In Date *"
+                :label="$t('document.move_in_date') + ' *'"
                 type="date"
                 variant="outlined"
                 density="compact"
@@ -1173,7 +1187,7 @@ export default {
             <v-col cols="12" sm="6">
               <v-text-field
                 v-model="addressDialog.form.endDate"
-                label="Move-Out Date"
+                :label="$t('document.move_out_date')"
                 type="date"
                 variant="outlined"
                 density="compact"
@@ -1184,7 +1198,7 @@ export default {
             <v-col cols="12">
               <v-checkbox
                 v-model="addressDialog.form.isCurrent"
-                label="I currently live at this address"
+                :label="$t('document.is_current')"
                 color="primary"
                 density="compact"
                 hide-details
@@ -1195,7 +1209,7 @@ export default {
               <v-select
                 v-model="addressDialog.form.housingStatus"
                 :items="housingStatusOptions"
-                label="Tenure / Housing Type"
+                :label="$t('document.housing_status')"
                 variant="outlined"
                 density="compact"
                 class="mb-1"
@@ -1204,7 +1218,7 @@ export default {
             <v-col cols="12">
               <v-textarea
                 v-model="addressDialog.form.notes"
-                label="Notes / Lease Ref / Landlord Details"
+                :label="$t('document.notes')"
                 placeholder="e.g. Tenancy reference, landlord contact details..."
                 variant="outlined"
                 density="compact"
@@ -1214,8 +1228,8 @@ export default {
           </v-row>
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="addressDialog.show = false">Cancel</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveAddress">Save Address</v-btn>
+          <v-btn variant="text" @click="addressDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="saveAddress">{{ $t('document.save') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1224,15 +1238,14 @@ export default {
     <v-dialog v-model="deleteAddressDialog.show" max-width="400px">
       <v-card elevation="2" class="rounded-lg pa-3" color="surface">
         <v-card-title class="px-0 pt-0 font-weight-bold text-h6 text-error">
-          Delete Address Record?
+          {{ $t('document.delete_address_title') }}
         </v-card-title>
         <v-card-text class="px-0 py-2">
-          Are you sure you want to delete <strong>{{ deleteAddressDialog.addressLine1 }}</strong
-          >?
+          {{ $t('document.delete_address_body', { address: deleteAddressDialog.addressLine1 }) }}
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="deleteAddressDialog.show = false">Cancel</v-btn>
-          <v-btn color="error" variant="flat" @click="executeDeleteAddress">Delete</v-btn>
+          <v-btn variant="text" @click="deleteAddressDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
+          <v-btn color="error" variant="flat" @click="executeDeleteAddress">{{ $t('absence.delete_confirm') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1241,12 +1254,12 @@ export default {
     <v-dialog v-model="customDocDialog.show" max-width="450px">
       <v-card elevation="2" class="rounded-lg pa-3" color="surface">
         <v-card-title class="px-0 pt-0 font-weight-bold text-h6">
-          Add Custom Evidence Item (Year {{ customDocDialog.year }})
+          {{ $t('document.add_custom_item') }} ({{ $t('document.year', { n: customDocDialog.year }) }})
         </v-card-title>
         <v-card-text class="px-0 py-2">
           <v-text-field
             v-model="customDocDialog.title"
-            label="Document Title"
+            :label="$t('document.item_title')"
             placeholder="e.g. NHS GP Registration Letter, School Report"
             variant="outlined"
             density="compact"
@@ -1256,14 +1269,14 @@ export default {
           <v-select
             v-model="customDocDialog.category"
             :items="categoryOptions"
-            label="Category"
+            :label="$t('document.category')"
             variant="outlined"
             density="compact"
           ></v-select>
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="customDocDialog.show = false">Cancel</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveCustomDocument">Add Item</v-btn>
+          <v-btn variant="text" @click="customDocDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="saveCustomDocument">{{ $t('document.save') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1272,20 +1285,20 @@ export default {
     <v-dialog v-model="notesDialog.show" max-width="500px">
       <v-card elevation="2" class="rounded-lg pa-3" color="surface">
         <v-card-title class="px-0 pt-0 font-weight-bold text-h6 text-truncate">
-          Notes: {{ notesDialog.title }}
+          {{ $t('document.notes') }}: {{ notesDialog.title }}
         </v-card-title>
         <v-card-text class="px-0 py-2">
           <v-textarea
             v-model="notesDialog.notes"
-            label="Document Details / File Path / Reference"
+            :label="$t('document.notes')"
             placeholder="e.g. Saved in Google Drive /ILR/Year1/CouncilTax.pdf, covers Jan 2026 to Dec 2026..."
             variant="outlined"
             rows="4"
           ></v-textarea>
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="notesDialog.show = false">Cancel</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveItemNotes">Save Notes</v-btn>
+          <v-btn variant="text" @click="notesDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="saveItemNotes">{{ $t('document.save') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1299,7 +1312,7 @@ export default {
     >
       {{ snackbar.text }}
       <template v-slot:actions>
-        <v-btn variant="text" size="small" @click="snackbar.show = false">Close</v-btn>
+        <v-btn variant="text" size="small" @click="snackbar.show = false">{{ $t('app.close') }}</v-btn>
       </template>
     </v-snackbar>
   </div>

@@ -1105,11 +1105,11 @@ export default {
                     <!-- FULL Mode Timeline -->
                     <div
                       v-if="timelineViewMode === 'full'"
-                      class="d-flex align-center flex-nowrap ga-2 overflow-x-auto py-1"
+                      class="d-flex align-center flex-nowrap ga-1 overflow-x-auto py-1 w-100"
                     >
                       <template v-for="(stop, idx) in getRecordStops(item)" :key="idx">
                         <!-- List NODE -->
-                        <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border">
+                        <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
                           <v-icon
                             :icon="
                               idx === 0
@@ -1135,9 +1135,10 @@ export default {
                         <!-- List EDGE Connector -->
                         <div
                           v-if="idx < getRecordStops(item).length - 1"
-                          class="d-flex align-center ga-1 px-1"
+                          class="d-flex align-center justify-center ga-1 px-1 flex-grow-1"
+                          style="min-width: 50px"
                         >
-                          <div class="edge-line"></div>
+                          <div class="edge-line flex-grow-1"></div>
                           <v-chip
                             v-if="stop.dest"
                             size="x-small"
@@ -1148,6 +1149,7 @@ export default {
                             <v-icon start icon="mdi-map-marker-outline" size="10"></v-icon>
                             {{ stop.dest }}
                           </v-chip>
+                          <div class="edge-line flex-grow-1"></div>
                           <v-icon icon="mdi-chevron-right" size="x-small" color="primary"></v-icon>
                         </div>
                       </template>
@@ -1156,10 +1158,10 @@ export default {
                     <!-- COMPACT Mode Timeline -->
                     <div
                       v-else
-                      class="d-flex align-center flex-nowrap ga-2 overflow-x-auto py-1"
+                      class="d-flex align-center flex-nowrap ga-1 overflow-x-auto py-1 w-100"
                     >
                       <!-- Departure Node -->
-                      <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border">
+                      <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
                         <v-icon icon="mdi-airplane-takeoff" color="primary" size="x-small"></v-icon>
                         <span class="text-caption font-weight-bold text-no-wrap">
                           {{ formatDate(item.startDate) }}
@@ -1167,8 +1169,8 @@ export default {
                       </div>
 
                       <!-- Summary Edge -->
-                      <div class="d-flex align-center ga-1 px-1">
-                        <div class="edge-line"></div>
+                      <div class="d-flex align-center justify-center ga-1 px-1 flex-grow-1" style="min-width: 60px">
+                        <div class="edge-line flex-grow-1"></div>
                         <v-chip
                           size="x-small"
                           color="primary"
@@ -1178,11 +1180,12 @@ export default {
                           <v-icon start icon="mdi-map-marker-outline" size="10"></v-icon>
                           {{ item.dest || $t('absence.unspecified') }}
                         </v-chip>
+                        <div class="edge-line flex-grow-1"></div>
                         <v-icon icon="mdi-chevron-right" size="x-small" color="primary"></v-icon>
                       </div>
 
                       <!-- Return Node -->
-                      <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border">
+                      <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
                         <v-icon icon="mdi-airplane-landing" color="success" size="x-small"></v-icon>
                         <span class="text-caption font-weight-bold text-no-wrap">
                           {{ formatDate(item.endDate) }}

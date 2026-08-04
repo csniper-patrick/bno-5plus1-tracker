@@ -36,8 +36,8 @@ export default defineConfig({
         short_name: 'BNO Tracker',
         description:
           'Unofficial 3rd-party app to track your UK absences on the BNO 5+1 route toward Indefinite Leave to Remain (ILR / Settlement) and British Citizenship.',
-        theme_color: '#1867c0',
-        background_color: '#1867c0',
+        theme_color: '#012169',
+        background_color: '#012169',
         display: 'standalone',
         orientation: 'portrait-primary',
         icons: [

@@ -101,6 +101,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     syncArrivalRecord()
     rebuildSegmentTree()
     isInitialized.value = true
+    await dbService.setItem(STORAGE_KEY, absences.value)
   }
 
   // Persistent Segment Tree & Coverage Tracking State
@@ -298,12 +299,14 @@ export const useAbsentsStore = defineStore('absents', () => {
   watch(
     absences,
     (newVal) => {
+      if (!isInitialized.value) return
       dbService.setItem(STORAGE_KEY, newVal)
     },
     { deep: true },
   )
 
   watch(visaStartDate, (newVal) => {
+    if (!isInitialized.value) return
     if (newVal) {
       dbService.setItem(STORAGE_VISA_KEY, newVal)
     } else {
@@ -314,6 +317,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   })
 
   watch(visaExpiryDate, (newVal) => {
+    if (!isInitialized.value) return
     if (newVal) {
       dbService.setItem(STORAGE_VISA_EXPIRY_KEY, newVal)
     } else {
@@ -322,6 +326,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   })
 
   watch(ukArrivalDate, (newVal) => {
+    if (!isInitialized.value) return
     if (newVal) {
       dbService.setItem(STORAGE_ARRIVAL_KEY, newVal)
     } else {
@@ -332,6 +337,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   })
 
   watch(ilrApprovedDate, (newVal) => {
+    if (!isInitialized.value) return
     if (newVal) {
       dbService.setItem(STORAGE_ILR_APPROVED_KEY, newVal)
     } else {

@@ -90,10 +90,18 @@ export async function setItem(key, value) {
       memoryFallback.set(key, value)
       return
     }
+    let cloneableValue = value
+    if (value !== undefined && value !== null && typeof value === 'object') {
+      try {
+        cloneableValue = JSON.parse(JSON.stringify(value))
+      } catch {
+        cloneableValue = value
+      }
+    }
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite')
       const store = tx.objectStore(STORE_NAME)
-      const req = store.put({ key, value })
+      const req = store.put({ key, value: cloneableValue })
       req.onsuccess = () => resolve()
       req.onerror = () => reject(req.error)
     })

@@ -129,6 +129,7 @@ export const useDocumentsStore = defineStore('documents', () => {
 
   /** Saves current store state to IndexedDB. */
   async function saveToStorage() {
+    if (!isInitialized.value) return
     const payload = {
       lifeInUk: lifeInUk.value,
       englishTest: englishTest.value,

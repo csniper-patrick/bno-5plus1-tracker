@@ -512,4 +512,37 @@ describe('IndexedDB & Storage Migration', () => {
     assert.strictEqual(absentsStore.isInitialized, true)
     assert.strictEqual(documentsStore.isInitialized, true)
   })
+
+  it('should preserve absence records and key dates across store re-initialization', async () => {
+    await dbService.clear()
+    setActivePinia(createPinia())
+    const absentsStore1 = useAbsentsStore()
+    await absentsStore1.initStore()
+
+    absentsStore1.setVisaAndArrivalDates({
+      visaStartDate: '2022-01-01',
+      ukArrivalDate: '2022-01-10',
+    })
+    absentsStore1.addAbsence({
+      startDate: '2022-06-01',
+      endDate: '2022-06-15',
+      dest: 'Japan',
+    })
+
+    // Allow watchers and async setItem to finish
+    await new Promise((r) => setTimeout(r, 50))
+
+    // Re-initialize store in new Pinia context
+    setActivePinia(createPinia())
+    const absentsStore2 = useAbsentsStore()
+    await absentsStore2.initStore()
+
+    assert.strictEqual(absentsStore2.visaStartDate, '2022-01-01')
+    assert.strictEqual(absentsStore2.ukArrivalDate, '2022-01-10')
+
+    const userTrips = absentsStore2.absences.filter((a) => !a.isAutoArrival)
+    assert.strictEqual(userTrips.length, 1)
+    assert.strictEqual(userTrips[0].dest, 'Japan')
+    assert.strictEqual(userTrips[0].startDate, '2022-06-01')
+  })
 })

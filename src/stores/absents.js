@@ -148,6 +148,10 @@ export const useAbsentsStore = defineStore('absents', () => {
           startDate: oneDayBeforeVisa,
           endDate: uArrival,
           dest: 'UK Arrival',
+          stops: [
+            { date: oneDayBeforeVisa, dest: 'UK Arrival' },
+            { date: uArrival, dest: '' },
+          ],
           isAutoArrival: true,
         }
         sortAbsencesArray(absences.value)
@@ -159,6 +163,10 @@ export const useAbsentsStore = defineStore('absents', () => {
           startDate: oneDayBeforeVisa,
           endDate: uArrival,
           dest: 'UK Arrival',
+          stops: [
+            { date: oneDayBeforeVisa, dest: 'UK Arrival' },
+            { date: uArrival, dest: '' },
+          ],
           isAutoArrival: true,
           createdAt: new Date().toISOString(),
         }
@@ -1065,17 +1073,23 @@ export const useAbsentsStore = defineStore('absents', () => {
     return { valid: true, error: '' }
   }
 
-  function addAbsence({ startDate, endDate, dest = '' }) {
+  function addAbsence({ startDate, endDate, dest = '', stops = null }) {
     const validation = validateAbsence({ startDate, endDate })
     if (!validation.valid) {
       throw new Error(validation.error)
     }
+
+    const defaultStops = [
+      { date: startDate, dest },
+      { date: endDate, dest: '' },
+    ]
 
     const newEntry = {
       id: generateId(),
       startDate,
       endDate,
       dest,
+      stops: Array.isArray(stops) && stops.length >= 2 ? stops : defaultStops,
       createdAt: new Date().toISOString(),
     }
     absences.value.push(newEntry)
@@ -1191,9 +1205,30 @@ export const useAbsentsStore = defineStore('absents', () => {
     const validNewEntries = []
     for (const item of rawAbsences) {
       if (!item || typeof item !== 'object') continue
-      const startDate = normalizeDate(item.startDate || item.start_date || '')
-      const endDate = normalizeDate(item.endDate || item.end_date || '')
-      const dest = item.dest || item.destination || item.notes || ''
+      let startDate = normalizeDate(item.startDate || item.start_date || '')
+      let endDate = normalizeDate(item.endDate || item.end_date || '')
+      let dest = item.dest || item.destination || item.notes || ''
+      let stops = []
+
+      if (Array.isArray(item.stops) && item.stops.length >= 2) {
+        stops = item.stops.map((s) => ({
+          date: normalizeDate(s.date || s.startDate || s.start_date || ''),
+          dest: s.dest || s.destination || '',
+        }))
+        if (stops[0].date && !startDate) startDate = stops[0].date
+        if (stops[stops.length - 1].date && !endDate) endDate = stops[stops.length - 1].date
+      }
+
+      if (!stops || stops.length < 2) {
+        stops = [
+          { date: startDate, dest: dest },
+          { date: endDate, dest: '' },
+        ]
+      }
+
+      if (!dest && stops.length > 0) {
+        dest = stops.map((s) => s.dest).filter(Boolean).join(' ➔ ')
+      }
 
       if (startDate && endDate) {
         validNewEntries.push({
@@ -1201,6 +1236,7 @@ export const useAbsentsStore = defineStore('absents', () => {
           startDate,
           endDate,
           dest,
+          stops,
           createdAt: new Date().toISOString(),
         })
       }

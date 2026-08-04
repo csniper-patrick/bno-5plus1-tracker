@@ -11,14 +11,25 @@ import { Document, parse } from 'yaml'
  * @param {Object} documentsStore - Pinia documents store instance.
  * @returns {string} Formatted YAML backup string.
  */
+function mapAbsenceRecord(item) {
+  const record = {
+    startDate: item.startDate,
+    endDate: item.endDate,
+    dest: item.dest || '',
+  }
+  if (Array.isArray(item.stops) && item.stops.length >= 2) {
+    record.stops = item.stops.map((s) => ({
+      date: s.date || '',
+      ...(s.dest ? { dest: s.dest } : {}),
+    }))
+  }
+  return record
+}
+
 export function exportFullBackup(absentsStore, documentsStore) {
   const userAbsences = absentsStore.absences
     .filter((item) => !item.isAutoArrival && item.id !== 'auto_uk_arrival_record')
-    .map((item) => ({
-      startDate: item.startDate,
-      endDate: item.endDate,
-      dest: item.dest || '',
-    }))
+    .map(mapAbsenceRecord)
 
   const doc = new Document()
   doc.commentBefore =
@@ -104,11 +115,7 @@ export function exportFullBackup(absentsStore, documentsStore) {
 export function exportAbsencesBackup(absentsStore) {
   const userAbsences = absentsStore.absences
     .filter((item) => !item.isAutoArrival && item.id !== 'auto_uk_arrival_record')
-    .map((item) => ({
-      startDate: item.startDate,
-      endDate: item.endDate,
-      dest: item.dest || '',
-    }))
+    .map(mapAbsenceRecord)
 
   const doc = new Document()
   doc.commentBefore =

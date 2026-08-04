@@ -18,16 +18,18 @@ export default {
     return {
       /** Default empty form structure for resetting inputs */
       defaultForm: {
-        startDate: '',
-        endDate: '',
-        dest: '',
+        stops: [
+          { date: '', dest: '' },
+          { date: '', dest: '' },
+        ],
       },
 
       /** Active record form model for add/edit operations */
       form: {
-        startDate: '',
-        endDate: '',
-        dest: '',
+        stops: [
+          { date: '', dest: '' },
+          { date: '', dest: '' },
+        ],
       },
 
       /** ID of record currently being edited; null when adding a new record */
@@ -70,6 +72,9 @@ export default {
         startDate: '',
         endDate: '',
       },
+
+      /** View mode toggle for records list timeline: 'full' | 'compact' */
+      timelineViewMode: 'compact',
     }
   },
 
@@ -87,23 +92,40 @@ export default {
     },
 
     /**
+     * Departure date (first node date).
+     * @returns {string}
+     */
+    startDate() {
+      return this.form.stops && this.form.stops.length > 0 ? this.form.stops[0].date || '' : ''
+    },
+
+    /**
+     * Return date (last node date).
+     * @returns {string}
+     */
+    endDate() {
+      const len = this.form.stops ? this.form.stops.length : 0
+      return len > 0 ? this.form.stops[len - 1].date || '' : ''
+    },
+
+    /**
      * Validates form departure date against Visa Start Date, UK Arrival Date, and return date.
      * @returns {string} Validation error message or empty string if valid.
      */
     startDateError() {
-      if (!this.form.startDate) return ''
+      if (!this.startDate) return ''
 
       const vStart = this.absentsStore.visaStartDate
-      if (vStart && this.form.startDate < vStart) {
+      if (vStart && this.startDate < vStart) {
         return this.$t('absence.start_date_err_vstart', { vStart })
       }
 
       const uArrival = this.absentsStore.ukArrivalDate
-      if (uArrival && this.form.startDate < uArrival) {
+      if (uArrival && this.startDate < uArrival) {
         return this.$t('absence.start_date_err_uarrival', { uArrival })
       }
 
-      if (this.form.endDate && this.form.endDate < this.form.startDate) {
+      if (this.endDate && this.endDate < this.startDate) {
         return this.$t('absence.start_date_err_return')
       }
 
@@ -115,14 +137,14 @@ export default {
      * @returns {string} Validation error message or empty string if valid.
      */
     endDateError() {
-      if (!this.form.endDate) return ''
+      if (!this.endDate) return ''
 
-      if (this.form.startDate && this.form.endDate < this.form.startDate) {
+      if (this.startDate && this.endDate < this.startDate) {
         return this.$t('absence.end_date_err_departure')
       }
 
       const maxReturn = this.maxSegmentTreeReturnDate
-      if (maxReturn && this.form.endDate > maxReturn) {
+      if (maxReturn && this.endDate > maxReturn) {
         return this.$t('absence.end_date_err_max', { maxReturn })
       }
 
@@ -130,11 +152,27 @@ export default {
     },
 
     /**
-     * Aggregates date range errors from start and end date fields.
+     * Validates chronological ordering of stop dates.
+     * @returns {string}
+     */
+    nodeDateError() {
+      if (!this.form.stops) return ''
+      for (let i = 0; i < this.form.stops.length - 1; i++) {
+        const curr = this.form.stops[i].date
+        const next = this.form.stops[i + 1].date
+        if (curr && next && next <= curr) {
+          return 'Dates must be in chronological order.'
+        }
+      }
+      return ''
+    },
+
+    /**
+     * Aggregates date range errors from start, end, and intermediate stop date fields.
      * @returns {string}
      */
     dateRangeError() {
-      return this.startDateError || this.endDateError
+      return this.startDateError || this.endDateError || this.nodeDateError
     },
 
     /**
@@ -143,21 +181,21 @@ export default {
      * @returns {boolean}
      */
     isStartDateValid() {
-      if (!this.form.startDate) return false
+      if (!this.startDate) return false
       const vStart = this.absentsStore.visaStartDate
-      if (vStart && this.form.startDate < vStart) return false
+      if (vStart && this.startDate < vStart) return false
       const uArrival = this.absentsStore.ukArrivalDate
-      if (uArrival && this.form.startDate < uArrival) return false
+      if (uArrival && this.startDate < uArrival) return false
       return true
     },
 
     /**
      * Minimum date boundary (YYYY-MM-DD) passed to the Return Date picker.
-     * Equals form.startDate when valid, or undefined otherwise.
+     * Equals startDate when valid, or undefined otherwise.
      * @returns {string|undefined}
      */
     minReturnDate() {
-      return this.isStartDateValid ? this.form.startDate : undefined
+      return this.isStartDateValid ? this.startDate : undefined
     },
 
     /**
@@ -165,18 +203,33 @@ export default {
      * @returns {number}
      */
     calculatedDaysForForm() {
-      if (!this.form.startDate || !this.form.endDate || this.dateRangeError) return 0
-      return calculateDays(this.form.startDate, this.form.endDate)
+      if (!this.startDate || !this.endDate || this.dateRangeError) return 0
+      return calculateDays(this.startDate, this.endDate)
     },
 
     /**
-     * Returns true if both dates are present and free of validation errors.
+     * Returns summary string of leg destinations.
+     * @returns {string}
+     */
+    formSummaryDest() {
+      if (!this.form.stops || this.form.stops.length === 0) return ''
+      return this.form.stops
+        .map((s) => (s.dest ? s.dest.trim() : ''))
+        .filter(Boolean)
+        .join(' ➔ ')
+    },
+
+    /**
+     * Returns true if all node dates are present and free of validation errors.
      * @returns {boolean}
      */
     isFormValid() {
-      return Boolean(
-        this.form.startDate && this.form.endDate && !this.startDateError && !this.endDateError,
-      )
+      if (this.dateRangeError) return false
+      if (!this.form.stops || this.form.stops.length < 2) return false
+      for (const s of this.form.stops) {
+        if (!s.date) return false
+      }
+      return true
     },
 
     /**
@@ -370,6 +423,39 @@ export default {
     },
 
     /**
+     * Adds an intermediate stop node to the form before the final return date node.
+     */
+    addStopNode() {
+      const len = this.form.stops.length
+      this.form.stops.splice(len - 1, 0, { date: '', dest: '' })
+    },
+
+    /**
+     * Removes an intermediate stop node at the given index.
+     * @param {number} index
+     */
+    removeStopNode(index) {
+      if (this.form.stops.length > 2 && index > 0 && index < this.form.stops.length - 1) {
+        this.form.stops.splice(index, 1)
+      }
+    },
+
+    /**
+     * Retrieves stops array for an absence record item, falling back to 2-node structure for legacy records.
+     * @param {Object} item - Absence record item.
+     * @returns {Array} List of stops [{ date, dest }].
+     */
+    getRecordStops(item) {
+      if (Array.isArray(item.stops) && item.stops.length >= 2) {
+        return item.stops
+      }
+      return [
+        { date: item.startDate, dest: item.dest || '' },
+        { date: item.endDate, dest: '' },
+      ]
+    },
+
+    /**
      * Focuses the destination input field in the absence record form.
      */
     focusDestInput() {
@@ -391,25 +477,31 @@ export default {
     handleSave() {
       if (!this.isFormValid) return
 
+      const startDate = this.startDate
+      const endDate = this.endDate
+      const dest = this.formSummaryDest || 'Unspecified destination'
+      const stops = this.form.stops.map((s) => ({ date: s.date, dest: s.dest || '' }))
+
       try {
         if (this.editingId) {
           this.absentsStore.updateAbsence(this.editingId, {
-            startDate: this.form.startDate,
-            endDate: this.form.endDate,
-            dest: this.form.dest,
+            startDate,
+            endDate,
+            dest,
+            stops,
           })
           this.showSnackbar(this.$t('absence.updated_success'), 'success')
           this.resetForm()
         } else {
           this.absentsStore.addAbsence({
-            startDate: this.form.startDate,
-            endDate: this.form.endDate,
-            dest: this.form.dest,
+            startDate,
+            endDate,
+            dest,
+            stops,
           })
           this.showSnackbar(this.$t('absence.added_success'), 'success')
           this.resetForm()
         }
-        this.focusDestInput()
       } catch (err) {
         this.showSnackbar(err.message || 'Failed to save absence record.', 'error')
       }
@@ -422,10 +514,17 @@ export default {
     startEdit(item) {
       if (item.isAutoArrival || item.id === 'auto_uk_arrival_record') return
       this.editingId = item.id
-      this.form = {
-        startDate: item.startDate,
-        endDate: item.endDate,
-        dest: item.dest || '',
+      if (Array.isArray(item.stops) && item.stops.length >= 2) {
+        this.form = {
+          stops: item.stops.map((s) => ({ date: s.date || '', dest: s.dest || '' })),
+        }
+      } else {
+        this.form = {
+          stops: [
+            { date: item.startDate || '', dest: item.dest || '' },
+            { date: item.endDate || '', dest: '' },
+          ],
+        }
       }
       window.scrollTo({ top: 0, behavior: 'smooth' })
     },
@@ -442,7 +541,12 @@ export default {
      */
     resetForm() {
       this.editingId = null
-      this.form = { ...this.defaultForm }
+      this.form = {
+        stops: [
+          { date: '', dest: '' },
+          { date: '', dest: '' },
+        ],
+      }
     },
 
     /**
@@ -751,61 +855,128 @@ export default {
 
           <v-card-text class="px-0 pb-0">
             <v-form @submit.prevent="handleSave">
-              <v-row density="compact">
-                <!-- Destination / Purpose -->
-                <v-col cols="12" sm="12" md="4">
-                  <v-text-field
-                    ref="destInput"
-                    v-model="form.dest"
-                    :label="$t('absence.dest_notes')"
-                    placeholder="e.g. Hong Kong, Japan"
-                    prepend-inner-icon="mdi-map-marker-outline"
-                    variant="outlined"
-                    density="compact"
-                    hide-details="auto"
-                    class="mb-3"
-                  ></v-text-field>
-                </v-col>
+              <!-- Horizontal Graph Timeline Flow for Multi-Stop Trip Editor -->
+              <div class="editor-timeline-container pa-3 rounded-lg border bg-surface mb-3 w-100">
+                <div class="d-flex align-center flex-nowrap ga-3 overflow-x-auto py-2 px-1 w-100">
+                  <template v-for="(stop, index) in form.stops" :key="index">
+                    <!-- NODE Card (Date) -->
+                    <div class="timeline-node-card elevation-1 rounded-lg pa-3 border bg-card">
+                      <div class="d-flex align-center justify-space-between ga-2 mb-2">
+                        <span class="text-caption font-weight-bold text-primary d-flex align-center ga-1">
+                          <v-icon
+                            :icon="
+                              index === 0
+                                ? 'mdi-airplane-takeoff'
+                                : index === form.stops.length - 1
+                                  ? 'mdi-airplane-landing'
+                                  : 'mdi-map-marker'
+                            "
+                            :color="
+                              index === 0
+                                ? 'primary'
+                                : index === form.stops.length - 1
+                                  ? 'success'
+                                  : 'info'
+                            "
+                            size="x-small"
+                          ></v-icon>
+                          <span>
+                            {{
+                              index === 0
+                                ? $t('absence.dep_uk')
+                                : index === form.stops.length - 1
+                                  ? $t('absence.ret_uk')
+                                  : $t('absence.stop_number', { n: index })
+                            }}
+                          </span>
+                        </span>
 
-                <!-- Start Date -->
-                <v-col cols="12" sm="6" md="4">
-                  <v-text-field
-                    v-model="form.startDate"
-                    :label="$t('absence.departure_date')"
-                    type="date"
-                    prepend-inner-icon="mdi-airplane-takeoff"
-                    variant="outlined"
-                    density="compact"
-                    :error-messages="startDateError"
-                    required
-                    hide-details="auto"
-                    class="mb-3"
-                  ></v-text-field>
-                </v-col>
+                        <v-btn
+                          v-if="index > 0 && index < form.stops.length - 1"
+                          icon="mdi-close"
+                          variant="text"
+                          color="error"
+                          size="x-small"
+                          :title="$t('absence.remove_stop')"
+                          @click="removeStopNode(index)"
+                        ></v-btn>
+                      </div>
 
-                <!-- End Date -->
-                <v-col cols="12" sm="6" md="4">
-                  <v-text-field
-                    v-model="form.endDate"
-                    :label="$t('absence.return_date')"
-                    type="date"
-                    prepend-inner-icon="mdi-airplane-landing"
-                    variant="outlined"
-                    density="compact"
-                    :min="minReturnDate"
-                    :error-messages="endDateError"
-                    required
-                    hide-details="auto"
-                    class="mb-3"
-                  ></v-text-field>
-                </v-col>
-              </v-row>
+                      <!-- Date Input (Node) -->
+                      <v-text-field
+                        v-model="stop.date"
+                        type="date"
+                        :label="
+                          index === 0
+                            ? $t('absence.departure_date')
+                            : index === form.stops.length - 1
+                              ? $t('absence.return_date')
+                              : 'Date'
+                        "
+                        variant="outlined"
+                        density="compact"
+                        hide-details="auto"
+                        :error-messages="
+                          index === 0
+                            ? startDateError
+                            : index === form.stops.length - 1
+                              ? endDateError
+                              : ''
+                        "
+                        class="w-100"
+                        required
+                      ></v-text-field>
+                    </div>
+
+                    <!-- EDGE Connector (Destination to Next Node) -->
+                    <div
+                      v-if="index < form.stops.length - 1"
+                      class="timeline-edge-connector d-flex flex-column align-center justify-center px-2"
+                    >
+                      <div class="text-caption font-weight-medium text-medium-emphasis mb-1 d-flex align-center ga-1">
+                        <v-icon icon="mdi-map-marker-outline" size="12"></v-icon>
+                        <span>{{ $t('absence.leg_dest') }}</span>
+                      </div>
+
+                      <v-text-field
+                        v-model="stop.dest"
+                        placeholder="e.g. Hong Kong, Japan"
+                        variant="outlined"
+                        density="compact"
+                        hide-details="auto"
+                        class="w-100"
+                      ></v-text-field>
+
+                      <div class="edge-line-arrow d-flex align-center justify-center w-100 mt-2">
+                        <div class="line-flex"></div>
+                        <v-icon icon="mdi-chevron-right" size="small" color="primary"></v-icon>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Controls to Add Stop -->
+              <div class="d-flex align-center ga-3 mb-4">
+                <v-btn
+                  variant="tonal"
+                  color="info"
+                  size="small"
+                  prepend-icon="mdi-plus"
+                  @click="addStopNode"
+                >
+                  {{ $t('absence.add_stop') }}
+                </v-btn>
+                <span v-if="nodeDateError" class="text-caption text-error">
+                  {{ nodeDateError }}
+                </span>
+              </div>
 
               <!-- Form Days Calculation Badge & Actions -->
               <div class="d-flex align-center justify-space-between flex-wrap ga-4 mt-4">
                 <div class="d-flex align-center">
                   <v-chip
-                    v-if="form.startDate && form.endDate && !dateRangeError"
+                    v-if="startDate && endDate && !dateRangeError"
                     color="secondary"
                     variant="tonal"
                     prepend-icon="mdi-calculator"
@@ -857,6 +1028,24 @@ export default {
                 {{ absentsStore.sortedAbsences.length }}
               </v-chip>
             </div>
+
+            <!-- View Mode Toggle Button Group -->
+            <v-btn-toggle
+              v-model="timelineViewMode"
+              mandatory
+              density="compact"
+              size="x-small"
+              color="primary"
+              variant="outlined"
+              class="rounded-lg"
+            >
+              <v-btn value="full" prepend-icon="mdi-timeline-text-outline">
+                {{ $t('absence.view_full') }}
+              </v-btn>
+              <v-btn value="compact" prepend-icon="mdi-view-compact-outline">
+                {{ $t('absence.view_compact') }}
+              </v-btn>
+            </v-btn-toggle>
           </v-card-title>
 
           <v-card-text class="px-0 pb-0">
@@ -869,11 +1058,16 @@ export default {
             >
               <thead>
                 <tr>
-                  <th class="text-left font-weight-bold">{{ $t('absence.dest_purpose') }}</th>
-                  <th class="text-right font-weight-bold">{{ $t('absence.departure') }}</th>
-                  <th class="text-right font-weight-bold">{{ $t('absence.return') }}</th>
-                  <th class="text-center font-weight-bold">{{ $t('absence.full_days') }}</th>
-                  <th class="text-right font-weight-bold">{{ $t('absence.table_actions') }}</th>
+                  <th class="text-left font-weight-bold" style="width: 100px">
+                    {{ $t('absence.table_status') }}
+                  </th>
+                  <th class="text-left font-weight-bold">{{ $t('absence.trip_timeline') }}</th>
+                  <th class="text-center font-weight-bold" style="width: 140px">
+                    {{ $t('absence.full_days') }}
+                  </th>
+                  <th class="text-right font-weight-bold" style="width: 110px">
+                    {{ $t('absence.table_actions') }}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -887,82 +1081,136 @@ export default {
                     'row-ongoing-event': isOngoingEvent(item) && editingId !== item.id,
                   }"
                 >
-                  <td class="font-weight-medium">
-                    <div class="d-flex align-center flex-wrap ga-2">
-                      <span
-                        :class="{
-                          'text-medium-emphasis': isFutureEvent(item) && !isOngoingEvent(item),
-                        }"
-                      >
-                        {{ item.dest || $t('absence.unspecified') }}
-                      </span>
+                  <td class="align-middle" style="width: 100px">
+                    <!-- Event Status Chip -->
+                    <v-chip
+                      v-if="item.isAutoArrival"
+                      size="x-small"
+                      color="secondary"
+                      variant="flat"
+                      class="font-weight-bold"
+                    >
+                      {{ $t('absence.initial') }}
+                    </v-chip>
+                    <v-chip
+                      v-else-if="isOngoingEvent(item)"
+                      size="x-small"
+                      color="warning"
+                      variant="flat"
+                      class="font-weight-bold"
+                    >
+                      {{ $t('absence.ongoing') }}
+                    </v-chip>
+                    <v-chip
+                      v-else-if="isFutureEvent(item)"
+                      size="x-small"
+                      color="info"
+                      variant="outlined"
+                      class="font-weight-medium"
+                    >
+                      {{ $t('absence.planned') }}
+                    </v-chip>
+                    <v-chip
+                      v-else
+                      size="x-small"
+                      color="grey"
+                      variant="tonal"
+                      class="font-weight-regular text-caption"
+                    >
+                      {{ $t('absence.past') }}
+                    </v-chip>
+                  </td>
 
-                      <!-- Event Status Chip -->
-                      <v-chip
-                        v-if="item.isAutoArrival"
-                        size="x-small"
-                        color="secondary"
-                        variant="flat"
-                        class="font-weight-bold"
-                      >
-                        {{ $t('absence.initial') }}
-                      </v-chip>
-                      <v-chip
-                        v-else-if="isOngoingEvent(item)"
-                        size="x-small"
-                        color="warning"
-                        variant="flat"
-                        class="font-weight-bold"
-                      >
-                        {{ $t('absence.ongoing') }}
-                      </v-chip>
-                      <v-chip
-                        v-else-if="isFutureEvent(item)"
-                        size="x-small"
-                        color="info"
-                        variant="outlined"
-                        class="font-weight-medium"
-                      >
-                        {{ $t('absence.planned') }}
-                      </v-chip>
-                      <v-chip
-                        v-else
-                        size="x-small"
-                        color="grey"
-                        variant="tonal"
-                        class="font-weight-regular text-caption"
-                      >
-                        {{ $t('absence.past') }}
-                      </v-chip>
+                  <td class="py-3 align-middle">
+                    <!-- FULL Mode Timeline -->
+                    <div
+                      v-if="timelineViewMode === 'full'"
+                      class="d-flex align-center flex-nowrap ga-2 overflow-x-auto py-1"
+                    >
+                      <template v-for="(stop, idx) in getRecordStops(item)" :key="idx">
+                        <!-- List NODE -->
+                        <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border">
+                          <v-icon
+                            :icon="
+                              idx === 0
+                                ? 'mdi-airplane-takeoff'
+                                : idx === getRecordStops(item).length - 1
+                                  ? 'mdi-airplane-landing'
+                                  : 'mdi-map-marker'
+                            "
+                            :color="
+                              idx === 0
+                                ? 'primary'
+                                : idx === getRecordStops(item).length - 1
+                                  ? 'success'
+                                  : 'info'
+                            "
+                            size="x-small"
+                          ></v-icon>
+                          <span class="text-caption font-weight-bold text-no-wrap">
+                            {{ formatDate(stop.date) }}
+                          </span>
+                        </div>
+
+                        <!-- List EDGE Connector -->
+                        <div
+                          v-if="idx < getRecordStops(item).length - 1"
+                          class="d-flex align-center ga-1 px-1"
+                        >
+                          <div class="edge-line"></div>
+                          <v-chip
+                            v-if="stop.dest"
+                            size="x-small"
+                            color="primary"
+                            variant="tonal"
+                            class="font-weight-medium text-no-wrap"
+                          >
+                            <v-icon start icon="mdi-map-marker-outline" size="10"></v-icon>
+                            {{ stop.dest }}
+                          </v-chip>
+                          <v-icon icon="mdi-chevron-right" size="x-small" color="primary"></v-icon>
+                        </div>
+                      </template>
+                    </div>
+
+                    <!-- COMPACT Mode Timeline -->
+                    <div
+                      v-else
+                      class="d-flex align-center flex-nowrap ga-2 overflow-x-auto py-1"
+                    >
+                      <!-- Departure Node -->
+                      <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border">
+                        <v-icon icon="mdi-airplane-takeoff" color="primary" size="x-small"></v-icon>
+                        <span class="text-caption font-weight-bold text-no-wrap">
+                          {{ formatDate(item.startDate) }}
+                        </span>
+                      </div>
+
+                      <!-- Summary Edge -->
+                      <div class="d-flex align-center ga-1 px-1">
+                        <div class="edge-line"></div>
+                        <v-chip
+                          size="x-small"
+                          color="primary"
+                          variant="tonal"
+                          class="font-weight-medium text-no-wrap"
+                        >
+                          <v-icon start icon="mdi-map-marker-outline" size="10"></v-icon>
+                          {{ item.dest || $t('absence.unspecified') }}
+                        </v-chip>
+                        <v-icon icon="mdi-chevron-right" size="x-small" color="primary"></v-icon>
+                      </div>
+
+                      <!-- Return Node -->
+                      <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border">
+                        <v-icon icon="mdi-airplane-landing" color="success" size="x-small"></v-icon>
+                        <span class="text-caption font-weight-bold text-no-wrap">
+                          {{ formatDate(item.endDate) }}
+                        </span>
+                      </div>
                     </div>
                   </td>
-                  <td class="text-right">
-                    <v-chip
-                      size="small"
-                      variant="tonal"
-                      :color="
-                        isOngoingEvent(item) ? 'warning' : isFutureEvent(item) ? 'info' : 'primary'
-                      "
-                      prepend-icon="mdi-airplane-takeoff"
-                      class="font-weight-medium"
-                    >
-                      {{ formatDate(item.startDate) }}
-                    </v-chip>
-                  </td>
-                  <td class="text-right">
-                    <v-chip
-                      size="small"
-                      variant="tonal"
-                      :color="
-                        isOngoingEvent(item) ? 'warning' : isFutureEvent(item) ? 'info' : 'primary'
-                      "
-                      prepend-icon="mdi-airplane-landing"
-                      class="font-weight-medium"
-                    >
-                      {{ formatDate(item.endDate) }}
-                    </v-chip>
-                  </td>
-                  <td class="text-center">
+                  <td class="text-center align-middle">
                     <v-chip
                       :color="
                         isOngoingEvent(item)
@@ -974,7 +1222,9 @@ export default {
                               : 'grey'
                       "
                       size="x-small"
-                      :variant="isFutureEvent(item) && !isOngoingEvent(item) ? 'outlined' : 'tonal'"
+                      :variant="
+                        isFutureEvent(item) && !isOngoingEvent(item) ? 'outlined' : 'tonal'
+                      "
                       :class="{
                         'font-weight-bold': !isFutureEvent(item) || isOngoingEvent(item),
                         'font-weight-medium opacity-90':
@@ -984,7 +1234,7 @@ export default {
                       {{ calculateDays(item.startDate, item.endDate) }} day(s)
                     </v-chip>
                   </td>
-                  <td class="text-right">
+                  <td class="text-right align-middle">
                     <template v-if="item.isAutoArrival || item.id === 'auto_uk_arrival_record'">
                       <v-chip
                         size="x-small"
@@ -1713,5 +1963,31 @@ export default {
 }
 .row-ongoing-event {
   background-color: rgba(var(--v-theme-warning), 0.06);
+}
+.trip-horizontal-timeline {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.editor-timeline-container {
+  overflow-x: auto;
+  width: 100%;
+}
+.timeline-node-card {
+  flex: 1 1 200px;
+  min-width: 170px;
+}
+.timeline-edge-connector {
+  flex: 1 1 160px;
+  min-width: 140px;
+}
+.line-flex {
+  flex-grow: 1;
+  height: 2px;
+  background-color: rgba(var(--v-theme-primary), 0.3);
+}
+.edge-line {
+  width: 14px;
+  height: 2px;
+  background-color: rgba(var(--v-theme-primary), 0.4);
 }
 </style>

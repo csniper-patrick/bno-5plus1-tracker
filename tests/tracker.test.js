@@ -546,3 +546,60 @@ describe('IndexedDB & Storage Migration', () => {
     assert.strictEqual(userTrips[0].startDate, '2022-06-01')
   })
 })
+
+describe('Multi-Stop Trip Support', () => {
+  it('should store and retrieve multi-stop trip records with stops array', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    store.setVisaStartDate('2022-01-01')
+    const multiStopItem = store.addAbsence({
+      startDate: '2022-06-01',
+      endDate: '2022-06-15',
+      dest: 'Tokyo ➔ Osaka',
+      stops: [
+        { date: '2022-06-01', dest: 'Tokyo' },
+        { date: '2022-06-08', dest: 'Osaka' },
+        { date: '2022-06-15', dest: '' },
+      ],
+    })
+
+    assert.strictEqual(multiStopItem.startDate, '2022-06-01')
+    assert.strictEqual(multiStopItem.endDate, '2022-06-15')
+    assert.strictEqual(multiStopItem.stops.length, 3)
+    assert.strictEqual(multiStopItem.stops[0].dest, 'Tokyo')
+    assert.strictEqual(multiStopItem.stops[1].dest, 'Osaka')
+  })
+
+  it('should export and import multi-stop trip records seamlessly in YAML', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    store.setVisaStartDate('2022-01-01')
+    store.addAbsence({
+      startDate: '2022-06-01',
+      endDate: '2022-06-15',
+      dest: 'Tokyo ➔ Osaka',
+      stops: [
+        { date: '2022-06-01', dest: 'Tokyo' },
+        { date: '2022-06-08', dest: 'Osaka' },
+        { date: '2022-06-15', dest: '' },
+      ],
+    })
+
+    const yaml = store.exportYAML()
+    assert.ok(yaml.includes('stops:'))
+
+    store.clearAbsences()
+    store.importYAML(yaml)
+
+    const importedTrips = store.absences.filter((a) => !a.isAutoArrival)
+    assert.strictEqual(importedTrips.length, 1)
+    assert.strictEqual(importedTrips[0].startDate, '2022-06-01')
+    assert.strictEqual(importedTrips[0].endDate, '2022-06-15')
+    assert.strictEqual(importedTrips[0].stops.length, 3)
+    assert.strictEqual(importedTrips[0].stops[1].dest, 'Osaka')
+  })
+})

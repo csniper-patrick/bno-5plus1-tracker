@@ -38,7 +38,7 @@ export default {
           id: 'gitlab-repository',
           title: 'BNO 5+1 Tracker GitLab Repository',
           category: 'Tools & Source',
-          url: 'https://gitlab.com/CSniper/bno-5plus1-tracker',
+          url: import.meta.env.VITE_CI_PROJECT_URL || 'https://gitlab.com/CSniper/bno-5plus1-tracker',
           icon: 'mdi-gitlab',
           color: 'orange-darken-3',
           badge: 'Open Source',

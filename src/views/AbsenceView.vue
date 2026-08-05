@@ -959,14 +959,25 @@ export default {
 
       <v-card-text class="px-0 pb-0">
         <v-form @submit.prevent="handleSave">
-          <!-- Horizontal Graph Timeline Flow for Multi-Stop Trip Editor -->
-          <div class="editor-timeline-container pa-3 rounded-lg border bg-surface mb-3 w-100">
-            <div class="d-flex align-center flex-nowrap ga-3 overflow-x-auto py-2 px-1 w-100">
+          <!-- Responsive Graph Timeline Flow for Multi-Stop Trip Editor -->
+          <div class="editor-timeline-container mb-3 w-100">
+            <div class="editor-timeline-flow py-2 px-1 w-100">
               <template v-for="(stop, index) in form.stops" :key="index">
-                <!-- NODE Card (Date) -->
-                <div class="timeline-node-card elevation-1 rounded-lg pa-3 border bg-card">
-                  <div class="d-flex align-center justify-space-between ga-2 mb-2">
-                    <span class="text-caption font-weight-bold text-primary d-flex align-center ga-1">
+                <!-- NODE Item (Date) -->
+                <div class="timeline-node-item d-flex align-stretch">
+                  <!-- Vertical timeline left indicator (visible on narrow screens) -->
+                  <div class="timeline-indicator-left flex-column align-center justify-start pt-1">
+                    <div
+                      class="node-icon-bubble rounded-circle d-flex align-center justify-center elevation-1"
+                      :class="
+                        index === 0
+                          ? 'bg-primary'
+                          : index === form.stops.length - 1
+                            ? 'bg-success'
+                            : 'bg-info'
+                      "
+                      style="width: 28px; height: 28px"
+                    >
                       <v-icon
                         :icon="
                           index === 0
@@ -975,85 +986,116 @@ export default {
                               ? 'mdi-airplane-landing'
                               : 'mdi-map-marker'
                         "
-                        :color="
-                          index === 0
-                            ? 'primary'
-                            : index === form.stops.length - 1
-                              ? 'success'
-                              : 'info'
-                        "
+                        color="white"
                         size="x-small"
                       ></v-icon>
-                      <span>
-                        {{
-                          index === 0
-                            ? $t('absence.dep_uk')
-                            : index === form.stops.length - 1
-                              ? $t('absence.ret_uk')
-                              : $t('absence.stop_number', { n: index })
-                        }}
-                      </span>
-                    </span>
-
-                    <v-btn
-                      v-if="index > 0 && index < form.stops.length - 1"
-                      icon="mdi-close"
-                      variant="text"
-                      color="error"
-                      size="x-small"
-                      :title="$t('absence.remove_stop')"
-                      @click="removeStopNode(index)"
-                    ></v-btn>
+                    </div>
                   </div>
 
-                  <!-- Date Input (Node) -->
-                  <v-text-field
-                    v-model="stop.date"
-                    type="date"
-                    :label="
-                      index === 0
-                        ? $t('absence.departure_date')
-                        : index === form.stops.length - 1
-                          ? $t('absence.return_date')
-                          : 'Date'
-                    "
-                    variant="outlined"
-                    density="compact"
-                    hide-details="auto"
-                    :error-messages="
-                      index === 0
-                        ? startDateError
-                        : index === form.stops.length - 1
-                          ? endDateError
-                          : ''
-                    "
-                    class="w-100"
-                    required
-                  ></v-text-field>
+                  <!-- Node Right Content (Inputs & Header) -->
+                  <div class="timeline-node-content flex-grow-1">
+                    <div class="d-flex align-center justify-space-between ga-2 mb-2">
+                      <span class="text-caption font-weight-bold text-primary d-flex align-center ga-1">
+                        <v-icon
+                          class="desktop-node-icon"
+                          :icon="
+                            index === 0
+                              ? 'mdi-airplane-takeoff'
+                              : index === form.stops.length - 1
+                                ? 'mdi-airplane-landing'
+                                : 'mdi-map-marker'
+                          "
+                          :color="
+                            index === 0
+                              ? 'primary'
+                              : index === form.stops.length - 1
+                                ? 'success'
+                                : 'info'
+                          "
+                          size="x-small"
+                        ></v-icon>
+                        <span>
+                          {{
+                            index === 0
+                              ? $t('absence.dep_uk')
+                              : index === form.stops.length - 1
+                                ? $t('absence.ret_uk')
+                                : $t('absence.stop_number', { n: index })
+                          }}
+                        </span>
+                      </span>
+
+                      <v-btn
+                        v-if="index > 0 && index < form.stops.length - 1"
+                        icon="mdi-close"
+                        variant="text"
+                        color="error"
+                        size="x-small"
+                        :title="$t('absence.remove_stop')"
+                        @click="removeStopNode(index)"
+                      ></v-btn>
+                    </div>
+
+                    <!-- Date Input (Node) -->
+                    <v-text-field
+                      v-model="stop.date"
+                      type="date"
+                      :label="
+                        index === 0
+                          ? $t('absence.departure_date')
+                          : index === form.stops.length - 1
+                            ? $t('absence.return_date')
+                            : 'Date'
+                      "
+                      variant="outlined"
+                      density="compact"
+                      hide-details="auto"
+                      :error-messages="
+                        index === 0
+                          ? startDateError
+                          : index === form.stops.length - 1
+                            ? endDateError
+                            : ''
+                      "
+                      class="w-100"
+                      required
+                    ></v-text-field>
+                  </div>
                 </div>
 
-                <!-- EDGE Connector (Destination to Next Node) -->
+                <!-- EDGE Item (Destination to Next Node) -->
                 <div
                   v-if="index < form.stops.length - 1"
-                  class="timeline-edge-connector d-flex flex-column align-center justify-center px-2"
+                  class="timeline-edge-item d-flex align-stretch"
                 >
-                  <div class="text-caption font-weight-medium text-medium-emphasis mb-1 d-flex align-center ga-1">
-                    <v-icon icon="mdi-map-marker-outline" size="12"></v-icon>
-                    <span>{{ $t('absence.leg_dest') }}</span>
+                  <!-- Vertical timeline connector left indicator (visible on narrow screens) -->
+                  <div class="timeline-indicator-left flex-column align-center justify-center my-1">
+                    <div class="vertical-line-flex"></div>
+                    <v-icon icon="mdi-chevron-down" size="small" color="primary" class="my-1"></v-icon>
+                    <div class="vertical-line-flex"></div>
                   </div>
 
-                  <v-text-field
-                    v-model="stop.dest"
-                    placeholder="e.g. Hong Kong, Japan"
-                    variant="outlined"
-                    density="compact"
-                    hide-details="auto"
-                    class="w-100"
-                  ></v-text-field>
+                  <!-- Edge Right Content (Destination Input) -->
+                  <div class="timeline-edge-content flex-grow-1 px-0 py-1 d-flex flex-column justify-center">
+                    <div class="text-caption font-weight-medium text-medium-emphasis mb-1 d-flex align-center ga-1">
+                      <v-icon icon="mdi-map-marker-outline" size="12"></v-icon>
+                      <span>{{ $t('absence.leg_dest') }}</span>
+                    </div>
 
-                  <div class="edge-line-arrow d-flex align-center justify-center w-100 mt-2">
-                    <div class="line-flex"></div>
-                    <v-icon icon="mdi-chevron-right" size="small" color="primary"></v-icon>
+                    <v-text-field
+                      v-model="stop.dest"
+                      placeholder="e.g. Hong Kong, Japan"
+                      variant="outlined"
+                      density="compact"
+                      hide-details="auto"
+                      class="w-100"
+                    ></v-text-field>
+
+                    <!-- Horizontal Arrow for Desktop -->
+                    <div class="edge-line-arrow desktop-edge-arrow d-flex align-center justify-center w-100 mt-2">
+                      <div class="line-flex"></div>
+                      <v-icon icon="mdi-chevron-right" size="small" color="primary"></v-icon>
+                    </div>
                   </div>
                 </div>
               </template>
@@ -1938,26 +1980,68 @@ export default {
   overflow-x: auto;
   padding-bottom: 4px;
 }
-.editor-timeline-container {
+.editor-timeline-flow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 12px;
   overflow-x: auto;
   width: 100%;
 }
-.timeline-node-card {
+.timeline-node-item {
   flex: 1 1 200px;
   min-width: 170px;
 }
-.timeline-edge-connector {
+.timeline-edge-item {
   flex: 1 1 160px;
   min-width: 140px;
 }
+.timeline-indicator-left {
+  display: none;
+}
+.vertical-line-flex {
+  width: 5px;
+  min-height: 12px;
+  background-color: rgba(var(--v-theme-primary), 0.55);
+  border-radius: 3px;
+  flex-grow: 1;
+}
 .line-flex {
   flex-grow: 1;
-  height: 2px;
-  background-color: rgba(var(--v-theme-primary), 0.3);
+  height: 5px;
+  background-color: rgba(var(--v-theme-primary), 0.55);
+  border-radius: 3px;
 }
 .edge-line {
   width: 14px;
-  height: 2px;
-  background-color: rgba(var(--v-theme-primary), 0.4);
+  height: 5px;
+  background-color: rgba(var(--v-theme-primary), 0.55);
+  border-radius: 3px;
+}
+
+@media (max-width: 960px) {
+  .editor-timeline-flow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    overflow-x: visible;
+  }
+  .timeline-node-item,
+  .timeline-edge-item {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+  }
+  .timeline-indicator-left {
+    display: flex !important;
+    width: 32px;
+    min-width: 32px;
+    margin-right: 12px;
+  }
+  .desktop-node-icon,
+  .desktop-edge-arrow {
+    display: none !important;
+  }
 }
 </style>

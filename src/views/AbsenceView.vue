@@ -526,7 +526,12 @@ export default {
           ],
         }
       }
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      this.$nextTick(() => {
+        const el = this.$refs.editorCard?.$el || this.$refs.editorCard
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      })
     },
 
     /**
@@ -1274,7 +1279,7 @@ export default {
     <!-- Right Column on Wide Screen / Top on Narrow Screen: Add Absence Record & Custom Date Range (1/3 width on wide screen) -->
     <v-col cols="12" lg="4" order-lg="2" class="d-flex flex-column ga-6">
         <!-- Add Absence Record Card -->
-        <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
+        <v-card ref="editorCard" elevation="2" class="pa-3 rounded-lg bg-surface">
           <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
             <v-icon :icon="editingId ? 'mdi-pencil' : 'mdi-plus-circle'" color="primary"></v-icon>
             <span class="text-h5 font-weight-bold">

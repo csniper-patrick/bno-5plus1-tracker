@@ -143,7 +143,7 @@ export default {
     ilr_window_delayed: '永居窗口順延',
     within_ilr_limit: '符合永居限制',
     rolling_180_rule: '180日滾動限制',
-    rolling_180_desc: '資格期內任何 365 日滾動窗口中的最多離英日數。',
+    rolling_180_desc: '資格期內任何 366 日滾動窗口中的最多離英日數。',
     peak_label: '高峰期：{start} – {end}',
     total_5yr_desc: '5 年路徑中累計的完整離英總日數。',
     earliest_application_date: '最早可申請日期：',

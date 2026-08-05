@@ -405,25 +405,25 @@ export const useAbsentsStore = defineStore('absents', () => {
     }
 
     const totalQualifyingDays = Math.round((wTarget.getTime() - wStart.getTime()) / 86400000)
-    const limit = Math.max(0, totalQualifyingDays - 364)
+    const limit = Math.max(0, totalQualifyingDays - 365)
 
     const hasTree = segmentTree.value && visaStartDate.value && segmentTreeSize > 0
     const vStart = hasTree ? parseDateUTC(visaStartDate.value) : null
 
     let maxDays = 0
     let peakStart = wStart
-    let peakEnd = new Date(wStart.getTime() + 364 * 86400000)
+    let peakEnd = new Date(wStart.getTime() + 365 * 86400000)
 
     const startOffset = vStart ? Math.round((wStart.getTime() - vStart.getTime()) / 86400000) : 0
 
     if (hasTree && vStart && startOffset >= 0) {
-      const initialEndIdx = Math.min(segmentTreeSize - 1, startOffset + 364)
+      const initialEndIdx = Math.min(segmentTreeSize - 1, startOffset + 365)
       let currentWindowDays = segmentTree.value.query(startOffset, initialEndIdx)
       maxDays = currentWindowDays
 
       for (let i = 1; i <= limit; i++) {
         const currStartIdx = startOffset + i
-        const currEndIdx = currStartIdx + 364
+        const currEndIdx = currStartIdx + 365
 
         const addVal = currEndIdx < segmentTreeSize ? segmentTree.value.queryPoint(currEndIdx) : 0
         const subVal =
@@ -433,13 +433,13 @@ export const useAbsentsStore = defineStore('absents', () => {
         if (currentWindowDays > maxDays) {
           maxDays = currentWindowDays
           peakStart = new Date(wStart.getTime() + i * 86400000)
-          peakEnd = new Date(wStart.getTime() + (i + 364) * 86400000)
+          peakEnd = new Date(wStart.getTime() + (i + 365) * 86400000)
         }
       }
     } else {
       for (let i = 0; i <= limit; i++) {
         const windowStart = new Date(wStart.getTime() + i * 86400000)
-        const windowEnd = new Date(wStart.getTime() + (i + 364) * 86400000)
+        const windowEnd = new Date(wStart.getTime() + (i + 365) * 86400000)
         const days = queryAbsentDaysInRange(windowStart, windowEnd)
 
         if (days > maxDays) {

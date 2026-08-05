@@ -143,7 +143,7 @@ export default {
     ilr_window_delayed: 'ILR Window Delayed',
     within_ilr_limit: 'Within ILR Limit',
     rolling_180_rule: '180-Day Rolling Rule',
-    rolling_180_desc: 'Max absent days in any 365-day rolling window within qualifying period.',
+    rolling_180_desc: 'Max absent days in any 366-day rolling window within qualifying period.',
     peak_label: 'Peak: {start} – {end}',
     total_5yr_desc: 'Total cumulative full days absent over the 5-year route.',
     earliest_application_date: 'Earliest Application Date:',

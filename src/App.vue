@@ -7,15 +7,16 @@
  */
 import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
-import { useTheme } from 'vuetify'
+import { useTheme, useDisplay } from 'vuetify'
 import { useI18n } from 'vue-i18n'
 import { useAbsentsStore } from './stores/absents'
 import { useDocumentsStore } from './stores/documents'
 import { exportFullBackup, parseYAML } from './services/backupService'
 import ReloadPrompt from './components/ReloadPrompt.vue'
 
-// Vuetify theme, router, i18n, and store instances
+// Vuetify theme, display breakpoints, router, i18n, and store instances
 const theme = useTheme()
+const { smAndUp, mdAndUp } = useDisplay()
 const route = useRoute()
 const { locale, t } = useI18n()
 const absentsStore = useAbsentsStore()
@@ -184,25 +185,31 @@ function confirmClearAll() {
     />
 
     <!-- Top Application Bar -->
-    <v-app-bar color="primary" elevation="2" class="px-2 px-sm-4">
+    <v-app-bar color="primary" elevation="2" class="px-1 px-sm-4">
       <div class="w-100 mx-auto d-flex align-center" style="max-width: 1600px">
-        <v-icon icon="mdi-passport" size="large" class="ml-2 ml-sm-3 mr-2"></v-icon>
-        <v-app-bar-title class="font-weight-bold text-truncate flex-shrink-1">
+        <v-icon
+          icon="mdi-passport"
+          :size="smAndUp ? 'large' : 'default'"
+          class="ml-1 ml-sm-3 mr-1 mr-sm-2"
+        ></v-icon>
+        <v-app-bar-title class="font-weight-bold text-subtitle-1 text-sm-h6 text-truncate flex-shrink-1">
           {{ $t('app.title') }}
           <v-chip
+            v-if="smAndUp"
             size="x-small"
             color="amber-darken-2"
             variant="flat"
-            class="d-none d-sm-inline-flex ml-2 font-weight-bold"
+            class="ml-2 font-weight-bold"
             style="vertical-align: middle"
           >
             {{ $t('app.badge_unofficial') }}
           </v-chip>
           <v-chip
+            v-if="mdAndUp"
             size="small"
             color="success"
             variant="flat"
-            class="d-none d-md-inline-flex ml-2 font-weight-bold"
+            class="ml-2 font-weight-bold"
             style="vertical-align: middle"
             prepend-icon="mdi-shield-check"
           >
@@ -215,7 +222,7 @@ function confirmClearAll() {
         <!-- Language Switcher -->
         <v-btn
           variant="text"
-          class="px-2"
+          class="px-1 px-sm-2"
           :title="$t('app.language')"
           @click="toggleLanguage"
         >
@@ -227,6 +234,7 @@ function confirmClearAll() {
         <v-btn
           :icon="theme.global.current.value.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
           variant="text"
+          class="px-1 px-sm-2"
           :title="$t('app.toggle_theme')"
           @click="toggleTheme"
         ></v-btn>
@@ -235,7 +243,7 @@ function confirmClearAll() {
         <v-btn
           icon="mdi-menu"
           variant="text"
-          class="ml-1"
+          class="ml-0 ml-sm-1"
           :title="$t('app.nav_menu')"
           @click="drawer = !drawer"
         ></v-btn>

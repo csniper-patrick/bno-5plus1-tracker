@@ -192,7 +192,7 @@ function confirmClearAll() {
           :size="smAndUp ? 'large' : 'default'"
           class="ml-1 ml-sm-3 mr-1 mr-sm-2"
         ></v-icon>
-        <v-app-bar-title class="font-weight-bold text-subtitle-1 text-sm-h6 text-truncate flex-shrink-1">
+        <v-app-bar-title class="font-weight-bold text-h6 text-truncate flex-grow-1 flex-shrink-1">
           {{ $t('app.title') }}
           <v-chip
             v-if="smAndUp"
@@ -217,16 +217,18 @@ function confirmClearAll() {
           </v-chip>
         </v-app-bar-title>
 
-        <v-spacer></v-spacer>
+        <v-spacer v-if="smAndUp"></v-spacer>
 
         <!-- Language Switcher -->
         <v-btn
           variant="text"
-          class="px-1 px-sm-2"
+          density="compact"
+          class="px-1 px-sm-2 ml-1"
+          style="min-width: auto"
           :title="$t('app.language')"
           @click="toggleLanguage"
         >
-          <v-icon icon="mdi-translate" class="mr-1"></v-icon>
+          <v-icon icon="mdi-translate" size="small" class="mr-1"></v-icon>
           <span class="text-caption font-weight-bold">{{ locale === 'en' ? '繁' : 'EN' }}</span>
         </v-btn>
 
@@ -234,7 +236,9 @@ function confirmClearAll() {
         <v-btn
           :icon="theme.global.current.value.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
           variant="text"
+          density="compact"
           class="px-1 px-sm-2"
+          style="min-width: auto"
           :title="$t('app.toggle_theme')"
           @click="toggleTheme"
         ></v-btn>
@@ -243,7 +247,9 @@ function confirmClearAll() {
         <v-btn
           icon="mdi-menu"
           variant="text"
+          density="compact"
           class="ml-0 ml-sm-1"
+          style="min-width: auto"
           :title="$t('app.nav_menu')"
           @click="drawer = !drawer"
         ></v-btn>

@@ -701,7 +701,7 @@ export default {
 </script>
 
 <template>
-  <div class="d-flex flex-column ga-6">
+  <div>
     <!-- 1. Absence Tracker Title Card & BNO Visa Overview Header Row -->
     <v-row density="default">
       <!-- Left Column: Absence Tracker Title Card -->
@@ -839,7 +839,14 @@ export default {
                     class="pa-3 rounded-lg h-100"
                   >
                     <div class="d-flex align-center justify-space-between mb-1">
-                      <span class="text-caption text-medium-emphasis">{{ $t('absence.visa_expiry') }}</span>
+                      <div class="d-flex align-center ga-2">
+                        <v-icon
+                          icon="mdi-calendar-clock"
+                          size="small"
+                          :color="absentsStore.isVisaExtensionNeeded ? 'warning' : 'info'"
+                        ></v-icon>
+                        <span class="text-caption text-medium-emphasis">{{ $t('absence.visa_expiry') }}</span>
+                      </div>
                       <v-chip
                         size="x-small"
                         :color="absentsStore.isVisaExpiryDateSet ? 'purple' : 'info'"
@@ -946,509 +953,10 @@ export default {
           </div>
         </v-card>
       </v-col>
-    </v-row>
 
-    <!-- 3. Add Absence Record & Absence Records Row -->
-    <v-row density="default">
-      <!-- Right Column on Wide Screen / Top on Narrow Screen: Add Absence Record (1/3 width on wide screen) -->
-      <v-col cols="12" lg="4" order-lg="2">
-        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
-          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
-            <v-icon :icon="editingId ? 'mdi-pencil' : 'mdi-plus-circle'" color="primary"></v-icon>
-            <span class="text-h5 font-weight-bold">
-              {{ editingId ? $t('absence.edit_record') : $t('absence.add_record') }}
-            </span>
-          </v-card-title>
-
-          <v-card-text class="px-0 pb-0">
-            <v-form @submit.prevent="handleSave">
-              <!-- Responsive Graph Timeline Flow for Multi-Stop Trip Editor -->
-              <div class="editor-timeline-container mb-3 w-100">
-                <div class="editor-timeline-flow py-2 px-1 w-100">
-                  <template v-for="(stop, index) in form.stops" :key="index">
-                    <!-- NODE Item (Date) -->
-                    <div class="timeline-node-item d-flex align-stretch">
-                      <!-- Vertical timeline left indicator -->
-                      <div class="timeline-indicator-left flex-column align-center justify-start pt-1">
-                        <div
-                          class="node-icon-bubble rounded-circle d-flex align-center justify-center elevation-1"
-                          :class="
-                            index === 0
-                              ? 'bg-primary'
-                              : index === form.stops.length - 1
-                                ? 'bg-success'
-                                : 'bg-info'
-                          "
-                          style="width: 28px; height: 28px"
-                        >
-                          <v-icon
-                            :icon="
-                              index === 0
-                                ? 'mdi-airplane-takeoff'
-                                : index === form.stops.length - 1
-                                  ? 'mdi-airplane-landing'
-                                  : 'mdi-map-marker'
-                            "
-                            color="white"
-                            size="x-small"
-                          ></v-icon>
-                        </div>
-                      </div>
-
-                      <!-- Node Right Content (Inputs & Header) -->
-                      <div class="timeline-node-content flex-grow-1">
-                        <div class="d-flex align-center justify-space-between ga-2 mb-2">
-                          <span class="text-caption font-weight-bold text-primary d-flex align-center ga-1">
-                            <v-icon
-                              class="desktop-node-icon"
-                              :icon="
-                                index === 0
-                                  ? 'mdi-airplane-takeoff'
-                                  : index === form.stops.length - 1
-                                    ? 'mdi-airplane-landing'
-                                    : 'mdi-map-marker'
-                              "
-                              :color="
-                                index === 0
-                                  ? 'primary'
-                                  : index === form.stops.length - 1
-                                    ? 'success'
-                                    : 'info'
-                              "
-                              size="x-small"
-                            ></v-icon>
-                            <span>
-                              {{
-                                index === 0
-                                  ? $t('absence.dep_uk')
-                                  : index === form.stops.length - 1
-                                    ? $t('absence.ret_uk')
-                                    : $t('absence.stop_number', { n: index })
-                              }}
-                            </span>
-                          </span>
-
-                          <v-btn
-                            v-if="index > 0 && index < form.stops.length - 1"
-                            icon="mdi-close"
-                            variant="text"
-                            color="error"
-                            size="x-small"
-                            :title="$t('absence.remove_stop')"
-                            @click="removeStopNode(index)"
-                          ></v-btn>
-                        </div>
-
-                        <!-- Date Input (Node) -->
-                        <v-text-field
-                          v-model="stop.date"
-                          type="date"
-                          :label="
-                            index === 0
-                              ? $t('absence.departure_date')
-                              : index === form.stops.length - 1
-                                ? $t('absence.return_date')
-                                : 'Date'
-                          "
-                          variant="outlined"
-                          density="compact"
-                          hide-details="auto"
-                          :error-messages="
-                            index === 0
-                              ? startDateError
-                              : index === form.stops.length - 1
-                                ? endDateError
-                                : ''
-                          "
-                          class="w-100"
-                          required
-                        ></v-text-field>
-                      </div>
-                    </div>
-
-                    <!-- EDGE Item (Destination to Next Node) -->
-                    <div
-                      v-if="index < form.stops.length - 1"
-                      class="timeline-edge-item d-flex align-stretch"
-                    >
-                      <!-- Vertical timeline connector left indicator -->
-                      <div class="timeline-indicator-left flex-column align-center justify-center my-1">
-                        <div class="vertical-line-flex"></div>
-                        <v-icon icon="mdi-chevron-down" size="small" color="primary" class="my-1"></v-icon>
-                        <div class="vertical-line-flex"></div>
-                      </div>
-
-                      <!-- Edge Right Content (Destination Input) -->
-                      <div class="timeline-edge-content flex-grow-1 px-0 py-1 d-flex flex-column justify-center">
-                        <div class="text-caption font-weight-medium text-medium-emphasis mb-1 d-flex align-center ga-1">
-                          <v-icon icon="mdi-map-marker-outline" size="12"></v-icon>
-                          <span>{{ $t('absence.leg_dest') }}</span>
-                        </div>
-
-                        <v-text-field
-                          v-model="stop.dest"
-                          placeholder="e.g. Hong Kong, Japan"
-                          variant="outlined"
-                          density="compact"
-                          hide-details="auto"
-                          class="w-100"
-                        ></v-text-field>
-
-                        <!-- Horizontal Arrow for Desktop -->
-                        <div class="edge-line-arrow desktop-edge-arrow d-flex align-center justify-center w-100 mt-2">
-                          <div class="line-flex"></div>
-                          <v-icon icon="mdi-chevron-right" size="small" color="primary"></v-icon>
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-                </div>
-              </div>
-
-              <!-- Controls to Add Stop -->
-              <div class="d-flex align-center ga-3 mb-4">
-                <v-btn
-                  variant="tonal"
-                  color="info"
-                  size="small"
-                  prepend-icon="mdi-plus"
-                  @click="addStopNode"
-                >
-                  {{ $t('absence.add_stop') }}
-                </v-btn>
-                <span v-if="nodeDateError" class="text-caption text-error">
-                  {{ nodeDateError }}
-                </span>
-              </div>
-
-              <!-- Form Days Calculation Badge & Actions -->
-              <div class="d-flex align-center justify-space-between flex-wrap ga-4 mt-4">
-                <div class="d-flex align-center">
-                  <v-chip
-                    v-if="startDate && endDate && !dateRangeError"
-                    color="secondary"
-                    variant="tonal"
-                    prepend-icon="mdi-calculator"
-                    size="small"
-                    class="font-weight-medium"
-                  >
-                    <i18n-t keypath="absence.calculated_full_days" scope="global">
-                      <template #days>
-                        <strong class="ml-1 text-primary">{{ calculatedDaysForForm }}</strong>
-                      </template>
-                    </i18n-t>
-                  </v-chip>
-                </div>
-
-                <div class="d-flex ga-2">
-                  <v-btn
-                    v-if="editingId"
-                    variant="outlined"
-                    color="secondary"
-                    size="small"
-                    prepend-icon="mdi-close"
-                    @click="cancelEdit"
-                  >
-                    {{ $t('absence.cancel') }}
-                  </v-btn>
-
-                  <v-btn
-                    type="submit"
-                    color="primary"
-                    size="small"
-                    :disabled="!isFormValid"
-                    :prepend-icon="editingId ? 'mdi-check' : 'mdi-plus'"
-                  >
-                    {{ editingId ? $t('absence.update_record') : $t('absence.add_record') }}
-                  </v-btn>
-                </div>
-              </div>
-            </v-form>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <!-- Left Column on Wide Screen / Bottom on Narrow Screen: Absence Records (2/3 width on wide screen) -->
-      <v-col cols="12" lg="8" order-lg="1">
-        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
-          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
-            <v-icon icon="mdi-format-list-bulleted" color="primary"></v-icon>
-            <span class="text-h5 font-weight-bold">{{ $t('absence.records_title') }}</span>
-            <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold">
-              {{ absentsStore.sortedAbsences.length }}
-            </v-chip>
-          </v-card-title>
-
-          <v-card-text class="px-0 pb-0">
-            <!-- Records Table -->
-            <v-table
-              v-if="absentsStore.sortedAbsences.length > 0"
-              density="comfortable"
-              hover
-              class="border rounded-lg"
-            >
-              <thead>
-                <tr>
-                  <th class="text-left font-weight-bold" style="width: 100px">
-                    {{ $t('absence.table_status') }}
-                  </th>
-                  <th class="text-left font-weight-bold">{{ $t('absence.trip_timeline') }}</th>
-                  <th class="text-center font-weight-bold" style="width: 140px">
-                    {{ $t('absence.full_days') }}
-                  </th>
-                  <th class="text-right font-weight-bold" style="width: 110px">
-                    {{ $t('absence.table_actions') }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="item in absentsStore.sortedAbsences"
-                  :key="item.id"
-                  :class="{
-                    'bg-action-hover': editingId === item.id,
-                    'row-planned-event':
-                      isFutureEvent(item) && !isOngoingEvent(item) && editingId !== item.id,
-                    'row-ongoing-event': isOngoingEvent(item) && editingId !== item.id,
-                  }"
-                >
-                  <td class="align-middle" style="width: 100px">
-                    <!-- Event Status Chip -->
-                    <v-chip
-                      v-if="item.isAutoArrival"
-                      size="x-small"
-                      color="secondary"
-                      variant="flat"
-                      class="font-weight-bold"
-                    >
-                      {{ $t('absence.initial') }}
-                    </v-chip>
-                    <v-chip
-                      v-else-if="isOngoingEvent(item)"
-                      size="x-small"
-                      color="warning"
-                      variant="flat"
-                      class="font-weight-bold"
-                    >
-                      {{ $t('absence.ongoing') }}
-                    </v-chip>
-                    <v-chip
-                      v-else-if="isFutureEvent(item)"
-                      size="x-small"
-                      color="info"
-                      variant="outlined"
-                      class="font-weight-medium"
-                    >
-                      {{ $t('absence.planned') }}
-                    </v-chip>
-                    <v-chip
-                      v-else
-                      size="x-small"
-                      color="grey"
-                      variant="tonal"
-                      class="font-weight-regular text-caption"
-                    >
-                      {{ $t('absence.past') }}
-                    </v-chip>
-                  </td>
-
-                  <td class="py-3 align-middle">
-                    <!-- FULL Mode Timeline -->
-                    <div
-                      v-if="timelineViewMode === 'full'"
-                      class="d-flex align-center flex-nowrap ga-1 overflow-x-auto py-1 w-100"
-                    >
-                      <template v-for="(stop, idx) in getRecordStops(item)" :key="idx">
-                        <!-- List NODE -->
-                        <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
-                          <v-icon
-                            :icon="
-                              idx === 0
-                                ? 'mdi-airplane-takeoff'
-                                : idx === getRecordStops(item).length - 1
-                                  ? 'mdi-airplane-landing'
-                                  : 'mdi-map-marker'
-                            "
-                            :color="
-                              idx === 0
-                                ? 'primary'
-                                : idx === getRecordStops(item).length - 1
-                                  ? 'success'
-                                  : 'info'
-                            "
-                            size="x-small"
-                          ></v-icon>
-                          <span class="text-caption font-weight-bold text-no-wrap">
-                            {{ formatDate(stop.date) }}
-                          </span>
-                        </div>
-
-                        <!-- List EDGE Connector -->
-                        <div
-                          v-if="idx < getRecordStops(item).length - 1"
-                          class="d-flex align-center justify-center ga-1 px-1 flex-grow-1"
-                          style="min-width: 50px"
-                        >
-                          <div class="edge-line flex-grow-1"></div>
-                          <v-chip
-                            v-if="stop.dest"
-                            size="x-small"
-                            color="primary"
-                            variant="tonal"
-                            class="font-weight-medium text-no-wrap"
-                          >
-                            <v-icon start icon="mdi-map-marker-outline" size="10"></v-icon>
-                            {{ stop.dest }}
-                          </v-chip>
-                          <div class="edge-line flex-grow-1"></div>
-                          <v-icon icon="mdi-chevron-right" size="x-small" color="primary"></v-icon>
-                        </div>
-                      </template>
-                    </div>
-
-                    <!-- COMPACT Mode Timeline -->
-                    <div
-                      v-else
-                      class="d-flex align-center flex-nowrap ga-1 overflow-x-auto py-1 w-100"
-                    >
-                      <!-- Departure Node -->
-                      <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
-                        <v-icon icon="mdi-airplane-takeoff" color="primary" size="x-small"></v-icon>
-                        <span class="text-caption font-weight-bold text-no-wrap">
-                          {{ formatDate(item.startDate) }}
-                        </span>
-                      </div>
-
-                      <!-- Summary Edge -->
-                      <div class="d-flex align-center justify-center ga-1 px-1 flex-grow-1" style="min-width: 60px">
-                        <div class="edge-line flex-grow-1"></div>
-                        <v-chip
-                          size="x-small"
-                          color="primary"
-                          variant="tonal"
-                          class="font-weight-medium text-no-wrap"
-                        >
-                          <v-icon start icon="mdi-map-marker-outline" size="10"></v-icon>
-                          {{ item.dest || $t('absence.unspecified') }}
-                        </v-chip>
-                        <div class="edge-line flex-grow-1"></div>
-                        <v-icon icon="mdi-chevron-right" size="x-small" color="primary"></v-icon>
-                      </div>
-
-                      <!-- Return Node -->
-                      <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
-                        <v-icon icon="mdi-airplane-landing" color="success" size="x-small"></v-icon>
-                        <span class="text-caption font-weight-bold text-no-wrap">
-                          {{ formatDate(item.endDate) }}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="text-center align-middle">
-                    <v-chip
-                      :color="
-                        isOngoingEvent(item)
-                          ? 'warning'
-                          : isFutureEvent(item)
-                            ? 'info'
-                            : calculateDays(item.startDate, item.endDate) > 0
-                              ? 'primary'
-                              : 'grey'
-                      "
-                      size="x-small"
-                      :variant="
-                        isFutureEvent(item) && !isOngoingEvent(item) ? 'outlined' : 'tonal'
-                      "
-                      :class="{
-                        'font-weight-bold': !isFutureEvent(item) || isOngoingEvent(item),
-                        'font-weight-medium opacity-90':
-                          isFutureEvent(item) && !isOngoingEvent(item),
-                      }"
-                    >
-                      {{ calculateDays(item.startDate, item.endDate) }} day(s)
-                    </v-chip>
-                  </td>
-                  <td class="text-right align-middle">
-                    <template v-if="item.isAutoArrival || item.id === 'auto_uk_arrival_record'">
-                      <v-chip
-                        size="x-small"
-                        color="secondary"
-                        variant="tonal"
-                        prepend-icon="mdi-lock-outline"
-                        title="Initial UK Entry record is managed via Key Dates"
-                        class="font-weight-medium"
-                      >
-                        {{ $t('absence.managed') }}
-                      </v-chip>
-                    </template>
-                    <template v-else>
-                      <v-menu location="bottom end">
-                        <template #activator="{ props }">
-                          <v-btn
-                            icon="mdi-dots-vertical"
-                            variant="text"
-                            size="small"
-                            v-bind="props"
-                            title="Actions menu"
-                          ></v-btn>
-                        </template>
-                        <v-list density="compact" class="rounded-lg elevation-4">
-                          <v-list-item
-                            prepend-icon="mdi-pencil-outline"
-                            :title="$t('absence.edit_record_title')"
-                            @click="startEdit(item)"
-                          ></v-list-item>
-                          <v-list-item
-                            prepend-icon="mdi-delete-outline"
-                            :title="$t('absence.delete_record_title')"
-                            @click="confirmDelete(item)"
-                          ></v-list-item>
-                        </v-list>
-                      </v-menu>
-                    </template>
-                  </td>
-                </tr>
-              </tbody>
-            </v-table>
-
-            <!-- Empty State -->
-            <div v-else class="pa-6 text-center">
-              <v-avatar color="surface-variant" size="56" class="mb-2">
-                <v-icon icon="mdi-airplane-off" size="28" color="medium-emphasis"></v-icon>
-              </v-avatar>
-              <h3 class="text-subtitle-1 font-weight-bold mb-1">{{ $t('absence.no_records_title') }}</h3>
-              <p class="text-caption text-medium-emphasis mb-0">
-                {{ $t('absence.no_records_desc') }}
-              </p>
-            </div>
-
-            <!-- Card Bottom Actions: View Mode Toggle -->
-            <div v-if="absentsStore.sortedAbsences.length > 0" class="d-flex align-center justify-end mt-3">
-              <v-btn-toggle
-                v-model="timelineViewMode"
-                mandatory
-                density="compact"
-                size="x-small"
-                color="primary"
-                variant="outlined"
-                class="rounded-lg"
-              >
-                <v-btn value="full" prepend-icon="mdi-timeline-text-outline">
-                  {{ $t('absence.view_full') }}
-                </v-btn>
-                <v-btn value="compact" prepend-icon="mdi-view-compact-outline">
-                  {{ $t('absence.view_compact') }}
-                </v-btn>
-              </v-btn-toggle>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- 5. ILR / Settlement | British Citizenship -->
-    <v-row v-if="absentsStore.isVisaDateSet" density="default">
-      <!-- ILR / Settlement Card -->
+      <!-- 2. ILR / Settlement | British Citizenship -->
+      <template v-if="absentsStore.isVisaDateSet">
+        <!-- ILR / Settlement Card -->
       <v-col cols="12" md="6">
         <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
           <v-card-title
@@ -1760,90 +1268,590 @@ export default {
           </v-card-text>
         </v-card>
       </v-col>
+    </template>
+
+    <!-- 3. Add Absence Record & Absence Records Row -->
+    <!-- Right Column on Wide Screen / Top on Narrow Screen: Add Absence Record & Custom Date Range (1/3 width on wide screen) -->
+    <v-col cols="12" lg="4" order-lg="2" class="d-flex flex-column ga-6">
+        <!-- Add Absence Record Card -->
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
+          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
+            <v-icon :icon="editingId ? 'mdi-pencil' : 'mdi-plus-circle'" color="primary"></v-icon>
+            <span class="text-h5 font-weight-bold">
+              {{ editingId ? $t('absence.edit_record') : $t('absence.add_record') }}
+            </span>
+          </v-card-title>
+
+          <v-card-text class="px-0 pb-0">
+            <v-form @submit.prevent="handleSave">
+              <!-- Responsive Graph Timeline Flow for Multi-Stop Trip Editor -->
+              <div class="editor-timeline-container mb-3 w-100">
+                <div class="editor-timeline-flow py-2 px-1 w-100">
+                  <template v-for="(stop, index) in form.stops" :key="index">
+                    <!-- NODE Item (Date) -->
+                    <div class="timeline-node-item d-flex align-stretch">
+                      <!-- Vertical timeline left indicator -->
+                      <div class="timeline-indicator-left flex-column align-center justify-start pt-1">
+                        <div
+                          class="node-icon-bubble rounded-circle d-flex align-center justify-center elevation-1"
+                          :class="
+                            index === 0
+                              ? 'bg-primary'
+                              : index === form.stops.length - 1
+                                ? 'bg-success'
+                                : 'bg-info'
+                          "
+                          style="width: 28px; height: 28px"
+                        >
+                          <v-icon
+                            :icon="
+                              index === 0
+                                ? 'mdi-airplane-takeoff'
+                                : index === form.stops.length - 1
+                                  ? 'mdi-airplane-landing'
+                                  : 'mdi-map-marker'
+                            "
+                            color="white"
+                            size="x-small"
+                          ></v-icon>
+                        </div>
+                      </div>
+
+                      <!-- Node Right Content (Inputs & Header) -->
+                      <div class="timeline-node-content flex-grow-1">
+                        <div class="d-flex align-center justify-space-between ga-2 mb-2">
+                          <span class="text-caption font-weight-bold text-primary d-flex align-center ga-1">
+                            <v-icon
+                              class="desktop-node-icon"
+                              :icon="
+                                index === 0
+                                  ? 'mdi-airplane-takeoff'
+                                  : index === form.stops.length - 1
+                                    ? 'mdi-airplane-landing'
+                                    : 'mdi-map-marker'
+                              "
+                              :color="
+                                index === 0
+                                  ? 'primary'
+                                  : index === form.stops.length - 1
+                                    ? 'success'
+                                    : 'info'
+                              "
+                              size="x-small"
+                            ></v-icon>
+                            <span>
+                              {{
+                                index === 0
+                                  ? $t('absence.dep_uk')
+                                  : index === form.stops.length - 1
+                                    ? $t('absence.ret_uk')
+                                    : $t('absence.stop_number', { n: index })
+                              }}
+                            </span>
+                          </span>
+
+                          <v-btn
+                            v-if="index > 0 && index < form.stops.length - 1"
+                            icon="mdi-close"
+                            variant="text"
+                            color="error"
+                            size="x-small"
+                            :title="$t('absence.remove_stop')"
+                            @click="removeStopNode(index)"
+                          ></v-btn>
+                        </div>
+
+                        <!-- Date Input (Node) -->
+                        <v-text-field
+                          v-model="stop.date"
+                          type="date"
+                          :label="
+                            index === 0
+                              ? $t('absence.departure_date')
+                              : index === form.stops.length - 1
+                                ? $t('absence.return_date')
+                                : 'Date'
+                          "
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :error-messages="
+                            index === 0
+                              ? startDateError
+                              : index === form.stops.length - 1
+                                ? endDateError
+                                : ''
+                          "
+                          class="w-100"
+                          required
+                        ></v-text-field>
+                      </div>
+                    </div>
+
+                    <!-- EDGE Item (Destination to Next Node) -->
+                    <div
+                      v-if="index < form.stops.length - 1"
+                      class="timeline-edge-item d-flex align-stretch"
+                    >
+                      <!-- Vertical timeline connector left indicator -->
+                      <div class="timeline-indicator-left flex-column align-center justify-center my-1">
+                        <div class="vertical-line-flex"></div>
+                        <v-icon icon="mdi-chevron-down" size="small" color="primary" class="my-1"></v-icon>
+                        <div class="vertical-line-flex"></div>
+                      </div>
+
+                      <!-- Edge Right Content (Destination Input) -->
+                      <div class="timeline-edge-content flex-grow-1 px-0 py-1 d-flex flex-column justify-center">
+                        <div class="text-caption font-weight-medium text-medium-emphasis mb-1 d-flex align-center ga-1">
+                          <v-icon icon="mdi-map-marker-outline" size="12"></v-icon>
+                          <span>{{ $t('absence.leg_dest') }}</span>
+                        </div>
+
+                        <v-text-field
+                          v-model="stop.dest"
+                          placeholder="e.g. Hong Kong, Japan"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          class="w-100"
+                        ></v-text-field>
+
+                        <!-- Horizontal Arrow for Desktop -->
+                        <div class="edge-line-arrow desktop-edge-arrow d-flex align-center justify-center w-100 mt-2">
+                          <div class="line-flex"></div>
+                          <v-icon icon="mdi-chevron-right" size="small" color="primary"></v-icon>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Controls to Add Stop -->
+              <div class="d-flex align-center ga-3 mb-4">
+                <v-btn
+                  variant="tonal"
+                  color="info"
+                  size="small"
+                  prepend-icon="mdi-plus"
+                  @click="addStopNode"
+                >
+                  {{ $t('absence.add_stop') }}
+                </v-btn>
+                <span v-if="nodeDateError" class="text-caption text-error">
+                  {{ nodeDateError }}
+                </span>
+              </div>
+
+              <!-- Form Days Calculation Badge & Actions -->
+              <div class="d-flex align-center justify-space-between flex-wrap ga-4 mt-4">
+                <div class="d-flex align-center">
+                  <v-chip
+                    v-if="startDate && endDate && !dateRangeError"
+                    color="secondary"
+                    variant="tonal"
+                    prepend-icon="mdi-calculator"
+                    size="small"
+                    class="font-weight-medium"
+                  >
+                    <i18n-t keypath="absence.calculated_full_days" scope="global">
+                      <template #days>
+                        <strong class="ml-1 text-primary">{{ calculatedDaysForForm }}</strong>
+                      </template>
+                    </i18n-t>
+                  </v-chip>
+                </div>
+
+                <div class="d-flex ga-2">
+                  <v-btn
+                    v-if="editingId"
+                    variant="outlined"
+                    color="secondary"
+                    size="small"
+                    prepend-icon="mdi-close"
+                    @click="cancelEdit"
+                  >
+                    {{ $t('absence.cancel') }}
+                  </v-btn>
+
+                  <v-btn
+                    type="submit"
+                    color="primary"
+                    size="small"
+                    :disabled="!isFormValid"
+                    :prepend-icon="editingId ? 'mdi-check' : 'mdi-plus'"
+                  >
+                    {{ editingId ? $t('absence.update_record') : $t('absence.add_record') }}
+                  </v-btn>
+                </div>
+              </div>
+            </v-form>
+          </v-card-text>
+        </v-card>
+
+        <!-- Custom Date Range Card -->
+        <v-card v-if="absentsStore.isVisaDateSet" elevation="2" class="pa-3 rounded-lg bg-surface">
+          <v-card-title
+            class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
+          >
+            <div class="d-flex align-center ga-2">
+              <v-icon icon="mdi-calendar-range" color="primary"></v-icon>
+              <span class="text-h5 font-weight-bold">{{ $t('absence.custom_range_title') }}</span>
+              <v-chip
+                color="primary"
+                variant="tonal"
+                size="x-small"
+                prepend-icon="mdi-lightning-bolt"
+              >
+                {{ $t('absence.instant_query') }}
+              </v-chip>
+            </div>
+          </v-card-title>
+
+          <v-card-text class="px-0 pb-0">
+            <p class="text-caption text-medium-emphasis mb-4">
+              {{ $t('absence.custom_range_desc') }}
+            </p>
+
+            <v-row density="compact">
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="queryForm.startDate"
+                  :label="$t('absence.query_start')"
+                  type="date"
+                  variant="outlined"
+                  density="compact"
+                  prepend-inner-icon="mdi-calendar-start-outline"
+                  :min="minQueryStartDate"
+                  :max="maxSegmentTreeReturnDate"
+                  :error-messages="queryStartDateError"
+                  hide-details="auto"
+                  class="mb-3"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="queryForm.endDate"
+                  :label="$t('absence.query_end')"
+                  type="date"
+                  variant="outlined"
+                  density="compact"
+                  prepend-inner-icon="mdi-calendar-end-outline"
+                  :min="minQueryEndDate"
+                  :max="maxSegmentTreeReturnDate"
+                  :error-messages="queryEndDateError"
+                  hide-details="auto"
+                  class="mb-3"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12">
+                <v-card
+                  variant="tonal"
+                  :color="queryStartDateError || queryEndDateError ? 'error' : 'primary'"
+                  class="pa-3 text-center rounded-lg d-flex align-center justify-space-between"
+                >
+                  <span class="text-subtitle-2 font-weight-medium">{{ $t('absence.queried_range_absences') }}</span>
+                  <span class="text-h5 font-weight-bold">{{ queriedRangeDays }} {{ $t('absence.full_days') }}</span>
+                </v-card>
+              </v-col>
+            </v-row>
+
+            <div class="d-flex justify-end mt-3">
+              <v-btn
+                color="primary"
+                size="small"
+                prepend-icon="mdi-restore"
+                title="Reset query range to maximum 10-year period"
+                @click="resetQueryDateRangeToMax"
+              >
+                {{ $t('absence.reset_max_range') }}
+              </v-btn>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- Left Column on Wide Screen / Bottom on Narrow Screen: Absence Records (2/3 width on wide screen) -->
+      <v-col cols="12" lg="8" order-lg="1">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
+          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
+            <v-icon icon="mdi-format-list-bulleted" color="primary"></v-icon>
+            <span class="text-h5 font-weight-bold">{{ $t('absence.records_title') }}</span>
+            <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold">
+              {{ absentsStore.sortedAbsences.length }}
+            </v-chip>
+          </v-card-title>
+
+          <v-card-text class="px-0 pb-0">
+            <!-- Records Table -->
+            <v-table
+              v-if="absentsStore.sortedAbsences.length > 0"
+              density="comfortable"
+              hover
+              class="border rounded-lg"
+            >
+              <thead>
+                <tr>
+                  <th class="text-left font-weight-bold" style="width: 100px">
+                    {{ $t('absence.table_status') }}
+                  </th>
+                  <th class="text-left font-weight-bold">{{ $t('absence.trip_timeline') }}</th>
+                  <th class="text-center font-weight-bold" style="width: 140px">
+                    {{ $t('absence.full_days') }}
+                  </th>
+                  <th class="text-right font-weight-bold" style="width: 110px">
+                    {{ $t('absence.table_actions') }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="item in absentsStore.sortedAbsences"
+                  :key="item.id"
+                  :class="{
+                    'bg-action-hover': editingId === item.id,
+                    'row-planned-event':
+                      isFutureEvent(item) && !isOngoingEvent(item) && editingId !== item.id,
+                    'row-ongoing-event': isOngoingEvent(item) && editingId !== item.id,
+                  }"
+                >
+                  <td class="align-middle" style="width: 100px">
+                    <!-- Event Status Chip -->
+                    <v-chip
+                      v-if="item.isAutoArrival"
+                      size="x-small"
+                      color="secondary"
+                      variant="flat"
+                      class="font-weight-bold"
+                    >
+                      {{ $t('absence.initial') }}
+                    </v-chip>
+                    <v-chip
+                      v-else-if="isOngoingEvent(item)"
+                      size="x-small"
+                      color="warning"
+                      variant="flat"
+                      class="font-weight-bold"
+                    >
+                      {{ $t('absence.ongoing') }}
+                    </v-chip>
+                    <v-chip
+                      v-else-if="isFutureEvent(item)"
+                      size="x-small"
+                      color="info"
+                      variant="outlined"
+                      class="font-weight-medium"
+                    >
+                      {{ $t('absence.planned') }}
+                    </v-chip>
+                    <v-chip
+                      v-else
+                      size="x-small"
+                      color="grey"
+                      variant="tonal"
+                      class="font-weight-regular text-caption"
+                    >
+                      {{ $t('absence.past') }}
+                    </v-chip>
+                  </td>
+
+                  <td class="py-3 align-middle">
+                    <!-- FULL Mode Timeline -->
+                    <div
+                      v-if="timelineViewMode === 'full'"
+                      class="d-flex align-center flex-nowrap ga-1 overflow-x-auto py-1 w-100"
+                    >
+                      <template v-for="(stop, idx) in getRecordStops(item)" :key="idx">
+                        <!-- List NODE -->
+                        <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
+                          <v-icon
+                            :icon="
+                              idx === 0
+                                ? 'mdi-airplane-takeoff'
+                                : idx === getRecordStops(item).length - 1
+                                  ? 'mdi-airplane-landing'
+                                  : 'mdi-map-marker'
+                            "
+                            :color="
+                              idx === 0
+                                ? 'primary'
+                                : idx === getRecordStops(item).length - 1
+                                  ? 'success'
+                                  : 'info'
+                            "
+                            size="x-small"
+                          ></v-icon>
+                          <span class="text-caption font-weight-bold text-no-wrap">
+                            {{ formatDate(stop.date) }}
+                          </span>
+                        </div>
+
+                        <!-- List EDGE Connector -->
+                        <div
+                          v-if="idx < getRecordStops(item).length - 1"
+                          class="d-flex align-center justify-center ga-1 px-1 flex-grow-1"
+                          style="min-width: 50px"
+                        >
+                          <div class="edge-line flex-grow-1"></div>
+                          <v-chip
+                            v-if="stop.dest"
+                            size="x-small"
+                            color="primary"
+                            variant="tonal"
+                            class="font-weight-medium text-no-wrap"
+                          >
+                            <v-icon start icon="mdi-map-marker-outline" size="10"></v-icon>
+                            {{ stop.dest }}
+                          </v-chip>
+                          <div class="edge-line flex-grow-1"></div>
+                          <v-icon icon="mdi-chevron-right" size="x-small" color="primary"></v-icon>
+                        </div>
+                      </template>
+                    </div>
+
+                    <!-- COMPACT Mode Timeline -->
+                    <div
+                      v-else
+                      class="d-flex align-center flex-nowrap ga-1 overflow-x-auto py-1 w-100"
+                    >
+                      <!-- Departure Node -->
+                      <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
+                        <v-icon icon="mdi-airplane-takeoff" color="primary" size="x-small"></v-icon>
+                        <span class="text-caption font-weight-bold text-no-wrap">
+                          {{ formatDate(item.startDate) }}
+                        </span>
+                      </div>
+
+                      <!-- Summary Edge -->
+                      <div class="d-flex align-center justify-center ga-1 px-1 flex-grow-1" style="min-width: 60px">
+                        <div class="edge-line flex-grow-1"></div>
+                        <v-chip
+                          size="x-small"
+                          color="primary"
+                          variant="tonal"
+                          class="font-weight-medium text-no-wrap"
+                        >
+                          <v-icon start icon="mdi-map-marker-outline" size="10"></v-icon>
+                          {{ item.dest || $t('absence.unspecified') }}
+                        </v-chip>
+                        <div class="edge-line flex-grow-1"></div>
+                        <v-icon icon="mdi-chevron-right" size="x-small" color="primary"></v-icon>
+                      </div>
+
+                      <!-- Return Node -->
+                      <div class="d-flex align-center ga-1 bg-surface-variant px-2 py-1 rounded border flex-shrink-0">
+                        <v-icon icon="mdi-airplane-landing" color="success" size="x-small"></v-icon>
+                        <span class="text-caption font-weight-bold text-no-wrap">
+                          {{ formatDate(item.endDate) }}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center align-middle">
+                    <v-chip
+                      :color="
+                        isOngoingEvent(item)
+                          ? 'warning'
+                          : isFutureEvent(item)
+                            ? 'info'
+                            : calculateDays(item.startDate, item.endDate) > 0
+                              ? 'primary'
+                              : 'grey'
+                      "
+                      size="x-small"
+                      :variant="
+                        isFutureEvent(item) && !isOngoingEvent(item) ? 'outlined' : 'tonal'
+                      "
+                      :class="{
+                        'font-weight-bold': !isFutureEvent(item) || isOngoingEvent(item),
+                        'font-weight-medium opacity-90':
+                          isFutureEvent(item) && !isOngoingEvent(item),
+                      }"
+                    >
+                      {{ calculateDays(item.startDate, item.endDate) }} day(s)
+                    </v-chip>
+                  </td>
+                  <td class="text-right align-middle">
+                    <template v-if="item.isAutoArrival || item.id === 'auto_uk_arrival_record'">
+                      <v-chip
+                        size="x-small"
+                        color="secondary"
+                        variant="tonal"
+                        prepend-icon="mdi-lock-outline"
+                        title="Initial UK Entry record is managed via Key Dates"
+                        class="font-weight-medium"
+                      >
+                        {{ $t('absence.managed') }}
+                      </v-chip>
+                    </template>
+                    <template v-else>
+                      <v-menu location="bottom end">
+                        <template #activator="{ props }">
+                          <v-btn
+                            icon="mdi-dots-vertical"
+                            variant="text"
+                            size="small"
+                            v-bind="props"
+                            title="Actions menu"
+                          ></v-btn>
+                        </template>
+                        <v-list density="compact" class="rounded-lg elevation-4">
+                          <v-list-item
+                            prepend-icon="mdi-pencil-outline"
+                            :title="$t('absence.edit_record_title')"
+                            @click="startEdit(item)"
+                          ></v-list-item>
+                          <v-list-item
+                            prepend-icon="mdi-delete-outline"
+                            :title="$t('absence.delete_record_title')"
+                            @click="confirmDelete(item)"
+                          ></v-list-item>
+                        </v-list>
+                      </v-menu>
+                    </template>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+
+            <!-- Empty State -->
+            <div v-else class="pa-6 text-center">
+              <v-avatar color="surface-variant" size="56" class="mb-2">
+                <v-icon icon="mdi-airplane-off" size="28" color="medium-emphasis"></v-icon>
+              </v-avatar>
+              <h3 class="text-subtitle-1 font-weight-bold mb-1">{{ $t('absence.no_records_title') }}</h3>
+              <p class="text-caption text-medium-emphasis mb-0">
+                {{ $t('absence.no_records_desc') }}
+              </p>
+            </div>
+
+            <!-- Card Bottom Actions: View Mode Toggle -->
+            <div v-if="absentsStore.sortedAbsences.length > 0" class="d-flex align-center justify-end mt-3">
+              <v-btn-toggle
+                v-model="timelineViewMode"
+                mandatory
+                density="compact"
+                size="x-small"
+                color="primary"
+                variant="outlined"
+                class="rounded-lg"
+              >
+                <v-btn value="full" prepend-icon="mdi-timeline-text-outline">
+                  {{ $t('absence.view_full') }}
+                </v-btn>
+                <v-btn value="compact" prepend-icon="mdi-view-compact-outline">
+                  {{ $t('absence.view_compact') }}
+                </v-btn>
+              </v-btn-toggle>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
     </v-row>
 
-    <!-- 6. Custom Date Range -->
-    <v-card v-if="absentsStore.isVisaDateSet" elevation="2" class="pa-3 rounded-lg bg-surface">
-      <v-card-title
-        class="px-0 pt-0 d-flex align-center justify-space-between flex-wrap ga-2"
-      >
-        <div class="d-flex align-center ga-2">
-          <v-icon icon="mdi-calendar-range" color="primary"></v-icon>
-          <span class="text-h5 font-weight-bold">{{ $t('absence.custom_range_title') }}</span>
-          <v-chip
-            color="primary"
-            variant="tonal"
-            size="x-small"
-            prepend-icon="mdi-lightning-bolt"
-          >
-            {{ $t('absence.instant_query') }}
-          </v-chip>
-        </div>
-      </v-card-title>
-
-      <v-card-text class="px-0 pb-0">
-        <p class="text-caption text-medium-emphasis mb-4">
-          {{ $t('absence.custom_range_desc') }}
-        </p>
-
-        <v-row density="compact">
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="queryForm.startDate"
-              :label="$t('absence.query_start')"
-              type="date"
-              variant="outlined"
-              density="compact"
-              prepend-inner-icon="mdi-calendar-start-outline"
-              :min="minQueryStartDate"
-              :max="maxSegmentTreeReturnDate"
-              :error-messages="queryStartDateError"
-              hide-details="auto"
-              class="mb-3"
-            ></v-text-field>
-          </v-col>
-
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="queryForm.endDate"
-              :label="$t('absence.query_end')"
-              type="date"
-              variant="outlined"
-              density="compact"
-              prepend-inner-icon="mdi-calendar-end-outline"
-              :min="minQueryEndDate"
-              :max="maxSegmentTreeReturnDate"
-              :error-messages="queryEndDateError"
-              hide-details="auto"
-              class="mb-3"
-            ></v-text-field>
-          </v-col>
-
-          <v-col cols="12">
-            <v-card
-              variant="tonal"
-              :color="queryStartDateError || queryEndDateError ? 'error' : 'primary'"
-              class="pa-3 text-center rounded-lg d-flex align-center justify-space-between"
-            >
-              <span class="text-subtitle-2 font-weight-medium">{{ $t('absence.queried_range_absences') }}</span>
-              <span class="text-h5 font-weight-bold">{{ queriedRangeDays }} {{ $t('absence.full_days') }}</span>
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <div class="d-flex justify-end mt-3">
-          <v-btn
-            color="primary"
-            size="small"
-            prepend-icon="mdi-restore"
-            title="Reset query range to maximum 10-year period"
-            @click="resetQueryDateRangeToMax"
-          >
-            {{ $t('absence.reset_max_range') }}
-          </v-btn>
-        </div>
-      </v-card-text>
-    </v-card>
+    <!-- Dialogs & Notifications -->
 
     <!-- Delete Single Confirmation Dialog -->
     <v-dialog v-model="deleteDialog.show" max-width="400px">

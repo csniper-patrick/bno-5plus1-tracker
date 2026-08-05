@@ -88,6 +88,7 @@ export default {
     dep_uk: 'Departure from UK',
     ret_uk: 'Return to UK',
     stop_number: 'Stop {n}',
+    stop_date: 'Date',
     table_status: 'Status',
     view_compact: 'Compact',
     view_full: 'Full',

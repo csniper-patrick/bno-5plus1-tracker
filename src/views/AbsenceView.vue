@@ -1370,7 +1370,7 @@ export default {
                               ? $t('absence.departure_date')
                               : index === form.stops.length - 1
                                 ? $t('absence.return_date')
-                                : 'Date'
+                                : $t('absence.stop_date')
                           "
                           variant="outlined"
                           density="compact"
@@ -1434,32 +1434,33 @@ export default {
                 </span>
               </div>
 
-              <!-- Form Days Calculation Badge & Actions -->
+              <!-- Calculated Full Days Chip -->
+              <div v-if="startDate && endDate && !dateRangeError" class="mt-4">
+                <v-chip
+                  color="secondary"
+                  variant="tonal"
+                  prepend-icon="mdi-calculator"
+                  size="small"
+                  class="font-weight-medium"
+                >
+                  <i18n-t keypath="absence.calculated_full_days" scope="global">
+                    <template #days>
+                      <strong class="ml-1 text-primary">{{ calculatedDaysForForm }}</strong>
+                    </template>
+                  </i18n-t>
+                </v-chip>
+              </div>
+
+              <!-- Form Actions -->
               <div class="d-flex align-center justify-space-between flex-wrap ga-4 mt-4">
-                <div class="d-flex align-center ga-3">
-                  <v-btn
-                    variant="tonal"
-                    color="info"
-                    prepend-icon="mdi-plus"
-                    @click="addStopNode"
-                  >
-                    {{ $t('absence.add_stop') }}
-                  </v-btn>
-                  <v-chip
-                    v-if="startDate && endDate && !dateRangeError"
-                    color="secondary"
-                    variant="tonal"
-                    prepend-icon="mdi-calculator"
-                    size="small"
-                    class="font-weight-medium"
-                  >
-                    <i18n-t keypath="absence.calculated_full_days" scope="global">
-                      <template #days>
-                        <strong class="ml-1 text-primary">{{ calculatedDaysForForm }}</strong>
-                      </template>
-                    </i18n-t>
-                  </v-chip>
-                </div>
+                <v-btn
+                  variant="tonal"
+                  color="info"
+                  prepend-icon="mdi-plus"
+                  @click="addStopNode"
+                >
+                  {{ $t('absence.add_stop') }}
+                </v-btn>
 
                 <div class="d-flex align-center ga-2">
                   <v-btn

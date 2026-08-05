@@ -88,6 +88,7 @@ export default {
     dep_uk: '離英 (離開英國)',
     ret_uk: '返英 (回到英國)',
     stop_number: '中途站 {n}',
+    stop_date: '日期',
     table_status: '狀態',
     view_compact: '簡潔',
     view_full: '完整',

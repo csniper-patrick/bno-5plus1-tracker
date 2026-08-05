@@ -10,7 +10,7 @@ export default {
   data() {
     return {
       // Active expansion panel for years 1-5 (default open Year 1)
-      activeYearPanel: [0],
+      activeYearPanel: 0,
 
       // Life in UK Form State
       lifeForm: {
@@ -961,7 +961,6 @@ export default {
       <v-card-text class="px-0 pb-0">
         <v-expansion-panels
           v-model="activeYearPanel"
-          multiple
           class="mt-3 border rounded-lg overflow-hidden"
         >
           <v-expansion-panel

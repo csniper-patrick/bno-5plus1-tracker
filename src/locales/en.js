@@ -164,6 +164,7 @@ export default {
     instant_query: 'Instant Query',
     custom_range_desc: 'Query total absent days within any custom interval across 10 years from Visa Start Date.',
     queried_range_absences: 'Queried Range Absences:',
+    absences: 'Absences',
     reset_max_range: 'Reset to Max Range',
     locked_title: 'Checkers & Query Tool Locked',
     locked_desc: 'Please set your BNO Visa Start Date on the left to unlock residency & naturalisation limit checking and custom date range queries.',

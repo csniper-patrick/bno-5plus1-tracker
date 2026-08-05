@@ -1427,25 +1427,24 @@ export default {
                 </div>
               </div>
 
-              <!-- Controls to Add Stop -->
-              <div class="d-flex align-center ga-3 mb-4">
-                <v-btn
-                  variant="tonal"
-                  color="info"
-                  size="small"
-                  prepend-icon="mdi-plus"
-                  @click="addStopNode"
-                >
-                  {{ $t('absence.add_stop') }}
-                </v-btn>
-                <span v-if="nodeDateError" class="text-caption text-error">
+              <!-- Node date error -->
+              <div v-if="nodeDateError" class="mb-2">
+                <span class="text-caption text-error">
                   {{ nodeDateError }}
                 </span>
               </div>
 
               <!-- Form Days Calculation Badge & Actions -->
               <div class="d-flex align-center justify-space-between flex-wrap ga-4 mt-4">
-                <div class="d-flex align-center">
+                <div class="d-flex align-center ga-3">
+                  <v-btn
+                    variant="tonal"
+                    color="info"
+                    prepend-icon="mdi-plus"
+                    @click="addStopNode"
+                  >
+                    {{ $t('absence.add_stop') }}
+                  </v-btn>
                   <v-chip
                     v-if="startDate && endDate && !dateRangeError"
                     color="secondary"
@@ -1462,12 +1461,11 @@ export default {
                   </v-chip>
                 </div>
 
-                <div class="d-flex ga-2">
+                <div class="d-flex align-center ga-2">
                   <v-btn
                     v-if="editingId"
                     variant="outlined"
                     color="secondary"
-                    size="small"
                     prepend-icon="mdi-close"
                     @click="cancelEdit"
                   >
@@ -1477,7 +1475,6 @@ export default {
                   <v-btn
                     type="submit"
                     color="primary"
-                    size="small"
                     :disabled="!isFormValid"
                     :prepend-icon="editingId ? 'mdi-check' : 'mdi-plus'"
                   >
@@ -1546,19 +1543,19 @@ export default {
                 ></v-text-field>
               </v-col>
 
-              <v-col cols="12">
-                <v-card
-                  variant="tonal"
-                  :color="queryStartDateError || queryEndDateError ? 'error' : 'primary'"
-                  class="pa-3 text-center rounded-lg d-flex align-center justify-space-between"
-                >
-                  <span class="text-subtitle-2 font-weight-medium">{{ $t('absence.queried_range_absences') }}</span>
-                  <span class="text-h5 font-weight-bold">{{ queriedRangeDays }} {{ $t('absence.full_days') }}</span>
-                </v-card>
-              </v-col>
             </v-row>
 
-            <div class="d-flex justify-end mt-3">
+            <div class="d-flex align-center justify-space-between flex-wrap ga-4 mt-3">
+              <v-chip
+                :color="queryStartDateError || queryEndDateError ? 'error' : 'primary'"
+                variant="tonal"
+                prepend-icon="mdi-calculator"
+                size="small"
+                class="font-weight-medium"
+              >
+                {{ $t('absence.absences') }}: <strong class="ml-1 text-primary">{{ queriedRangeDays }} {{ $t('absence.full_days') }}</strong>
+              </v-chip>
+
               <v-btn
                 color="primary"
                 size="small"

@@ -110,11 +110,12 @@ export default {
 
     categoryOptions() {
       return [
-        this.$t('document.cat_housing_official'),
-        this.$t('document.cat_tax_income'),
+        this.$t('document.cat_official_government'),
+        this.$t('document.cat_tax_employment'),
         this.$t('document.cat_financial'),
         this.$t('document.cat_housing'),
         this.$t('document.cat_utilities'),
+        this.$t('document.cat_medical_government'),
         this.$t('document.cat_education_employment'),
         this.$t('document.cat_medical_insurance'),
         this.$t('document.cat_custom'),
@@ -428,9 +429,12 @@ export default {
       if (!item || !item.id) return ''
       if (item.id.includes('council_tax')) return this.$t('document.item_council_tax')
       if (item.id.includes('p60_employment')) return this.$t('document.item_p60')
+      if (item.id.includes('employer_letter')) return this.$t('document.item_employer_letter')
       if (item.id.includes('bank_statements')) return this.$t('document.item_bank')
       if (item.id.includes('housing_proof')) return this.$t('document.item_housing')
       if (item.id.includes('utility_bill')) return this.$t('document.item_utility')
+      if (item.id.includes('payslips')) return this.$t('document.item_payslips')
+      if (item.id.includes('gp_nhs_letter')) return this.$t('document.item_gp_nhs')
       return item.title
     },
 
@@ -442,19 +446,77 @@ export default {
     getItemCategory(item) {
       if (!item || !item.category) return ''
       switch (item.category) {
-        case 'Official Housing':
-          return this.$t('document.cat_housing_official')
-        case 'Tax & Income':
-          return this.$t('document.cat_tax_income')
+        case 'Official & Government':
+          return this.$t('document.cat_official_government')
+        case 'Tax & Employment':
+          return this.$t('document.cat_tax_employment')
         case 'Financial':
           return this.$t('document.cat_financial')
         case 'Housing':
           return this.$t('document.cat_housing')
         case 'Utilities':
           return this.$t('document.cat_utilities')
+        case 'Medical & Government':
+          return this.$t('document.cat_medical_government')
+        // Legacy categories from pre-audit data
+        case 'Official Housing':
+          return this.$t('document.cat_official_government')
+        case 'Tax & Income':
+          return this.$t('document.cat_tax_employment')
         default:
           return item.category
       }
+    },
+
+    /**
+     * Returns Vuetify theme color for an importance tier.
+     * @param {string} importance - Importance tier ('essential' | 'recommended' | 'supporting').
+     * @returns {string} Theme color name.
+     */
+    getImportanceColor(importance) {
+      switch (importance) {
+        case 'essential':
+          return 'error'
+        case 'recommended':
+          return 'warning'
+        case 'supporting':
+          return 'info'
+        default:
+          return 'grey'
+      }
+    },
+
+    /**
+     * Returns translated label for an importance tier.
+     * @param {string} importance - Importance tier.
+     * @returns {string} Translated importance label.
+     */
+    getImportanceText(importance) {
+      switch (importance) {
+        case 'essential':
+          return this.$t('document.importance_essential')
+        case 'recommended':
+          return this.$t('document.importance_recommended')
+        case 'supporting':
+          return this.$t('document.importance_supporting')
+        default:
+          return ''
+      }
+    },
+
+    /**
+     * Returns items for a given year sorted by importance tier (essential first).
+     * @param {number} year - Residence year (1 to 5).
+     * @returns {Array} Sorted items.
+     */
+    getSortedItems(year) {
+      const items = this.residenceChecklist[year] || []
+      const order = { essential: 0, recommended: 1, supporting: 2 }
+      return [...items].sort((a, b) => {
+        const aOrder = order[a.importance] ?? 3
+        const bOrder = order[b.importance] ?? 3
+        return aOrder - bOrder
+      })
     },
 
     /**
@@ -1035,7 +1097,7 @@ export default {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="item in residenceChecklist[year] || []" :key="item.id">
+                  <tr v-for="item in getSortedItems(year)" :key="item.id">
                     <td style="width: 140px">
                       <v-menu location="bottom start">
                         <template v-slot:activator="{ props }">
@@ -1069,7 +1131,18 @@ export default {
                     </td>
 
                     <td>
-                      <div class="font-weight-medium text-body-2">{{ getItemTitle(item) }}</div>
+                      <div class="d-flex align-center ga-2 flex-wrap">
+                        <span class="font-weight-medium text-body-2">{{ getItemTitle(item) }}</span>
+                        <v-chip
+                          v-if="item.importance"
+                          :color="getImportanceColor(item.importance)"
+                          size="x-small"
+                          variant="tonal"
+                          class="font-weight-bold"
+                        >
+                          {{ getImportanceText(item.importance) }}
+                        </v-chip>
+                      </div>
                       <div class="text-caption text-medium-emphasis d-sm-none">
                         {{ getItemCategory(item) }}
                       </div>

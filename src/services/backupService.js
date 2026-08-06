@@ -85,7 +85,7 @@ export function exportFullBackup(absentsStore, documentsStore) {
                 ' English B1 Language Requirement (type: b1_selt | uk_degree | enic_statement | exempt)'
             } else if (docKey === 'residenceChecklist') {
               docPair.key.commentBefore =
-                ' 5-Year Continuous Residence Evidence Checklist (Years 1 to 5)'
+                ' 5-Year Continuous Residence Evidence Checklist (Years 1 to 5, importance: essential | recommended | supporting)'
             } else if (docKey === 'addressHistory') {
               docPair.key.commentBefore =
                 ' UK Address History Log (5-Year Residential History for SET(O) / Naturalisation)'

@@ -1,6 +1,6 @@
 import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
-import { useDocumentsStore } from './documents.js'
+
 import { AbsenceSegmentTree } from '../utils/segmentTree.js'
 import {
   parseDateUTC,
@@ -1171,9 +1171,9 @@ export const useAbsentsStore = defineStore('absents', () => {
     })
   }
 
-  /** Imports absence records and visa/arrival dates from a YAML string. */
-  function importYAML(yamlString) {
-    const parsed = parseYAML(yamlString)
+  /** Imports absence records and visa/arrival dates from a YAML string or pre-parsed object. */
+  function importYAML(input) {
+    const parsed = typeof input === 'string' ? parseYAML(input) : input
 
     const importedVisaDate = normalizeDate(
       parsed.visa_start_date || parsed.visaStartDate || parsed.visa_date || parsed.visaDate || '',
@@ -1252,17 +1252,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     syncArrivalRecord()
     rebuildSegmentTree()
 
-    if (
-      parsed.documents ||
-      parsed.addressHistory ||
-      parsed.addresses ||
-      parsed.lifeInUk ||
-      parsed.englishTest ||
-      parsed.residenceChecklist
-    ) {
-      const documentsStore = useDocumentsStore()
-      documentsStore.importData(parsed)
-    }
+
 
     return {
       count: validNewEntries.length,

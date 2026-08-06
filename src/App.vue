@@ -11,7 +11,7 @@ import { useTheme, useDisplay } from 'vuetify'
 import { useI18n } from 'vue-i18n'
 import { useAbsentsStore } from './stores/absents'
 import { useDocumentsStore } from './stores/documents'
-import { exportFullBackup, parseYAML } from './services/backupService'
+import { exportFullBackup, importBackup } from './services/backupService'
 import ReloadPrompt from './components/ReloadPrompt.vue'
 
 // Vuetify theme, display breakpoints, router, i18n, and store instances
@@ -135,22 +135,12 @@ function handleImportFileSelect(event) {
   reader.onload = (e) => {
     try {
       const content = e.target.result
-      const parsed = parseYAML(content)
-
-      // Import Absences & Key Visa Dates if present
-      let absenceCount = 0
-      if (parsed.absences || parsed.visa_start_date || parsed.uk_arrival_date) {
-        const res = absentsStore.importYAML(content)
-        absenceCount = res.count
-      }
-
-      // Import Document Tracker data (including address history) if present
-      const docsImported = documentsStore.importData(parsed)
+      const result = importBackup(content, absentsStore, documentsStore)
 
       showSnackbar(
         t('app.import_success', {
-          absenceCount,
-          docs: docsImported ? t('app.import_docs_suffix') : '',
+          absenceCount: result.absenceCount,
+          docs: result.docsImported ? t('app.import_docs_suffix') : '',
         }),
         'success',
       )

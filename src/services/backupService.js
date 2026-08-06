@@ -174,3 +174,23 @@ export function parseYAML(yamlString) {
   }
   return parsed
 }
+
+/**
+ * Imports a full YAML backup, parsing once and dispatching to both stores.
+ *
+ * @param {string} yamlString - Raw YAML string.
+ * @param {Object} absentsStore - Pinia absents store instance.
+ * @param {Object} documentsStore - Pinia documents store instance.
+ * @returns {{ absenceCount: number, docsImported: boolean }} Import result summary.
+ */
+export function importBackup(yamlString, absentsStore, documentsStore) {
+  const parsed = parseYAML(yamlString)
+
+  const absenceResult = absentsStore.importYAML(parsed)
+  const docsImported = documentsStore.importData(parsed)
+
+  return {
+    absenceCount: absenceResult.count,
+    docsImported: !!docsImported,
+  }
+}

@@ -12,6 +12,7 @@ import { useI18n } from 'vue-i18n'
 import { useAbsentsStore } from './stores/absents'
 import { useDocumentsStore } from './stores/documents'
 import { exportFullBackup, importBackup } from './services/backupService'
+import { exportZipBackup, importZipBackup } from './services/zipService'
 import ReloadPrompt from './components/ReloadPrompt.vue'
 
 // Vuetify theme, display breakpoints, router, i18n, and store instances
@@ -33,7 +34,7 @@ const snackbar = ref({
   color: 'success',
 })
 
-// File input element reference for YAML import
+// File input element reference for YAML/ZIP import
 const fileInputRef = ref(null)
 
 let mediaQuery = null
@@ -92,30 +93,29 @@ function showSnackbar(text, color = 'success') {
 }
 
 /**
- * Consolidated YAML Export for all application data (absences & documents) with inline node comments.
+ * Merged Export: Exports full application data and uploaded document files to a ZIP backup archive.
  */
-function exportAllData() {
+async function exportAllData() {
   try {
-    const yamlContent = exportFullBackup(absentsStore, documentsStore)
+    const { blob, fileCount } = await exportZipBackup(absentsStore, documentsStore)
 
-    const blob = new Blob([yamlContent], { type: 'text/yaml;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `bno-5plus1-tracker-backup_${new Date().toISOString().split('T')[0]}.yaml`
+    link.download = `bno-5plus1-tracker-backup_${new Date().toISOString().split('T')[0]}.zip`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
 
-    showSnackbar(t('app.export_success'), 'success')
+    showSnackbar(t('app.export_success', { fileCount }), 'success')
   } catch (err) {
     showSnackbar(t('app.export_failed') + err.message, 'error')
   }
 }
 
 /**
- * Trigger hidden file input click for YAML import.
+ * Trigger hidden file input click for ZIP/YAML import.
  */
 function triggerImport() {
   if (fileInputRef.value) {
@@ -125,30 +125,46 @@ function triggerImport() {
 }
 
 /**
- * Consolidated YAML Import for all application data.
+ * Consolidated Import handling both ZIP archives and standalone YAML files.
  */
-function handleImportFileSelect(event) {
+async function handleImportFileSelect(event) {
   const file = event.target.files && event.target.files[0]
   if (!file) return
 
-  const reader = new FileReader()
-  reader.onload = (e) => {
+  if (file.name.toLowerCase().endsWith('.zip')) {
     try {
-      const content = e.target.result
-      const result = importBackup(content, absentsStore, documentsStore)
-
+      const result = await importZipBackup(file, absentsStore, documentsStore)
       showSnackbar(
         t('app.import_success', {
           absenceCount: result.absenceCount,
           docs: result.docsImported ? t('app.import_docs_suffix') : '',
+          files: result.filesImported > 0 ? t('app.import_files_suffix', { count: result.filesImported }) : '',
         }),
         'success',
       )
     } catch (err) {
       showSnackbar(t('app.import_failed') + err.message, 'error')
     }
+  } else {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const content = e.target.result
+        const result = importBackup(content, absentsStore, documentsStore)
+
+        showSnackbar(
+          t('app.import_success', {
+            absenceCount: result.absenceCount,
+            docs: result.docsImported ? t('app.import_docs_suffix') : '',
+          }),
+          'success',
+        )
+      } catch (err) {
+        showSnackbar(t('app.import_failed') + err.message, 'error')
+      }
+    }
+    reader.readAsText(file)
   }
-  reader.readAsText(file)
 }
 
 /**
@@ -165,11 +181,11 @@ function confirmClearAll() {
 
 <template>
   <v-app>
-    <!-- Hidden File Input for Consolidated YAML Import -->
+    <!-- Hidden File Input for Consolidated YAML / ZIP Import -->
     <input
       ref="fileInputRef"
       type="file"
-      accept=".yaml,.yml"
+      accept=".zip,.yaml,.yml"
       style="display: none"
       @change="handleImportFileSelect"
     />

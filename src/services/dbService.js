@@ -1,5 +1,5 @@
 const DB_NAME = 'bno_5plus1_tracker_db'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const STORE_NAME = 'app_state'
 
 let dbPromise = null
@@ -30,6 +30,11 @@ function getDB() {
         const db = event.target.result
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           db.createObjectStore(STORE_NAME, { keyPath: 'key' })
+        }
+        // v2: Add files object store for binary document blob storage
+        if (!db.objectStoreNames.contains('files')) {
+          const filesStore = db.createObjectStore('files', { keyPath: 'id' })
+          filesStore.createIndex('folderId', 'folderId', { unique: false })
         }
       }
       request.onsuccess = (event) => {

@@ -36,18 +36,19 @@ An unofficial, 3rd-party web application designed for **British National (Overse
   - Enforces physical presence requirement: Automatically checks if the applicant was present in the UK 5 years prior to application, advancing the window start date if it falls on an absent day.
 - **🪪 BNO Visa Overview Card**
   - Summarizes Visa Start Date, Visa Expiry Date (with Default 5-Year / Custom badges), Earliest ILR Settlement Date, and displays prominent yellow extension warning alerts if visa extension is needed before ILR qualification.
-- **📋 Document & Qualification Tracker (`DocumentView`)**
+- **📋 Document & Qualification Tracker & Document Vault (`DocumentView`)**
   - **Life in the UK Test**: Track status (Not Started / Scheduled / Passed), test date, Unique Reference Number (URN), test center location, and notes.
   - **English Language Requirement (B1)**: Track pathway (B1 SELT Test, UK Degree, Ecctis/ENIC Statement, Exemption), provider, test date, and certificate reference.
   - **5-Year Continuous Residence Evidence Checklist**: Year-by-year checklist (Years 1 to 5) covering Council Tax, P60/Tax, Bank Statements, Housing proof, Utility Bills, and custom evidence items.
   - **UK Address History Log**: Log residential addresses lived at during your 5-year qualifying period (Move-in/out dates, postcode, tenure type) required for Home Office SET(O) and Naturalisation AN application forms.
+  - **📁 Document Vault**: Drag-and-drop file upload zone supporting PDFs, images (JPG, PNG, WebP, HEIC), and text files up to 10 MB. Organize files into folders (`Year 1-5`, `Life in UK`, `English B1`, `Addresses`, `Other`), view inline image/PDF previews, edit file notes, rename/move files, and link files directly to specific residence checklist items with paperclip count indicators.
 - **🔗 Reference & Official Guidance Page (`ReferenceView`)**
   - **Curated Official GOV.UK Resources**: Quick reference page presenting key official UK Home Office publications, policy statements, test portals, and application forms in structured cards.
   - **Category & Search Filters**: Instantly filter official resources by category (BNO Settlement, Policy & Guidance, Qualifications & Tests, Citizenship) or text search.
   - **Direct Links & One-Click Copy**: Convenient action buttons to visit official GOV.UK pages or copy URLs.
 - **🧭 Right Navigation Drawer & Consolidated Data Management**
   - Quick-switch side drawer toggled via top bar hamburger menu (`mdi-menu`).
-  - Consolidated **Commented YAML Export & Import** backing up both absence history (including optional visa expiry) and document tracker data with descriptive node comments.
+  - Unified **ZIP Backup Export & Flexible Import**: One-click export producing a `.zip` archive bundling structured data (`backup.yaml`), a YAML metadata index (`files-manifest.yaml`), and binary document files in a folder tree (`files/<folderId>/<filename>`). Import auto-detects both `.zip` archives and standalone `.yaml` files.
   - Global **Clear All Data** modal with safety confirmation.
 - **⚡ High-Performance Segment Tree Engine (`AbsenceSegmentTree`)**
   - Utilizes a custom $O(\log N)$ **Segment Tree** data structure over a 10-year day-by-day array to deliver lightning-fast custom date range queries, $O(1)$ point queries (`queryPoint`), and real-time sliding window calculations.
@@ -55,8 +56,8 @@ An unofficial, 3rd-party web application designed for **British National (Overse
   - Calculates your exact **Earliest ILR Settlement Date**, **Earliest ILR Application Date** (28 days prior), and **Target Naturalisation Date**.
 - **🎨 Modern Responsive Vuetify 3 UI**
   - Features Union Jack Dark/Light theme toggling, 3-dots vertical action menus for table rows, context-aware form controls, status chips, and intuitive 2-line Key Dates modal forms.
-- **💾 Local Device Storage & Data Privacy**
-  - All data input (travel dates, visa details, test certificates, continuous residence checklists, and address history) is stored strictly locally on your device in browser `IndexedDB` (with automatic migration from legacy `localStorage`). No data is uploaded, collected, or transmitted to any external server.
+- **💾 Local Device Storage & Data Privacy (IndexedDB Schema v2)**
+  - All data input (travel dates, visa details, test certificates, continuous residence checklists, address history, and uploaded document blobs) is stored strictly locally on your device in browser `IndexedDB` (using `app_state` and `files` object stores). No data is uploaded, collected, or transmitted to any external server.
 - **⚡ PWA Offline Support**
   - Progressive Web App capability via `vite-plugin-pwa` allowing full offline usage on mobile and desktop devices.
 
@@ -133,17 +134,20 @@ bno-5plus1-tracker/
 │   ├── plugins/           # Vuetify 3 theme & i18n configuration (vuetify.js, i18n.js)
 │   ├── router/            # Vue Router routes (index.js)
 │   ├── services/          # Services & Data I/O
-│   │   └── backupService.js # YAML export/import service with node-level comments
+│   │   ├── dbService.js         # IndexedDB initialisation & v2 schema migration
+│   │   ├── fileStorageService.js# IndexedDB file blob CRUD service ('files' object store)
+│   │   ├── backupService.js     # YAML export/import service with node-level comments
+│   │   └── zipService.js        # JSZip backup archiving & extraction service
 │   ├── stores/            # Pinia stores
 │   │   ├── absents.js     # Absence store (useAbsentsStore) & segment tree syncing
-│   │   └── documents.js   # Document store (useDocumentsStore)
+│   │   └── documents.js   # Document & file store (useDocumentsStore)
 │   ├── utils/             # Helper utilities
 │   │   ├── date.js        # Centralized UTC date parsing, formatting & day math
 │   │   ├── segmentTree.js # AbsenceSegmentTree O(log N) data structure
 │   │   └── id.js          # Unique ID generator utility
 │   ├── views/             # Application views
 │   │   ├── AbsenceView.vue  # Absence tracker dashboard
-│   │   ├── DocumentView.vue # Qualifications & Document tracker
+│   │   ├── DocumentView.vue # Qualifications, Document Vault & Residence proof checklist
 │   │   └── ReferenceView.vue # Useful links & official guidance page
 │   ├── App.vue            # Root layout with right navigation drawer & language switcher
 │   └── main.js            # Vue app entrypoint with i18n plugin initialization
@@ -160,10 +164,13 @@ bno-5plus1-tracker/
 
 - **[AbsenceSegmentTree](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/segmentTree.js)**: 1-indexed array-backed segment tree (`Int32Array`) using standard `leftNode = 2 * node` and `rightNode = 2 * node + 1` child indexing (0th index unused), initialized to zero by default, supporting $O(1)$ point queries (`queryPoint`), $O(1)$ per-step sliding window rolling updates, $O(D \log N)$ interval range updates (`updateRange`, $D = \text{range length}$), and $O(\log N)$ range sum queries (`query`) over a 10-year period (3,653 days).
 - **[date.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/date.js)**: Centralized UTC date parsing (`parseDateUTC`), formatting (`formatDateUTC`, `formatDisplayDate`), normalization (`normalizeDate`), day arithmetic (`calculateDays`, `getOneDayBefore`), and tree boundary calculations (`getMaxSegmentTreeReturnDate`).
-- **[backupService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/backupService.js)**: Consolidated YAML backup service for full application and absence-only exports with node-level comments and YAML parsing.
+- **[dbService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/dbService.js)**: Database service managing IndexedDB open/upgrade transactions, supporting `app_state` (key-value) and `files` (file blobs with `folderId` index) object stores under DB Schema Version 2.
+- **[fileStorageService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/fileStorageService.js)**: Dedicated IndexedDB binary blob service handling file record persistence, on-demand blob retrieval, size formatting, object URL creation, and metadata queries.
+- **[backupService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/backupService.js)**: Consolidated YAML backup service for structured data exports/imports with node-level comments.
+- **[zipService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/zipService.js)**: ZIP archiving engine using `jszip` and `yaml` serialization to package `backup.yaml`, `files-manifest.yaml`, and document file blobs into `.zip` archives.
 - **[locales/](file:///Users/csniper/Projects/bno-5plus1-tracker/src/locales)**: Internationalization translation dictionaries (`en.js` & `zh-HK.js`) providing full English and Traditional Chinese (HK) translations for all application views, forms, dialogs, badges, and official link cards.
 - **[useAbsentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/absents.js)**: Pinia store handling absence records, visa/arrival/ILR dates, auto-arrival record sync, and $O(1)$ sliding-window rolling calculation getters (`max12MonthAbsenceInfo`, `naturalizationQualifyingPeriod`).
-- **[useDocumentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/documents.js)**: Pinia store managing Life in the UK test details, English B1 qualification, 5-year continuous residence checklist, and UK address history log.
+- **[useDocumentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/documents.js)**: Pinia store managing Life in the UK test details, English B1 qualification, 5-year continuous residence checklist, UK address history log, and uploaded file metadata state.
 
 ---
 

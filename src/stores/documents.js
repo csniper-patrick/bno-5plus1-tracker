@@ -3,9 +3,23 @@ import { ref, computed, watch } from 'vue'
 import { normalizeDate } from '../utils/date.js'
 import { generateId } from '../utils/id.js'
 import * as dbService from '../services/dbService.js'
+import * as fileStorage from '../services/fileStorageService.js'
 
 /** Storage key for persisting document tracker state in IndexedDB */
 const STORAGE_KEY = 'bno_tracker_documents_v1'
+
+/** Predefined folders for file organization */
+const DEFAULT_FOLDERS = [
+  { id: 'year_1', label: 'Year 1', icon: 'mdi-numeric-1-circle-outline' },
+  { id: 'year_2', label: 'Year 2', icon: 'mdi-numeric-2-circle-outline' },
+  { id: 'year_3', label: 'Year 3', icon: 'mdi-numeric-3-circle-outline' },
+  { id: 'year_4', label: 'Year 4', icon: 'mdi-numeric-4-circle-outline' },
+  { id: 'year_5', label: 'Year 5', icon: 'mdi-numeric-5-circle-outline' },
+  { id: 'life_in_uk', label: 'Life in UK', icon: 'mdi-book-education-outline' },
+  { id: 'english_b1', label: 'English B1', icon: 'mdi-translate' },
+  { id: 'addresses', label: 'Addresses', icon: 'mdi-home-city-outline' },
+  { id: 'other', label: 'Other', icon: 'mdi-folder-outline' },
+]
 
 /**
  * Generates default 5-year continuous residence proof checklist.
@@ -33,15 +47,6 @@ function getDefaultResidenceChecklist() {
       dateCollected: '',
     },
     {
-      id: 'employer_letter',
-      title: 'Employer Letter (Dated & Signed)',
-      category: 'Tax & Employment',
-      importance: 'recommended',
-      status: 'pending',
-      notes: '',
-      dateCollected: '',
-    },
-    {
       id: 'housing_proof',
       title: 'Tenancy Agreement / Mortgage Statement',
       category: 'Housing',
@@ -55,33 +60,6 @@ function getDefaultResidenceChecklist() {
       title: 'UK Bank Statements',
       category: 'Financial',
       importance: 'recommended',
-      status: 'pending',
-      notes: '',
-      dateCollected: '',
-    },
-    {
-      id: 'utility_bill',
-      title: 'Utility Bill (Gas, Electricity, Water)',
-      category: 'Utilities',
-      importance: 'supporting',
-      status: 'pending',
-      notes: '',
-      dateCollected: '',
-    },
-    {
-      id: 'payslips',
-      title: 'Payslips',
-      category: 'Tax & Employment',
-      importance: 'supporting',
-      status: 'pending',
-      notes: '',
-      dateCollected: '',
-    },
-    {
-      id: 'gp_nhs_letter',
-      title: 'GP Registration / NHS Letter',
-      category: 'Medical & Government',
-      importance: 'supporting',
       status: 'pending',
       notes: '',
       dateCollected: '',
@@ -142,6 +120,12 @@ export const useDocumentsStore = defineStore('documents', () => {
   /** UK Address History Log State */
   const addressHistory = ref([])
 
+  /** Uploaded file metadata (loaded from IndexedDB, blobs loaded on-demand) */
+  const uploadedFiles = ref([])
+
+  /** Available folders for file organization */
+  const folders = ref([...DEFAULT_FOLDERS])
+
   /** Loads state from IndexedDB (migrating from localStorage if needed). */
   async function initStore() {
     await dbService.migrateFromLocalStorage([STORAGE_KEY])
@@ -156,6 +140,17 @@ export const useDocumentsStore = defineStore('documents', () => {
         addressHistory.value = sorted
       }
     }
+
+    // Load file metadata from IndexedDB (blobs loaded on-demand)
+    try {
+      const fileMeta = await fileStorage.getAllFilesMeta()
+      uploadedFiles.value = fileMeta
+      autoPromoteChecklistStatuses()
+    } catch (e) {
+      console.error('Failed to load file metadata:', e)
+      uploadedFiles.value = []
+    }
+
     isInitialized.value = true
   }
 
@@ -275,6 +270,185 @@ export const useDocumentsStore = defineStore('documents', () => {
     saveToStorage()
   }
 
+  /**
+   * Automatically promotes checklist item status from 'pending' to 'collected'
+   * if one or more document files are linked to that item (unless already 'verified').
+   */
+  function autoPromoteChecklistStatuses() {
+    if (!uploadedFiles.value || !residenceChecklist.value) return
+    const linkedSet = new Set()
+    uploadedFiles.value.forEach((f) => {
+      if (f.linkedYear && f.linkedItemId) {
+        linkedSet.add(`${f.linkedYear}_${f.linkedItemId}`)
+      }
+    })
+
+    let changed = false
+    for (let year = 1; year <= 5; year++) {
+      const items = residenceChecklist.value[year]
+      if (Array.isArray(items)) {
+        items.forEach((item) => {
+          if (linkedSet.has(`${year}_${item.id}`) && item.status === 'pending') {
+            item.status = 'collected'
+            if (!item.dateCollected) {
+              item.dateCollected = new Date().toISOString().split('T')[0]
+            }
+            changed = true
+          }
+        })
+      }
+    }
+    if (changed) {
+      saveToStorage()
+    }
+  }
+
+  // ── File Management Actions ──────────────────────────────────────────
+
+  /**
+   * Uploads a file to IndexedDB and updates reactive state.
+   * @param {File} browserFile - Browser File object from input.
+   * @param {string} folderId - Target folder ID.
+   * @param {Object} [options] - Optional linked item info.
+   * @param {number} [options.linkedYear] - Linked residence year (1-5).
+   * @param {string} [options.linkedItemId] - Linked checklist item ID.
+   * @param {string} [options.notes] - File notes.
+   * @returns {Promise<Object>} Created file metadata.
+   */
+  async function uploadFile(browserFile, folderId, options = {}) {
+    if (browserFile.size > fileStorage.MAX_FILE_SIZE) {
+      throw new Error(`File exceeds maximum size of ${fileStorage.formatFileSize(fileStorage.MAX_FILE_SIZE)}`)
+    }
+
+    const isDuplicate = uploadedFiles.value.some(
+      (f) => f.name.trim().toLowerCase() === browserFile.name.trim().toLowerCase(),
+    )
+    if (isDuplicate) {
+      throw new Error(`A file named "${browserFile.name}" already exists. File names must be unique.`)
+    }
+
+    const data = await fileStorage.readFileAsArrayBuffer(browserFile)
+    const id = generateId('file')
+    const fileRecord = {
+      id,
+      name: browserFile.name,
+      folderId: folderId || 'other',
+      mimeType: browserFile.type || 'application/octet-stream',
+      size: browserFile.size,
+      data,
+      uploadedAt: new Date().toISOString(),
+      notes: options.notes || '',
+      linkedYear: options.linkedYear || null,
+      linkedItemId: options.linkedItemId || null,
+    }
+
+    await fileStorage.saveFile(fileRecord)
+
+    // Add metadata (without blob) to reactive state
+    uploadedFiles.value.push({
+      id: fileRecord.id,
+      name: fileRecord.name,
+      folderId: fileRecord.folderId,
+      mimeType: fileRecord.mimeType,
+      size: fileRecord.size,
+      uploadedAt: fileRecord.uploadedAt,
+      notes: fileRecord.notes,
+      linkedYear: fileRecord.linkedYear,
+      linkedItemId: fileRecord.linkedItemId,
+    })
+
+    autoPromoteChecklistStatuses()
+    return fileRecord
+  }
+
+  /**
+   * Deletes a file from IndexedDB and reactive state.
+   * @param {string} fileId - File ID to delete.
+   */
+  async function deleteUploadedFile(fileId) {
+    await fileStorage.deleteFile(fileId)
+    uploadedFiles.value = uploadedFiles.value.filter((f) => f.id !== fileId)
+  }
+
+  /**
+   * Moves a file to a different folder.
+   * @param {string} fileId - File ID.
+   * @param {string} newFolderId - Target folder ID.
+   */
+  async function moveFile(fileId, newFolderId) {
+    await fileStorage.updateFileMeta(fileId, { folderId: newFolderId })
+    const file = uploadedFiles.value.find((f) => f.id === fileId)
+    if (file) file.folderId = newFolderId
+  }
+
+  /**
+   * Renames a file.
+   * @param {string} fileId - File ID.
+   * @param {string} newName - New display name.
+   */
+  async function renameFile(fileId, newName) {
+    const cleanName = newName.trim()
+    const isDuplicate = uploadedFiles.value.some(
+      (f) => f.id !== fileId && f.name.trim().toLowerCase() === cleanName.toLowerCase(),
+    )
+    if (isDuplicate) {
+      throw new Error(`A file named "${cleanName}" already exists. File names must be unique.`)
+    }
+
+    await fileStorage.updateFileMeta(fileId, { name: cleanName })
+    const file = uploadedFiles.value.find((f) => f.id === fileId)
+    if (file) file.name = cleanName
+  }
+
+  /**
+   * Updates notes on a file.
+   * @param {string} fileId - File ID.
+   * @param {string} notes - New notes text.
+   */
+  async function updateFileNotes(fileId, notes) {
+    await fileStorage.updateFileMeta(fileId, { notes })
+    const file = uploadedFiles.value.find((f) => f.id === fileId)
+    if (file) file.notes = notes
+  }
+
+  /**
+   * Links a file to a specific residence checklist item.
+   * @param {string} fileId - File ID.
+   * @param {number} year - Residence year (1-5).
+   * @param {string} itemId - Checklist item ID.
+   */
+  async function linkFileToChecklist(fileId, year, itemId) {
+    await fileStorage.updateFileMeta(fileId, { linkedYear: year, linkedItemId: itemId })
+    const file = uploadedFiles.value.find((f) => f.id === fileId)
+    if (file) {
+      file.linkedYear = year
+      file.linkedItemId = itemId
+    }
+    autoPromoteChecklistStatuses()
+  }
+
+  /**
+   * Unlinks a file from its checklist item.
+   * @param {string} fileId - File ID.
+   */
+  async function unlinkFileFromChecklist(fileId) {
+    await fileStorage.updateFileMeta(fileId, { linkedYear: null, linkedItemId: null })
+    const file = uploadedFiles.value.find((f) => f.id === fileId)
+    if (file) {
+      file.linkedYear = null
+      file.linkedItemId = null
+    }
+  }
+
+  /**
+   * Retrieves the full file record (with blob) for preview/download.
+   * @param {string} fileId - File ID.
+   * @returns {Promise<Object|null>} Full file record.
+   */
+  async function getFullFileRecord(fileId) {
+    return fileStorage.getFile(fileId)
+  }
+
   function importData(data) {
     if (!data || typeof data !== 'object') return false
 
@@ -374,6 +548,7 @@ export const useDocumentsStore = defineStore('documents', () => {
     }
     residenceChecklist.value = getDefaultResidenceChecklist()
     addressHistory.value = []
+    uploadedFiles.value = []
     saveToStorage()
   }
 
@@ -437,6 +612,29 @@ export const useDocumentsStore = defineStore('documents', () => {
     return Math.round((score / total) * 100)
   })
 
+  /** Total storage used by uploaded files in bytes */
+  const totalFileStorageBytes = computed(() => {
+    return uploadedFiles.value.reduce((sum, f) => sum + (f.size || 0), 0)
+  })
+
+  /** File count per folder */
+  const fileCountByFolder = computed(() => {
+    const counts = {}
+    folders.value.forEach((f) => { counts[f.id] = 0 })
+    uploadedFiles.value.forEach((f) => {
+      if (counts[f.folderId] !== undefined) counts[f.folderId]++
+      else counts[f.folderId] = 1
+    })
+    return counts
+  })
+
+  /** Files linked to a specific checklist item */
+  function getFilesForItem(year, itemId) {
+    return uploadedFiles.value.filter(
+      (f) => f.linkedYear === year && f.linkedItemId === itemId,
+    )
+  }
+
   watch(lifeInUk, () => saveToStorage(), { deep: true })
   watch(englishTest, () => saveToStorage(), { deep: true })
   watch(residenceChecklist, () => saveToStorage(), { deep: true })
@@ -449,6 +647,8 @@ export const useDocumentsStore = defineStore('documents', () => {
     englishTest,
     residenceChecklist,
     addressHistory,
+    uploadedFiles,
+    folders,
     updateLifeInUk,
     updateEnglishTest,
     updateDocumentItem,
@@ -457,6 +657,15 @@ export const useDocumentsStore = defineStore('documents', () => {
     addAddress,
     updateAddress,
     deleteAddress,
+    uploadFile,
+    deleteUploadedFile,
+    moveFile,
+    renameFile,
+    updateFileNotes,
+    linkFileToChecklist,
+    unlinkFileFromChecklist,
+    getFullFileRecord,
+    getFilesForItem,
     resetAll,
     importData,
     saveToStorage,
@@ -464,5 +673,7 @@ export const useDocumentsStore = defineStore('documents', () => {
     isEnglishPassed,
     residenceStats,
     overallReadinessPercent,
+    totalFileStorageBytes,
+    fileCountByFolder,
   }
 })

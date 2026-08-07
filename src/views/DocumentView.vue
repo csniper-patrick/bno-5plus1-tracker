@@ -2,15 +2,16 @@
 import { mapStores } from 'pinia'
 import { useDocumentsStore } from '../stores/documents'
 import { useAbsentsStore } from '../stores/absents'
-import { normalizeDate } from '../utils/date'
+import { normalizeDate, formatDisplayDate } from '../utils/date'
+import { formatFileSize, createFileURL, ALLOWED_EXTENSIONS, MAX_FILE_SIZE } from '../services/fileStorageService'
 
 export default {
   name: 'DocumentView',
 
   data() {
     return {
-      // Active expansion panel for years 1-5 (default open Year 1)
-      activeYearPanel: 0,
+      // Active expansion panel for years 1-5 (default collapsed)
+      activeYearPanel: null,
 
       // Life in UK Form State
       lifeForm: {
@@ -78,6 +79,73 @@ export default {
         text: '',
         color: 'success',
       },
+
+      // Document Vault state
+      vaultActiveFolder: 'all',
+      vaultDragOver: false,
+
+      // Upload Dialog state
+      uploadDialog: {
+        show: false,
+        files: [],
+        folderId: 'other',
+        linkedYear: null,
+        linkedItemId: null,
+        notes: '',
+        uploading: false,
+      },
+
+      // File Preview Dialog state
+      filePreviewDialog: {
+        show: false,
+        file: null,
+        objectUrl: null,
+        loading: false,
+      },
+
+      // File Rename Dialog state
+      renameDialog: {
+        show: false,
+        fileId: null,
+        name: '',
+      },
+
+      // File Move Dialog state
+      moveDialog: {
+        show: false,
+        fileId: null,
+        folderId: '',
+      },
+
+      // File Delete Dialog state
+      deleteFileDialog: {
+        show: false,
+        fileId: null,
+        fileName: '',
+      },
+
+      // File Notes Dialog state
+      fileNotesDialog: {
+        show: false,
+        fileId: null,
+        notes: '',
+      },
+
+      // File Link Dialog state
+      linkDialog: {
+        show: false,
+        fileId: null,
+        year: 1,
+        itemId: null,
+      },
+
+      // Attached files viewer dialog (for checklist item)
+      attachedFilesDialog: {
+        show: false,
+        year: null,
+        itemId: null,
+        itemTitle: '',
+      },
     }
   },
 
@@ -130,6 +198,71 @@ export default {
         { title: this.$t('document.student'), value: 'student' },
         { title: this.$t('document.other'), value: 'other' },
       ]
+    },
+
+    uploadedFiles() {
+      return this.documentsStore.uploadedFiles
+    },
+
+    folders() {
+      return this.documentsStore.folders
+    },
+
+    totalFileStorageBytes() {
+      return this.documentsStore.totalFileStorageBytes
+    },
+
+    fileCountByFolder() {
+      return this.documentsStore.fileCountByFolder
+    },
+
+    /** Files filtered by currently active vault folder */
+    filteredFiles() {
+      if (this.vaultActiveFolder === 'all') {
+        return this.uploadedFiles
+      }
+      return this.uploadedFiles.filter((f) => f.folderId === this.vaultActiveFolder)
+    },
+
+    /** Folder options for select dropdowns */
+    folderSelectOptions() {
+      return this.folders.map((f) => ({
+        title: this.$t(`document.folder_${f.id}`) || f.label,
+        value: f.id,
+      }))
+    },
+
+    /** Allowed file extensions for input accept attribute */
+    allowedFileExtensions() {
+      return ALLOWED_EXTENSIONS
+    },
+
+    /** Max file size formatted */
+    maxFileSizeFormatted() {
+      return formatFileSize(MAX_FILE_SIZE)
+    },
+
+    /** Items for the link dialog year+item selectors */
+    linkYearOptions() {
+      return [1, 2, 3, 4, 5].map((y) => ({
+        title: this.$t('document.year', { n: y }),
+        value: y,
+      }))
+    },
+
+    linkItemOptions() {
+      const year = this.linkDialog.year
+      if (!year || !this.residenceChecklist[year]) return []
+      return this.residenceChecklist[year].map((item) => ({
+        title: this.getItemTitle(item),
+        value: item.id,
+      }))
+    },
+
+    /** Attached files for the currently viewed checklist item */
+    attachedFilesForDialog() {
+      if (!this.attachedFilesDialog.year || !this.attachedFilesDialog.itemId) return []
+      return this.documentsStore.getFilesForItem(this.attachedFilesDialog.year, this.attachedFilesDialog.itemId)
     },
   },
 
@@ -528,6 +661,387 @@ export default {
       if (!dateInput) return '-'
       return normalizeDate(dateInput) || String(dateInput)
     },
+
+    // ── File Vault Methods ──────────────────────────────────────────────
+
+    /**
+     * Returns a display-friendly folder name.
+     * @param {string} folderId - Folder ID.
+     * @returns {string} Translated folder label.
+     */
+    getFolderLabel(folderId) {
+      const key = `document.folder_${folderId}`
+      const translated = this.$t(key)
+      return translated !== key ? translated : folderId
+    },
+
+    /**
+     * Returns an icon name for a file based on its MIME type.
+     * @param {string} mimeType - File MIME type.
+     * @returns {string} MDI icon name.
+     */
+    getFileIcon(mimeType) {
+      if (!mimeType) return 'mdi-file-outline'
+      if (mimeType === 'application/pdf') return 'mdi-file-pdf-box'
+      if (mimeType.startsWith('image/')) return 'mdi-file-image-outline'
+      if (mimeType === 'text/plain') return 'mdi-file-document-outline'
+      return 'mdi-file-outline'
+    },
+
+    /**
+     * Returns a theme color for a file based on its MIME type.
+     * @param {string} mimeType - File MIME type.
+     * @returns {string} Theme color.
+     */
+    getFileColor(mimeType) {
+      if (!mimeType) return 'grey'
+      if (mimeType === 'application/pdf') return 'error'
+      if (mimeType.startsWith('image/')) return 'info'
+      if (mimeType === 'text/plain') return 'secondary'
+      return 'grey'
+    },
+
+    /**
+     * Formats bytes into human-readable size string.
+     * @param {number} bytes - File size in bytes.
+     * @returns {string} Formatted size.
+     */
+    formatSize(bytes) {
+      return formatFileSize(bytes)
+    },
+
+    /**
+     * Formats ISO date string into a short readable format.
+     * @param {string} isoString - ISO timestamp.
+     * @returns {string} Formatted date.
+     */
+    formatUploadDate(isoString) {
+      if (!isoString) return '-'
+      return normalizeDate(isoString) || String(isoString)
+    },
+
+    /**
+     * Opens the upload dialog.
+     * @param {string} [folderId] - Pre-selected folder.
+     * @param {number} [linkedYear] - Pre-linked year.
+     * @param {string} [linkedItemId] - Pre-linked item ID.
+     */
+    openUploadDialog(folderId, linkedYear, linkedItemId) {
+      this.uploadDialog = {
+        show: true,
+        files: [],
+        folderId: folderId || 'other',
+        linkedYear: linkedYear || null,
+        linkedItemId: linkedItemId || null,
+        notes: '',
+        uploading: false,
+      }
+    },
+
+    /**
+     * Handles file input change or drop event.
+     * @param {Event|FileList} eventOrFiles - Change event or FileList.
+     */
+    handleFileSelect(eventOrFiles) {
+      let files
+      if (eventOrFiles instanceof Event) {
+        files = eventOrFiles.target.files
+      } else if (eventOrFiles instanceof FileList) {
+        files = eventOrFiles
+      } else if (Array.isArray(eventOrFiles)) {
+        files = eventOrFiles
+      } else {
+        return
+      }
+      this.uploadDialog.files = Array.from(files)
+    },
+
+    /**
+     * Handles drag-and-drop on the vault area.
+     * @param {DragEvent} event - Drop event.
+     */
+    handleVaultDrop(event) {
+      event.preventDefault()
+      this.vaultDragOver = false
+      const files = event.dataTransfer?.files
+      if (files && files.length > 0) {
+        this.uploadDialog.files = Array.from(files)
+        this.uploadDialog.folderId = this.vaultActiveFolder !== 'all' ? this.vaultActiveFolder : 'other'
+        this.uploadDialog.show = true
+      }
+    },
+
+    /**
+     * Executes the file upload for all selected files.
+     */
+    async executeUpload() {
+      if (this.uploadDialog.files.length === 0) return
+      this.uploadDialog.uploading = true
+
+      let successCount = 0
+      for (const file of this.uploadDialog.files) {
+        try {
+          await this.documentsStore.uploadFile(
+            file,
+            this.uploadDialog.folderId,
+            {
+              linkedYear: this.uploadDialog.linkedYear,
+              linkedItemId: this.uploadDialog.linkedItemId,
+              notes: this.uploadDialog.notes,
+            },
+          )
+          successCount++
+        } catch (e) {
+          this.showSnackbar(
+            this.$t('document.upload_error', { error: e.message }),
+            'error',
+          )
+        }
+      }
+
+      this.uploadDialog.uploading = false
+      this.uploadDialog.show = false
+
+      if (successCount > 0) {
+        const msg = successCount === 1
+          ? this.$t('document.upload_success')
+          : this.$t('document.upload_success_multi', { count: successCount })
+        this.showSnackbar(msg, 'success')
+      }
+    },
+
+    /**
+     * Opens the file preview dialog.
+     * @param {Object} fileMeta - File metadata object.
+     */
+    async openFilePreview(fileMeta) {
+      this.filePreviewDialog = {
+        show: true,
+        file: fileMeta,
+        objectUrl: null,
+        loading: true,
+      }
+
+      try {
+        const fullRecord = await this.documentsStore.getFullFileRecord(fileMeta.id)
+        if (fullRecord && fullRecord.data) {
+          this.filePreviewDialog.objectUrl = createFileURL(fullRecord)
+        }
+      } catch (e) {
+        console.error('Failed to load file for preview:', e)
+      } finally {
+        this.filePreviewDialog.loading = false
+      }
+    },
+
+    /**
+     * Closes the file preview dialog and revokes object URL.
+     */
+    closeFilePreview() {
+      if (this.filePreviewDialog.objectUrl) {
+        URL.revokeObjectURL(this.filePreviewDialog.objectUrl)
+      }
+      this.filePreviewDialog = {
+        show: false,
+        file: null,
+        objectUrl: null,
+        loading: false,
+      }
+    },
+
+    /**
+     * Triggers a browser download for a file.
+     * @param {Object} fileMeta - File metadata.
+     */
+    async downloadFile(fileMeta) {
+      try {
+        const fullRecord = await this.documentsStore.getFullFileRecord(fileMeta.id)
+        if (!fullRecord || !fullRecord.data) return
+
+        const url = createFileURL(fullRecord)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = fullRecord.name
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      } catch (e) {
+        console.error('Download failed:', e)
+      }
+    },
+
+    /**
+     * Opens rename dialog for a file.
+     * @param {Object} fileMeta - File metadata.
+     */
+    openRenameDialog(fileMeta) {
+      this.renameDialog = {
+        show: true,
+        fileId: fileMeta.id,
+        name: fileMeta.name,
+      }
+    },
+
+    /**
+     * Executes file rename.
+     */
+    async executeRename() {
+      if (!this.renameDialog.name.trim()) return
+      try {
+        await this.documentsStore.renameFile(this.renameDialog.fileId, this.renameDialog.name.trim())
+        this.renameDialog.show = false
+        this.showSnackbar(this.$t('document.file_renamed'), 'success')
+      } catch (e) {
+        this.showSnackbar(e.message, 'error')
+      }
+    },
+
+    /**
+     * Opens move dialog for a file.
+     * @param {Object} fileMeta - File metadata.
+     */
+    openMoveDialog(fileMeta) {
+      this.moveDialog = {
+        show: true,
+        fileId: fileMeta.id,
+        folderId: fileMeta.folderId,
+      }
+    },
+
+    /**
+     * Executes file move.
+     */
+    async executeMove() {
+      await this.documentsStore.moveFile(this.moveDialog.fileId, this.moveDialog.folderId)
+      this.moveDialog.show = false
+      this.showSnackbar(
+        this.$t('document.file_moved', { folder: this.getFolderLabel(this.moveDialog.folderId) }),
+        'success',
+      )
+    },
+
+    /**
+     * Opens file notes editor dialog.
+     * @param {Object} fileMeta - File metadata.
+     */
+    openFileNotesDialog(fileMeta) {
+      this.fileNotesDialog = {
+        show: true,
+        fileId: fileMeta.id,
+        notes: fileMeta.notes || '',
+      }
+    },
+
+    /**
+     * Saves file notes.
+     */
+    async saveFileNotes() {
+      await this.documentsStore.updateFileNotes(this.fileNotesDialog.fileId, this.fileNotesDialog.notes)
+      this.fileNotesDialog.show = false
+      this.showSnackbar(this.$t('document.file_notes_updated'), 'success')
+    },
+
+    /**
+     * Opens delete confirmation dialog for a file.
+     * @param {Object} fileMeta - File metadata.
+     */
+    openDeleteFileDialog(fileMeta) {
+      this.deleteFileDialog = {
+        show: true,
+        fileId: fileMeta.id,
+        fileName: fileMeta.name,
+      }
+    },
+
+    /**
+     * Executes file deletion.
+     */
+    async executeDeleteFile() {
+      await this.documentsStore.deleteUploadedFile(this.deleteFileDialog.fileId)
+      this.deleteFileDialog.show = false
+      this.showSnackbar(this.$t('document.file_deleted'), 'warning')
+    },
+
+    /**
+     * Opens the link-to-checklist dialog.
+     * @param {Object} fileMeta - File metadata.
+     */
+    openLinkDialog(fileMeta) {
+      this.linkDialog = {
+        show: true,
+        fileId: fileMeta.id,
+        year: fileMeta.linkedYear || 1,
+        itemId: fileMeta.linkedItemId || null,
+      }
+    },
+
+    /**
+     * Executes linking a file to a checklist item.
+     */
+    async executeLinkFile() {
+      if (!this.linkDialog.itemId) return
+      await this.documentsStore.linkFileToChecklist(
+        this.linkDialog.fileId,
+        this.linkDialog.year,
+        this.linkDialog.itemId,
+      )
+      this.linkDialog.show = false
+      this.showSnackbar(this.$t('document.file_linked'), 'success')
+    },
+
+    /**
+     * Unlinks a file from its checklist item.
+     * @param {string} fileId - File ID.
+     */
+    async unlinkFile(fileId) {
+      await this.documentsStore.unlinkFileFromChecklist(fileId)
+      this.showSnackbar(this.$t('document.file_unlinked'), 'info')
+    },
+
+    /**
+     * Gets the count of files attached to a checklist item.
+     * @param {number} year - Year.
+     * @param {string} itemId - Item ID.
+     * @returns {number} File count.
+     */
+    getAttachedFileCount(year, itemId) {
+      return this.documentsStore.getFilesForItem(year, itemId).length
+    },
+
+    /**
+     * Opens the attached files viewer for a checklist item.
+     * @param {number} year - Year.
+     * @param {Object} item - Checklist item.
+     */
+    openAttachedFilesDialog(year, item) {
+      this.attachedFilesDialog = {
+        show: true,
+        year,
+        itemId: item.id,
+        itemTitle: this.getItemTitle(item),
+      }
+    },
+
+    /**
+     * Opens upload dialog pre-linked to a checklist item.
+     * @param {number} year - Year.
+     * @param {Object} item - Checklist item.
+     */
+    openAttachFileDialog(year, item) {
+      const folderId = `year_${year}`
+      this.openUploadDialog(folderId, year, item.id)
+    },
+
+    /**
+     * Whether a MIME type supports inline preview.
+     * @param {string} mimeType - MIME type.
+     * @returns {boolean}
+     */
+    isPreviewable(mimeType) {
+      if (!mimeType) return false
+      return mimeType.startsWith('image/') || mimeType === 'application/pdf'
+    },
   },
 }
 </script>
@@ -884,318 +1398,532 @@ export default {
       </v-col>
     </v-row>
 
-    <!-- UK Address History Section -->
-    <v-card elevation="2" class="pa-3 rounded-lg bg-surface mb-6">
-      <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
-        <v-icon icon="mdi-home-city-outline" color="primary"></v-icon>
-        <span class="text-h5 font-weight-bold">{{ $t('document.address_history') }}</span>
-      </v-card-title>
+    <!-- Address History & Residence Checklist Section (Side by Side) -->
+    <v-row class="mb-6">
+      <!-- UK Address History Section -->
+      <v-col cols="12" lg="6">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
+          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
+            <v-icon icon="mdi-home-city-outline" color="primary"></v-icon>
+            <span class="text-h5 font-weight-bold">{{ $t('document.address_history') }}</span>
+          </v-card-title>
 
-      <v-card-text class="px-0 pb-0">
-        <p class="text-caption text-medium-emphasis mb-4">
-          {{ $t('document.address_desc') }}
-        </p>
+          <v-card-text class="px-0 pb-0">
+            <p class="text-caption text-medium-emphasis mb-4">
+              {{ $t('document.address_desc') }}
+            </p>
 
-        <div v-if="addressHistory.length === 0" class="text-center py-6 text-medium-emphasis">
-          <v-icon icon="mdi-map-marker-off-outline" size="large" class="mb-2"></v-icon>
-          <div class="text-subtitle-2 font-weight-bold">{{ $t('document.no_addresses_title') }}</div>
-          <div class="text-caption mb-3">
-            {{ $t('document.no_addresses_desc') }}
-          </div>
-        </div>
+            <div v-if="addressHistory.length === 0" class="text-center py-6 text-medium-emphasis">
+              <v-icon icon="mdi-map-marker-off-outline" size="large" class="mb-2"></v-icon>
+              <div class="text-subtitle-2 font-weight-bold">{{ $t('document.no_addresses_title') }}</div>
+              <div class="text-caption mb-3">
+                {{ $t('document.no_addresses_desc') }}
+              </div>
+            </div>
 
-        <v-table v-else density="comfortable" hover class="border rounded-lg">
-          <thead>
-            <tr>
-              <th class="text-left font-weight-bold">{{ $t('document.move_in_date') }}</th>
-              <th class="text-left font-weight-bold">{{ $t('document.move_out_date') }}</th>
-              <th class="text-left font-weight-bold">{{ $t('document.address_line_1') }}</th>
-              <th class="text-left font-weight-bold d-none d-sm-table-cell">{{ $t('document.housing_status') }}</th>
-              <th class="text-left font-weight-bold d-none d-md-table-cell">{{ $t('document.notes') }}</th>
-              <th class="text-right font-weight-bold">{{ $t('absence.table_actions') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in addressHistory" :key="item.id">
-              <td class="text-left" style="white-space: nowrap">
-                <v-chip
-                  size="small"
-                  variant="tonal"
-                  color="primary"
-                  prepend-icon="mdi-calendar-import"
-                  class="font-weight-medium"
-                >
-                  {{ formatDate(item.startDate) }}
-                </v-chip>
-              </td>
-
-              <td class="text-left" style="white-space: nowrap">
-                <v-chip
-                  v-if="item.isCurrent"
-                  size="small"
-                  variant="flat"
-                  color="success"
-                  prepend-icon="mdi-home-clock-outline"
-                  class="font-weight-bold"
-                >
-                  {{ $t('document.present') }}
-                </v-chip>
-                <v-chip
-                  v-else
-                  size="small"
-                  variant="tonal"
-                  color="primary"
-                  prepend-icon="mdi-calendar-export"
-                  class="font-weight-medium"
-                >
-                  {{ formatDate(item.endDate) }}
-                </v-chip>
-              </td>
-
-              <td>
-                <div class="font-weight-medium text-body-2">
-                  {{ item.addressLine1 }}{{ item.addressLine2 ? `, ${item.addressLine2}` : '' }}
-                </div>
-                <div class="text-caption text-medium-emphasis">
-                  {{ item.city ? `${item.city}, ` : '' }}{{ item.postcode }}
-                </div>
-              </td>
-
-              <td class="d-none d-sm-table-cell" style="width: 150px">
-                <v-chip size="small" variant="tonal" color="secondary">
-                  {{ getHousingStatusText(item.housingStatus) }}
-                </v-chip>
-              </td>
-
-              <td
-                class="d-none d-md-table-cell text-caption text-medium-emphasis"
-                style="max-width: 200px"
-              >
-                <div class="text-truncate">
-                  {{ item.notes || $t('document.no_notes') }}
-                </div>
-              </td>
-
-              <td class="text-right">
-                <v-menu location="bottom end">
-                  <template #activator="{ props }">
-                    <v-btn
-                      icon="mdi-dots-vertical"
-                      variant="text"
+            <v-table v-else density="comfortable" hover class="border rounded-lg">
+              <thead>
+                <tr>
+                  <th class="text-left font-weight-bold">{{ $t('document.move_in_date') }}</th>
+                  <th class="text-left font-weight-bold">{{ $t('document.move_out_date') }}</th>
+                  <th class="text-left font-weight-bold">{{ $t('document.address_line_1') }}</th>
+                  <th class="text-right font-weight-bold">{{ $t('absence.table_actions') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in addressHistory" :key="item.id">
+                  <td class="text-left" style="white-space: nowrap">
+                    <v-chip
                       size="small"
-                      v-bind="props"
-                      :title="$t('absence.table_actions')"
-                    ></v-btn>
-                  </template>
-                  <v-list density="compact" class="rounded-lg elevation-4">
-                    <v-list-item
-                      prepend-icon="mdi-pencil-outline"
-                      :title="$t('document.edit_address')"
-                      @click="openEditAddressDialog(item)"
-                    ></v-list-item>
-                    <v-list-item
-                      prepend-icon="mdi-delete-outline"
-                      :title="$t('document.delete_address_title')"
-                      @click="openDeleteAddressDialog(item)"
-                    ></v-list-item>
-                  </v-list>
-                </v-menu>
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
+                      variant="tonal"
+                      color="primary"
+                      prepend-icon="mdi-calendar-import"
+                      class="font-weight-medium"
+                    >
+                      {{ formatDate(item.startDate) }}
+                    </v-chip>
+                  </td>
 
-        <div class="d-flex justify-end mt-3">
-          <v-btn color="primary" prepend-icon="mdi-plus" size="small" @click="openAddAddressDialog">
-            {{ $t('document.add_address') }}
-          </v-btn>
-        </div>
-      </v-card-text>
-    </v-card>
+                  <td class="text-left" style="white-space: nowrap">
+                    <v-chip
+                      v-if="item.isCurrent"
+                      size="small"
+                      variant="flat"
+                      color="success"
+                      prepend-icon="mdi-home-clock-outline"
+                      class="font-weight-bold"
+                    >
+                      {{ $t('document.present') }}
+                    </v-chip>
+                    <v-chip
+                      v-else
+                      size="small"
+                      variant="tonal"
+                      color="primary"
+                      prepend-icon="mdi-calendar-export"
+                      class="font-weight-medium"
+                    >
+                      {{ formatDate(item.endDate) }}
+                    </v-chip>
+                  </td>
 
-    <!-- 5-Year Continuous Residence Evidence Checklist -->
-    <v-card elevation="2" class="pa-3 rounded-lg bg-surface">
-      <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
-        <v-icon icon="mdi-shield-home-outline" color="primary"></v-icon>
-        <span class="text-h5 font-weight-bold">{{ $t('document.residence_proof') }}</span>
-      </v-card-title>
-
-      <v-card-text class="px-0 pb-0">
-        <v-expansion-panels
-          v-model="activeYearPanel"
-          class="mt-3 border rounded-lg overflow-hidden"
-        >
-          <v-expansion-panel
-            v-for="year in [1, 2, 3, 4, 5]"
-            :key="year"
-            elevation="0"
-            class="border-b"
-          >
-            <v-expansion-panel-title class="py-3 px-4">
-              <div class="d-flex align-center justify-space-between w-100 pr-2 ga-3">
-                <div class="d-flex align-center ga-3">
-                  <v-avatar color="primary" variant="tonal" size="36" class="font-weight-bold">
-                    Y{{ year }}
-                  </v-avatar>
-                  <div>
-                    <div class="font-weight-bold text-subtitle-1">
-                      {{ $t('document.year_label', { n: year }) }}
+                  <td>
+                    <div class="font-weight-medium text-body-2">
+                      {{ item.addressLine1 }}{{ item.addressLine2 ? `, ${item.addressLine2}` : '' }}
                     </div>
                     <div class="text-caption text-medium-emphasis">
-                      {{ getYearDateRangeHint(year) }}
+                      {{ item.city ? `${item.city}, ` : '' }}{{ item.postcode }}
+                    </div>
+                  </td>
+
+                  <td class="text-right">
+                    <v-menu location="bottom end">
+                      <template #activator="{ props }">
+                        <v-btn
+                          icon="mdi-dots-vertical"
+                          variant="text"
+                          size="small"
+                          v-bind="props"
+                          :title="$t('absence.table_actions')"
+                        ></v-btn>
+                      </template>
+                      <v-list density="compact" class="rounded-lg elevation-4">
+                        <v-list-item
+                          prepend-icon="mdi-pencil-outline"
+                          :title="$t('document.edit_address')"
+                          @click="openEditAddressDialog(item)"
+                        ></v-list-item>
+                        <v-list-item
+                          prepend-icon="mdi-delete-outline"
+                          :title="$t('document.delete_address_title')"
+                          @click="openDeleteAddressDialog(item)"
+                        ></v-list-item>
+                      </v-list>
+                    </v-menu>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+
+            <div class="d-flex justify-end mt-3">
+              <v-btn color="primary" prepend-icon="mdi-plus" size="small" @click="openAddAddressDialog">
+                {{ $t('document.add_address') }}
+              </v-btn>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- 5-Year Continuous Residence Evidence Checklist -->
+      <v-col cols="12" lg="6">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
+          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
+            <v-icon icon="mdi-shield-home-outline" color="primary"></v-icon>
+            <span class="text-h5 font-weight-bold">{{ $t('document.residence_proof') }}</span>
+          </v-card-title>
+
+          <v-card-text class="px-0 pb-0">
+            <v-expansion-panels
+              v-model="activeYearPanel"
+              class="mt-3 border rounded-lg overflow-hidden"
+            >
+              <v-expansion-panel
+                v-for="year in [1, 2, 3, 4, 5]"
+                :key="year"
+                elevation="0"
+                class="border-b"
+              >
+                <v-expansion-panel-title class="py-3 px-4">
+                  <div class="d-flex align-center justify-space-between w-100 pr-2 ga-3">
+                    <div class="d-flex align-center ga-3">
+                      <v-avatar color="primary" variant="tonal" size="36" class="font-weight-bold">
+                        Y{{ year }}
+                      </v-avatar>
+                      <div>
+                        <div class="font-weight-bold text-subtitle-1">
+                          {{ $t('document.year_label', { n: year }) }}
+                        </div>
+                        <div class="text-caption text-medium-emphasis">
+                          {{ getYearDateRangeHint(year) }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="d-flex align-center ga-3">
+                      <div class="text-right d-none d-sm-block">
+                        <span class="text-caption font-weight-bold">
+                          {{ $t('document.items_count', { collected: residenceStats.perYear[year]?.collected || 0, total: residenceStats.perYear[year]?.total || 0 }) }}
+                        </span>
+                        <v-progress-linear
+                          :model-value="residenceStats.perYear[year]?.percent || 0"
+                          color="success"
+                          height="5"
+                          style="width: 100px"
+                          rounded
+                        ></v-progress-linear>
+                      </div>
+                      <v-chip
+                        size="small"
+                        :color="residenceStats.perYear[year]?.percent === 100 ? 'success' : 'info'"
+                        variant="flat"
+                        class="font-weight-bold"
+                      >
+                        {{ residenceStats.perYear[year]?.percent || 0 }}%
+                      </v-chip>
                     </div>
                   </div>
-                </div>
+                </v-expansion-panel-title>
 
-                <div class="d-flex align-center ga-3">
-                  <div class="text-right d-none d-sm-block">
-                    <span class="text-caption font-weight-bold">
-                      {{ $t('document.items_count', { collected: residenceStats.perYear[year]?.collected || 0, total: residenceStats.perYear[year]?.total || 0 }) }}
-                    </span>
-                    <v-progress-linear
-                      :model-value="residenceStats.perYear[year]?.percent || 0"
-                      color="success"
-                      height="5"
-                      style="width: 100px"
-                      rounded
-                    ></v-progress-linear>
-                  </div>
-                  <v-chip
-                    size="small"
-                    :color="residenceStats.perYear[year]?.percent === 100 ? 'success' : 'info'"
-                    variant="flat"
-                    class="font-weight-bold"
-                  >
-                    {{ residenceStats.perYear[year]?.percent || 0 }}%
-                  </v-chip>
-                </div>
-              </div>
-            </v-expansion-panel-title>
-
-            <v-expansion-panel-text class="pt-2 px-2 px-sm-4">
-              <div class="d-flex align-center justify-end mb-3 ga-2 flex-wrap">
-                <v-btn
-                  color="primary"
-                  variant="outlined"
-                  size="small"
-                  prepend-icon="mdi-plus"
-                  @click="openCustomDocDialog(year)"
-                >
-                  {{ $t('document.add_custom_item') }}
-                </v-btn>
-              </div>
-
-              <!-- Evidence Table -->
-              <v-table density="comfortable" hover class="border rounded-lg">
-                <thead>
-                  <tr>
-                    <th class="text-left font-weight-bold">{{ $t('document.test_status') }}</th>
-                    <th class="text-left font-weight-bold">{{ $t('document.evidence_item') }}</th>
-                    <th class="text-left font-weight-bold d-none d-sm-table-cell">{{ $t('document.category') }}</th>
-                    <th class="text-left font-weight-bold d-none d-md-table-cell">{{ $t('document.notes') }}</th>
-                    <th class="text-right font-weight-bold">{{ $t('absence.table_actions') }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in getSortedItems(year)" :key="item.id">
-                    <td style="width: 140px">
-                      <v-menu location="bottom start">
-                        <template v-slot:activator="{ props }">
-                          <v-chip
-                            v-bind="props"
-                            :color="getStatusColor(item.status)"
-                            size="small"
-                            variant="flat"
-                            class="font-weight-bold cursor-pointer"
-                            append-icon="mdi-chevron-down"
-                          >
-                            {{ getStatusText(item.status) }}
-                          </v-chip>
-                        </template>
-                        <v-list density="compact">
-                          <v-list-item @click="updateItemStatus(year, item.id, 'pending')">
-                            <v-list-item-title class="text-caption">{{ $t('document.status_pending') }}</v-list-item-title>
-                          </v-list-item>
-                          <v-list-item @click="updateItemStatus(year, item.id, 'collected')">
-                            <v-list-item-title class="text-caption text-info font-weight-bold"
-                              >{{ $t('document.status_collected') }}</v-list-item-title
-                            >
-                          </v-list-item>
-                          <v-list-item @click="updateItemStatus(year, item.id, 'verified')">
-                            <v-list-item-title class="text-caption text-success font-weight-bold"
-                              >{{ $t('document.status_verified') }}</v-list-item-title
-                            >
-                          </v-list-item>
-                        </v-list>
-                      </v-menu>
-                    </td>
-
-                    <td>
-                      <div class="d-flex align-center ga-2 flex-wrap">
-                        <span class="font-weight-medium text-body-2">{{ getItemTitle(item) }}</span>
-                        <v-chip
-                          v-if="item.importance"
-                          :color="getImportanceColor(item.importance)"
-                          size="x-small"
-                          variant="tonal"
-                          class="font-weight-bold"
-                        >
-                          {{ getImportanceText(item.importance) }}
-                        </v-chip>
-                      </div>
-                      <div class="text-caption text-medium-emphasis d-sm-none">
-                        {{ getItemCategory(item) }}
-                      </div>
-                    </td>
-
-                    <td class="d-none d-sm-table-cell">
-                      <v-chip size="x-small" variant="tonal" color="secondary">
-                        {{ getItemCategory(item) }}
-                      </v-chip>
-                    </td>
-
-                    <td
-                      class="d-none d-md-table-cell text-caption text-medium-emphasis"
-                      style="max-width: 220px"
+                <v-expansion-panel-text class="pt-2 px-2 px-sm-4">
+                  <div class="d-flex align-center justify-end mb-3 ga-2 flex-wrap">
+                    <v-btn
+                      color="primary"
+                      variant="outlined"
+                      size="small"
+                      prepend-icon="mdi-plus"
+                      @click="openCustomDocDialog(year)"
                     >
-                      <div class="text-truncate">
-                        {{ item.notes || $t('document.no_notes_added') }}
-                      </div>
-                    </td>
+                      {{ $t('document.add_custom_item') }}
+                    </v-btn>
+                  </div>
 
-                    <td class="text-right">
-                      <v-menu location="bottom end">
-                        <template #activator="{ props }">
-                          <v-btn
-                            icon="mdi-dots-vertical"
-                            variant="text"
-                            size="small"
-                            v-bind="props"
-                            :title="$t('absence.table_actions')"
-                          ></v-btn>
-                        </template>
-                        <v-list density="compact" class="rounded-lg elevation-4">
-                          <v-list-item
-                            prepend-icon="mdi-notebook-edit-outline"
-                            :title="$t('document.edit_notes')"
-                            @click="openNotesDialog(year, item)"
-                          ></v-list-item>
-                          <v-list-item
-                            v-if="item.isCustom"
-                            prepend-icon="mdi-delete-outline"
-                            :title="$t('document.delete_item')"
-                            @click="deleteDocItem(year, item.id)"
-                          ></v-list-item>
-                        </v-list>
-                      </v-menu>
-                    </td>
-                  </tr>
-                </tbody>
-              </v-table>
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels>
-      </v-card-text>
+                  <!-- Evidence Table -->
+                  <v-table density="comfortable" hover class="border rounded-lg">
+                    <thead>
+                      <tr>
+                        <th class="text-left font-weight-bold">{{ $t('document.status') }}</th>
+                        <th class="text-left font-weight-bold">{{ $t('document.evidence_item') }}</th>
+                        <th class="text-left font-weight-bold d-none d-sm-table-cell">{{ $t('document.category') }}</th>
+                        <th class="text-right font-weight-bold">{{ $t('absence.table_actions') }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="item in getSortedItems(year)" :key="item.id">
+                        <td style="width: 140px">
+                          <v-menu location="bottom start">
+                            <template v-slot:activator="{ props }">
+                              <v-chip
+                                v-bind="props"
+                                :color="getStatusColor(item.status)"
+                                size="small"
+                                variant="flat"
+                                class="font-weight-bold cursor-pointer"
+                                append-icon="mdi-chevron-down"
+                              >
+                                {{ getStatusText(item.status) }}
+                              </v-chip>
+                            </template>
+                            <v-list density="compact">
+                              <v-list-item @click="updateItemStatus(year, item.id, 'pending')">
+                                <v-list-item-title class="text-caption">{{ $t('document.status_pending') }}</v-list-item-title>
+                              </v-list-item>
+                              <v-list-item @click="updateItemStatus(year, item.id, 'collected')">
+                                <v-list-item-title class="text-caption text-info font-weight-bold"
+                                  >{{ $t('document.status_collected') }}</v-list-item-title
+                                >
+                              </v-list-item>
+                              <v-list-item @click="updateItemStatus(year, item.id, 'verified')">
+                                <v-list-item-title class="text-caption text-success font-weight-bold"
+                                  >{{ $t('document.status_verified') }}</v-list-item-title
+                                >
+                              </v-list-item>
+                            </v-list>
+                          </v-menu>
+                        </td>
+
+                        <td>
+                          <div class="d-flex align-center ga-2 flex-wrap">
+                            <span class="font-weight-medium text-body-2">{{ getItemTitle(item) }}</span>
+                            <v-chip
+                              v-if="item.importance"
+                              :color="getImportanceColor(item.importance)"
+                              size="x-small"
+                              variant="tonal"
+                              class="font-weight-bold"
+                            >
+                              {{ getImportanceText(item.importance) }}
+                            </v-chip>
+                            <v-chip
+                              v-if="getAttachedFileCount(year, item.id) > 0"
+                              size="x-small"
+                              variant="tonal"
+                              color="primary"
+                              prepend-icon="mdi-paperclip"
+                              class="font-weight-bold cursor-pointer"
+                              @click="openAttachedFilesDialog(year, item)"
+                            >
+                              {{ getAttachedFileCount(year, item.id) }}
+                            </v-chip>
+                          </div>
+                          <div class="text-caption text-medium-emphasis d-sm-none">
+                            {{ getItemCategory(item) }}
+                          </div>
+                        </td>
+
+                        <td class="d-none d-sm-table-cell">
+                          <v-chip size="x-small" variant="tonal" color="info">
+                            {{ getItemCategory(item) }}
+                          </v-chip>
+                        </td>
+
+                        <td class="text-right">
+                          <v-menu location="bottom end">
+                            <template #activator="{ props }">
+                              <v-btn
+                                icon="mdi-dots-vertical"
+                                variant="text"
+                                size="small"
+                                v-bind="props"
+                                :title="$t('absence.table_actions')"
+                              ></v-btn>
+                            </template>
+                            <v-list density="compact" class="rounded-lg elevation-4">
+                              <v-list-item
+                                prepend-icon="mdi-paperclip"
+                                :title="$t('document.attach_file')"
+                                @click="openAttachFileDialog(year, item)"
+                              ></v-list-item>
+                              <v-list-item
+                                v-if="getAttachedFileCount(year, item.id) > 0"
+                                prepend-icon="mdi-file-eye-outline"
+                                :title="$t('document.view_attached')"
+                                @click="openAttachedFilesDialog(year, item)"
+                              ></v-list-item>
+                              <v-list-item
+                                v-if="item.isCustom"
+                                prepend-icon="mdi-delete-outline"
+                                :title="$t('document.delete_item')"
+                                @click="deleteDocItem(year, item.id)"
+                              ></v-list-item>
+                            </v-list>
+                          </v-menu>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </v-table>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- Document Vault Section (At the very last) -->
+    <v-card
+      elevation="2"
+      class="pa-3 rounded-lg bg-surface"
+      @dragover.prevent="vaultDragOver = true"
+      @dragleave.prevent="vaultDragOver = false"
+      @drop="handleVaultDrop"
+    >
+      <v-card-title class="px-0 pt-0 d-flex align-center flex-wrap ga-2">
+        <div class="d-flex align-center">
+          <v-icon icon="mdi-safe-square-outline" color="primary" class="mr-2"></v-icon>
+          <span class="text-h5 font-weight-bold">{{ $t('document.vault_title') }}</span>
+        </div>
+      </v-card-title>
+
+      <p class="text-body-2 text-medium-emphasis ma-0 mb-3">
+        {{ $t('document.vault_desc') }}
+      </p>
+
+      <!-- Folder Tabs -->
+      <v-chip-group
+        v-model="vaultActiveFolder"
+        mandatory
+        selected-class="text-primary"
+        class="mb-3"
+      >
+        <v-chip
+          value="all"
+          variant="tonal"
+          size="small"
+          filter
+        >
+          {{ $t('document.folder_all') }}
+          <template v-if="uploadedFiles.length > 0">
+            <span class="ml-1 text-caption">({{ uploadedFiles.length }})</span>
+          </template>
+        </v-chip>
+        <v-chip
+          v-for="folder in folders"
+          :key="folder.id"
+          :value="folder.id"
+          :prepend-icon="folder.icon"
+          variant="tonal"
+          size="small"
+          filter
+        >
+          {{ $t(`document.folder_${folder.id}`) }}
+          <template v-if="fileCountByFolder[folder.id] > 0">
+            <span class="ml-1 text-caption">({{ fileCountByFolder[folder.id] }})</span>
+          </template>
+        </v-chip>
+      </v-chip-group>
+
+      <!-- Empty State -->
+      <div
+        v-if="filteredFiles.length === 0"
+        class="vault-empty-state text-center py-8 border rounded-lg"
+        :class="{ 'vault-drag-over': vaultDragOver }"
+      >
+        <v-icon icon="mdi-cloud-upload-outline" size="48" color="primary" class="mb-3" style="opacity: 0.5"></v-icon>
+        <div class="text-subtitle-1 font-weight-bold text-medium-emphasis">{{ $t('document.vault_empty_title') }}</div>
+        <div class="text-caption text-medium-emphasis mb-3">
+          {{ $t('document.vault_empty_desc') }}
+        </div>
+        <v-btn
+          color="primary"
+          variant="outlined"
+          size="small"
+          prepend-icon="mdi-upload"
+          @click="openUploadDialog()"
+        >
+          {{ $t('document.upload_files') }}
+        </v-btn>
+      </div>
+
+      <!-- File List Table -->
+      <v-table
+        v-else
+        density="comfortable"
+        hover
+        class="border rounded-lg"
+        :class="{ 'vault-drag-over': vaultDragOver }"
+      >
+        <thead>
+          <tr>
+            <th class="text-left font-weight-bold" style="width: 50px"></th>
+            <th class="text-left font-weight-bold">{{ $t('document.rename_label') }}</th>
+            <th class="text-left font-weight-bold d-none d-sm-table-cell" style="width: 120px">{{ $t('document.upload_folder') }}</th>
+            <th class="text-left font-weight-bold d-none d-md-table-cell" style="width: 100px">{{ $t('document.storage_used') }}</th>
+            <th class="text-left font-weight-bold d-none d-md-table-cell" style="width: 130px">{{ $t('document.upload_date') }}</th>
+            <th class="text-right font-weight-bold" style="width: 50px">{{ $t('absence.table_actions') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="file in filteredFiles" :key="file.id">
+            <td>
+              <v-icon :icon="getFileIcon(file.mimeType)" :color="getFileColor(file.mimeType)" size="small"></v-icon>
+            </td>
+            <td>
+              <div class="d-flex align-center ga-2 flex-wrap">
+                <span
+                  class="font-weight-medium text-body-2 cursor-pointer vault-file-name"
+                  @click="isPreviewable(file.mimeType) ? openFilePreview(file) : downloadFile(file)"
+                >
+                  {{ file.name }}
+                </span>
+                <v-chip
+                  v-if="file.linkedItemId"
+                  size="x-small"
+                  variant="tonal"
+                  color="success"
+                  prepend-icon="mdi-link-variant"
+                >
+                  {{ $t('document.file_link') }}
+                </v-chip>
+              </div>
+              <div v-if="file.notes" class="text-caption text-medium-emphasis text-truncate" style="max-width: 300px">
+                {{ file.notes }}
+              </div>
+            </td>
+            <td class="d-none d-sm-table-cell">
+              <v-chip size="x-small" variant="tonal" color="primary" :prepend-icon="folders.find(f => f.id === file.folderId)?.icon || 'mdi-folder-outline'">
+                {{ getFolderLabel(file.folderId) }}
+              </v-chip>
+            </td>
+            <td class="d-none d-md-table-cell text-caption text-medium-emphasis">
+              {{ formatSize(file.size) }}
+            </td>
+            <td class="d-none d-md-table-cell text-caption text-medium-emphasis">
+              {{ formatUploadDate(file.uploadedAt) }}
+            </td>
+            <td class="text-right">
+              <v-menu location="bottom end">
+                <template #activator="{ props }">
+                  <v-btn
+                    icon="mdi-dots-vertical"
+                    variant="text"
+                    size="small"
+                    v-bind="props"
+                  ></v-btn>
+                </template>
+                <v-list density="compact" class="rounded-lg elevation-4">
+                  <v-list-item
+                    v-if="isPreviewable(file.mimeType)"
+                    prepend-icon="mdi-eye-outline"
+                    :title="$t('document.file_preview')"
+                    @click="openFilePreview(file)"
+                  ></v-list-item>
+                  <v-list-item
+                    prepend-icon="mdi-download"
+                    :title="$t('document.file_download')"
+                    @click="downloadFile(file)"
+                  ></v-list-item>
+                  <v-divider></v-divider>
+                  <v-list-item
+                    prepend-icon="mdi-pencil-outline"
+                    :title="$t('document.file_rename')"
+                    @click="openRenameDialog(file)"
+                  ></v-list-item>
+                  <v-list-item
+                    prepend-icon="mdi-folder-move-outline"
+                    :title="$t('document.file_move')"
+                    @click="openMoveDialog(file)"
+                  ></v-list-item>
+                  <v-list-item
+                    prepend-icon="mdi-note-edit-outline"
+                    :title="$t('document.file_add_notes')"
+                    @click="openFileNotesDialog(file)"
+                  ></v-list-item>
+                  <v-list-item
+                    prepend-icon="mdi-link-variant"
+                    :title="$t('document.file_link')"
+                    @click="openLinkDialog(file)"
+                  ></v-list-item>
+                  <v-list-item
+                    v-if="file.linkedItemId"
+                    prepend-icon="mdi-link-variant-off"
+                    :title="$t('document.file_unlink')"
+                    @click="unlinkFile(file.id)"
+                  ></v-list-item>
+                  <v-divider></v-divider>
+                  <v-list-item
+                    prepend-icon="mdi-delete-outline"
+                    :title="$t('document.file_delete')"
+                    @click="openDeleteFileDialog(file)"
+                    base-color="error"
+                  ></v-list-item>
+                </v-list>
+              </v-menu>
+            </td>
+          </tr>
+        </tbody>
+      </v-table>
+
+      <!-- Document Vault Actions Footer -->
+      <div class="d-flex align-center justify-space-between mt-3 flex-wrap ga-2">
+        <v-chip
+          v-if="uploadedFiles.length > 0"
+          size="small"
+          variant="tonal"
+          color="primary"
+          class="font-weight-bold"
+        >
+          {{ uploadedFiles.length }} {{ uploadedFiles.length === 1 ? 'file' : 'files' }} · {{ formatSize(totalFileStorageBytes) }}
+        </v-chip>
+        <v-spacer v-else></v-spacer>
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-upload"
+          size="small"
+          @click="openUploadDialog()"
+        >
+          {{ $t('document.upload_files') }}
+        </v-btn>
+      </div>
     </v-card>
 
     <!-- Address Form Dialog -->
@@ -1375,6 +2103,330 @@ export default {
       </v-card>
     </v-dialog>
 
+    <!-- Upload Dialog -->
+    <v-dialog v-model="uploadDialog.show" max-width="550px">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 font-weight-bold text-h6 d-flex align-center ga-2">
+          <v-icon icon="mdi-upload" color="primary"></v-icon>
+          {{ $t('document.upload_dialog_title') }}
+        </v-card-title>
+        <v-card-text class="px-0 py-2">
+          <!-- Drop Zone -->
+          <div
+            class="upload-drop-zone border-dashed rounded-lg pa-6 text-center mb-4"
+            :class="{ 'upload-drop-active': uploadDialog.files.length > 0 }"
+            @click="$refs.fileInput?.click()"
+            @dragover.prevent
+            @drop.prevent="(e) => { handleFileSelect(e.dataTransfer.files) }"
+          >
+            <input
+              ref="fileInput"
+              type="file"
+              :accept="allowedFileExtensions"
+              multiple
+              style="display: none"
+              @change="handleFileSelect($event)"
+            />
+            <v-icon icon="mdi-cloud-upload-outline" size="40" color="primary" class="mb-2" style="opacity: 0.6"></v-icon>
+            <div class="text-body-2 font-weight-medium">{{ $t('document.upload_drop_hint') }}</div>
+            <div class="text-caption text-medium-emphasis mt-1">
+              {{ $t('document.upload_type_hint') }} · {{ $t('document.upload_size_limit', { size: maxFileSizeFormatted }) }}
+            </div>
+          </div>
+
+          <!-- Selected Files Preview -->
+          <div v-if="uploadDialog.files.length > 0" class="mb-4">
+            <v-chip
+              v-for="(file, idx) in uploadDialog.files"
+              :key="idx"
+              size="small"
+              variant="tonal"
+              color="primary"
+              closable
+              class="ma-1"
+              :prepend-icon="getFileIcon(file.type)"
+              @click:close="uploadDialog.files.splice(idx, 1)"
+            >
+              {{ file.name }} ({{ formatSize(file.size) }})
+            </v-chip>
+          </div>
+
+          <!-- Folder Select -->
+          <v-select
+            v-model="uploadDialog.folderId"
+            :items="folderSelectOptions"
+            :label="$t('document.upload_folder')"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+          ></v-select>
+
+          <!-- Notes -->
+          <v-textarea
+            v-model="uploadDialog.notes"
+            :label="$t('document.upload_notes')"
+            variant="outlined"
+            density="compact"
+            rows="2"
+            hide-details
+          ></v-textarea>
+        </v-card-text>
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
+          <v-btn variant="text" @click="uploadDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            :loading="uploadDialog.uploading"
+            :disabled="uploadDialog.files.length === 0"
+            prepend-icon="mdi-upload"
+            @click="executeUpload"
+          >
+            {{ $t('document.upload_files') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- File Preview Dialog -->
+    <v-dialog v-model="filePreviewDialog.show" max-width="800px" @update:model-value="(v) => { if (!v) closeFilePreview() }">
+      <v-card elevation="2" class="rounded-lg" color="surface">
+        <v-card-title class="d-flex align-center ga-2 pa-3">
+          <v-icon
+            v-if="filePreviewDialog.file"
+            :icon="getFileIcon(filePreviewDialog.file.mimeType)"
+            :color="getFileColor(filePreviewDialog.file.mimeType)"
+          ></v-icon>
+          <span class="font-weight-bold text-h6 text-truncate">
+            {{ filePreviewDialog.file?.name || $t('document.preview_title') }}
+          </span>
+          <v-spacer></v-spacer>
+          <v-btn
+            v-if="filePreviewDialog.file"
+            icon="mdi-download"
+            variant="text"
+            size="small"
+            :title="$t('document.file_download')"
+            @click="downloadFile(filePreviewDialog.file)"
+          ></v-btn>
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            @click="closeFilePreview"
+          ></v-btn>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text class="pa-0" style="min-height: 300px; max-height: 70vh; overflow: auto;">
+          <div v-if="filePreviewDialog.loading" class="d-flex justify-center align-center" style="min-height: 300px">
+            <v-progress-circular indeterminate color="primary"></v-progress-circular>
+          </div>
+          <template v-else-if="filePreviewDialog.objectUrl && filePreviewDialog.file">
+            <!-- Image Preview -->
+            <img
+              v-if="filePreviewDialog.file.mimeType?.startsWith('image/')"
+              :src="filePreviewDialog.objectUrl"
+              :alt="filePreviewDialog.file.name"
+              class="d-block mx-auto"
+              style="max-width: 100%; max-height: 65vh; object-fit: contain;"
+            />
+            <!-- PDF Preview -->
+            <iframe
+              v-else-if="filePreviewDialog.file.mimeType === 'application/pdf'"
+              :src="filePreviewDialog.objectUrl"
+              style="width: 100%; height: 65vh; border: none;"
+            ></iframe>
+            <!-- Unsupported -->
+            <div v-else class="text-center py-8">
+              <v-icon icon="mdi-file-question-outline" size="48" color="grey" class="mb-3"></v-icon>
+              <div class="text-body-2 text-medium-emphasis">{{ $t('document.preview_unsupported') }}</div>
+              <div class="text-caption text-medium-emphasis">{{ $t('document.preview_download_instead') }}</div>
+            </div>
+          </template>
+        </v-card-text>
+        <v-card-text v-if="filePreviewDialog.file" class="pa-3 text-caption text-medium-emphasis d-flex ga-4 flex-wrap">
+          <span>{{ formatSize(filePreviewDialog.file.size) }}</span>
+          <span>{{ filePreviewDialog.file.mimeType }}</span>
+          <span>{{ formatUploadDate(filePreviewDialog.file.uploadedAt) }}</span>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <!-- Rename Dialog -->
+    <v-dialog v-model="renameDialog.show" max-width="400px">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 font-weight-bold text-h6">
+          {{ $t('document.rename_dialog_title') }}
+        </v-card-title>
+        <v-card-text class="px-0 py-2">
+          <v-text-field
+            v-model="renameDialog.name"
+            :label="$t('document.rename_label')"
+            variant="outlined"
+            density="compact"
+            autofocus
+            @keyup.enter="executeRename"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
+          <v-btn variant="text" @click="renameDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="executeRename">{{ $t('document.save') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Move to Folder Dialog -->
+    <v-dialog v-model="moveDialog.show" max-width="400px">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 font-weight-bold text-h6">
+          {{ $t('document.move_dialog_title') }}
+        </v-card-title>
+        <v-card-text class="px-0 py-2">
+          <v-select
+            v-model="moveDialog.folderId"
+            :items="folderSelectOptions"
+            :label="$t('document.move_label')"
+            variant="outlined"
+            density="compact"
+          ></v-select>
+        </v-card-text>
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
+          <v-btn variant="text" @click="moveDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="executeMove">{{ $t('document.save') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Delete File Confirmation Dialog -->
+    <v-dialog v-model="deleteFileDialog.show" max-width="400px">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 font-weight-bold text-h6 text-error">
+          {{ $t('document.delete_file_title') }}
+        </v-card-title>
+        <v-card-text class="px-0 py-2">
+          {{ $t('document.delete_file_body', { name: deleteFileDialog.fileName }) }}
+        </v-card-text>
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
+          <v-btn variant="text" @click="deleteFileDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
+          <v-btn color="error" variant="flat" @click="executeDeleteFile">{{ $t('absence.delete_confirm') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- File Notes Dialog -->
+    <v-dialog v-model="fileNotesDialog.show" max-width="500px">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 font-weight-bold text-h6">
+          {{ $t('document.file_notes_dialog_title') }}
+        </v-card-title>
+        <v-card-text class="px-0 py-2">
+          <v-textarea
+            v-model="fileNotesDialog.notes"
+            :label="$t('document.notes')"
+            variant="outlined"
+            rows="4"
+          ></v-textarea>
+        </v-card-text>
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
+          <v-btn variant="text" @click="fileNotesDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="saveFileNotes">{{ $t('document.save') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Link to Checklist Item Dialog -->
+    <v-dialog v-model="linkDialog.show" max-width="450px">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 font-weight-bold text-h6">
+          {{ $t('document.link_dialog_title') }}
+        </v-card-title>
+        <v-card-text class="px-0 py-2">
+          <v-select
+            v-model="linkDialog.year"
+            :items="linkYearOptions"
+            :label="$t('document.link_year_label')"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+          ></v-select>
+          <v-select
+            v-model="linkDialog.itemId"
+            :items="linkItemOptions"
+            :label="$t('document.link_item_label')"
+            variant="outlined"
+            density="compact"
+          ></v-select>
+        </v-card-text>
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
+          <v-btn variant="text" @click="linkDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
+          <v-btn color="primary" variant="flat" :disabled="!linkDialog.itemId" @click="executeLinkFile">{{ $t('document.save') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Attached Files Viewer Dialog -->
+    <v-dialog v-model="attachedFilesDialog.show" max-width="550px">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 font-weight-bold text-h6 d-flex align-center ga-2">
+          <v-icon icon="mdi-paperclip" color="primary"></v-icon>
+          {{ attachedFilesDialog.itemTitle }}
+        </v-card-title>
+        <v-card-text class="px-0 py-2">
+          <div v-if="attachedFilesForDialog.length === 0" class="text-center py-4 text-medium-emphasis">
+            <v-icon icon="mdi-paperclip-off" size="large" class="mb-2"></v-icon>
+            <div class="text-subtitle-2">{{ $t('document.vault_empty_title') }}</div>
+          </div>
+          <v-list v-else density="compact" class="border rounded-lg">
+            <v-list-item
+              v-for="file in attachedFilesForDialog"
+              :key="file.id"
+              :prepend-icon="getFileIcon(file.mimeType)"
+              :subtitle="formatSize(file.size) + ' · ' + formatUploadDate(file.uploadedAt)"
+            >
+              <v-list-item-title class="font-weight-medium">{{ file.name }}</v-list-item-title>
+              <template #append>
+                <v-btn
+                  v-if="isPreviewable(file.mimeType)"
+                  icon="mdi-eye-outline"
+                  variant="text"
+                  size="x-small"
+                  @click="openFilePreview(file)"
+                ></v-btn>
+                <v-btn
+                  icon="mdi-download"
+                  variant="text"
+                  size="x-small"
+                  @click="downloadFile(file)"
+                ></v-btn>
+                <v-btn
+                  icon="mdi-link-variant-off"
+                  variant="text"
+                  size="x-small"
+                  color="error"
+                  :title="$t('document.file_unlink')"
+                  @click="unlinkFile(file.id)"
+                ></v-btn>
+              </template>
+            </v-list-item>
+          </v-list>
+
+          <div class="d-flex justify-end mt-3">
+            <v-btn
+              color="primary"
+              variant="outlined"
+              size="small"
+              prepend-icon="mdi-paperclip"
+              @click="attachedFilesDialog.show = false; openAttachFileDialog(attachedFilesDialog.year, { id: attachedFilesDialog.itemId })"
+            >
+              {{ $t('document.attach_file') }}
+            </v-btn>
+          </div>
+        </v-card-text>
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
+          <v-btn variant="text" @click="attachedFilesDialog.show = false">{{ $t('app.close') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Global Snackbar Notification -->
     <v-snackbar
       v-model="snackbar.show"
@@ -1393,5 +2445,38 @@ export default {
 <style scoped>
 .cursor-pointer {
   cursor: pointer;
+}
+
+.vault-empty-state {
+  border-style: dashed !important;
+  border-color: rgba(var(--v-theme-primary), 0.3) !important;
+  transition: all 0.2s ease;
+}
+
+.vault-drag-over {
+  border-color: rgb(var(--v-theme-primary)) !important;
+  background-color: rgba(var(--v-theme-primary), 0.04) !important;
+}
+
+.upload-drop-zone {
+  cursor: pointer;
+  border: 2px dashed rgba(var(--v-theme-primary), 0.3);
+  transition: all 0.2s ease;
+}
+
+.upload-drop-zone:hover,
+.upload-drop-active {
+  border-color: rgb(var(--v-theme-primary));
+  background-color: rgba(var(--v-theme-primary), 0.04);
+}
+
+.vault-file-name {
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.vault-file-name:hover {
+  color: rgb(var(--v-theme-primary));
+  text-decoration: underline;
 }
 </style>

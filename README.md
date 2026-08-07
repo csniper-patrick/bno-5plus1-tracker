@@ -43,7 +43,7 @@ An unofficial, 3rd-party web application designed for **British National (Overse
   - **UK Address History Log**: Log residential addresses lived at during your 5-year qualifying period (Move-in/out dates, postcode, tenure type) required for Home Office SET(O) and Naturalisation AN application forms.
   - **📁 Document Vault**: Drag-and-drop file upload zone supporting PDFs, images (JPG, PNG, WebP, HEIC), and text files up to 10 MB. Organize files into folders (`Year 1-5`, `Life in UK`, `English B1`, `Addresses`, `Other`), view inline image/PDF previews, edit file notes, rename/move files, and link files directly to specific residence checklist items with paperclip count indicators.
 - **🔗 Reference & Official Guidance Page (`ReferenceView`)**
-  - **Curated Official GOV.UK Resources**: Quick reference page presenting key official UK Home Office publications, policy statements, test portals, and application forms in structured cards.
+  - **Curated Official & NGO Resources**: Quick reference page presenting 30 curated official UK Home Office publications, statutory immigration rules (Appendix HK), HMRC tax residence guides, digital share codes, higher education rules, and verified non-commercial registered charities/NGOs in structured cards with search and category filtering.
   - **Category & Search Filters**: Instantly filter official resources by category (BNO Settlement, Policy & Guidance, Qualifications & Tests, Citizenship) or text search.
   - **Direct Links & One-Click Copy**: Convenient action buttons to visit official GOV.UK pages or copy URLs.
 - **🧭 Right Navigation Drawer & Consolidated Data Management**
@@ -176,20 +176,44 @@ bno-5plus1-tracker/
 
 ## 🔗 Useful Links & Official Resources
 
-Below are key official UK Government (GOV.UK) resources and policies for Hong Kong BNO visa holders, accessible within the application via the **Reference & Official Guidance** (`ReferenceView`) page:
+Below are key official UK Government (GOV.UK), UK Parliament, and verified non-commercial NGO resources for Hong Kong BNO visa holders, accessible within the application via the **Reference & Official Guidance** (`ReferenceView`) page:
 
 - **[BNO Visa: Settle in the UK (ILR Guidance)](https://www.gov.uk/british-national-overseas-bno-visa/settle-in-the-uk)**  
   Official Home Office guidance on settlement eligibility, 5-year continuous residence requirements, 180-day absence limits, and required qualifications.
-- **[Hong Kong BNO Visa Policy Statement (Plain Text Version)](https://www.gov.uk/government/publications/hong-kong-bno-visa-policy-statement/hong-kong-british-national-overseas-visa-policy-statement-plain-text-version)**  
-  Detailed policy statement setting out the rights, work/study permissions, public fund restrictions, and settlement pathways for BNO status holders.
-- **[UKVI Continuous Residence Caseworker Guidance](https://www.gov.uk/government/publications/continuous-residence)**  
-  Official caseworker guidance on calculating 180-day rolling absence windows and departure/arrival day exclusion rules.
+- **[Hong Kong BN(O) Route Caseworker Guidance](https://www.gov.uk/government/publications/hong-kong-british-national-overseas-route)**  
+  Official Home Office staff decision-making manual for assessing entry clearance, extensions, adult children eligibility, and settlement.
+- **[Immigration Rules Appendix Hong Kong BN(O)](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-hong-kong-british-national-overseas)**  
+  Statutory immigration rules enacted by UK Parliament establishing validity, suitability, continuous residence, and settlement criteria (HK 51.1–HK 64.1).
+- **[HMRC Statutory Residence Test (SRT) Guidance (RDR3)](https://www.gov.uk/government/publications/rdr3-statutory-residence-test-srt)**  
+  Official HMRC tax residence guide detailing day-counting rules (midnight rule), automatic overseas/UK tests, and split-year tax treatment.
+- **[Prove Your Right to Work in the UK (Share Code Service)](https://www.gov.uk/prove-right-to-work)**  
+  Official digital portal for generating employer share codes to verify employment permissions.
+- **[Prove Your Right to Rent in the UK (Share Code Service)](https://www.gov.uk/prove-right-to-rent)**  
+  Official digital portal for generating landlord share codes for tenancy checks in England.
+- **[View & Prove Your Immigration Status (eVisa Account)](https://www.gov.uk/view-prove-immigration-status)**  
+  Official UKVI digital portal for accessing eVisa records and updating linked passport details for travel.
+- **[Register to Vote in the UK (Electoral Roll)](https://www.gov.uk/register-to-vote)**  
+  Official voter registration portal (BNO citizens are Commonwealth citizens eligible to vote; registration builds UK credit history).
 - **[Life in the UK Test Official Booking Portal](https://www.gov.uk/life-in-the-uk-test)**  
   Official booking portal, test center locator, ID guidelines, and fee information for the mandatory Life in the UK test.
 - **[Prove Your Knowledge of English (B1 Level)](https://www.gov.uk/english-language)**  
   Official requirements and recognized SELT test providers (Trinity, IELTS SELT, PSI) for demonstrating B1 level English.
+- **[Ecctis Qualification Recognition & English Verification](https://www.ecctis.com/)**  
+  Official UK national agency designated for recognizing foreign university degrees and satisfying English requirements without SELT exams.
 - **[Apply for British Citizenship by Naturalisation (Form AN)](https://www.gov.uk/apply-citizenship-indefinite-leave-to-remain)**  
   Official guidance and requirements for naturalisation after obtaining ILR, including the 450-day 5-year limit and 90-day final 12-month limit.
+- **[Good Character Caseworker Guidance](https://www.gov.uk/government/publications/good-character-guidance)**  
+  Home Office caseworker criteria for assessing character requirements (tax compliance, fines, legal conduct) during citizenship applications.
+- **[Hongkongers in Britain (HKB)](https://www.hongkongers.org.uk/)**  
+  Leading registered charity established by Hongkongers in the UK providing resettlement guides, employment workshops, CV clinics, and mental health support.
+- **[Hong Kong Watch](https://www.hongkongwatch.org/)**  
+  Registered non-governmental organization (NGO) advocating for BNO holders' rights, MPF pension withdrawal policy briefs, and student fee status.
+- **[Citizens Advice UK](https://www.citizensadvice.org.uk/)**  
+  UK's largest independent advice charity offering free, confidential advice on tenant rights, employment contracts, council tax, and NRPF support.
+- **[Hong Kong Well UK](https://www.hongkongwell.uk/)**  
+  Registered non-profit Community Interest Company (CIC) providing subsidized Cantonese mental health counseling and SEN educational advice for BNO families.
+- **[The Migration Observatory (University of Oxford)](https://migrationobservatory.ox.ac.uk/)**  
+  Independent, non-profit academic research unit based at Oxford University providing data-driven analysis of UK migration policy and BNO population trends.
 
 ---
 

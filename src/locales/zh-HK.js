@@ -407,6 +407,8 @@ export default {
     cat_visa_extension: '簽證續簽',
     cat_bno_settlement: 'BNO 永居定居',
     cat_policy_guidance: '政策與指引',
+    cat_tax_residence: '稅務與居留身分',
+    cat_living_rights: '生活與權利',
     cat_qualifications: '資格與考試',
     cat_citizenship: '英國國籍入籍',
     cat_tools: '工具與原始碼',
@@ -531,6 +533,126 @@ export default {
           '申請永居 (ILR) 時所需提供的證明文件要求',
         ],
       },
+      bno_caseworker_guidance: {
+        title: '香港 BNO 簽證途徑審查官員指引',
+        category: '政策與指引',
+        badge: '審查規則',
+        description:
+          '英國內政部官方審查官指引，詳細說明審批 BNO 入境許可、續簽、成年子女資格及永居申請的判決標準。',
+        highlights: [
+          '內政部審查官處理 BNO 簽證申請時採用的內部審查標準',
+          '詳細列出資金證明、連續居住及家庭受養關係的文件要求',
+          '涵蓋 1979年7月1日或之後出生的成年子女及家庭成員特許規定',
+        ],
+      },
+      bno_immigration_rules_appendix_hk: {
+        title: '英國移民條例附錄：香港 BNO 專章 (Appendix HK)',
+        category: '政策與指引',
+        badge: '法定條例',
+        description:
+          '由英國國會通過具法律約束力的法定移民條例，訂明 BNO 簽證途徑、申請效力、合資格條件及永居細則。',
+        highlights: [
+          '規範 BNO 身份持有人及其受養家屬的法定移民條文',
+          '明確定義申請效力、合資格條件、連續居住及永居定居標準 (HK 51.1–HK 64.1)',
+          '無須依賴商業法律諮詢即可查閱的官方權威法定依據',
+        ],
+      },
+      parliament_bno_briefing: {
+        title: '英國國會圖書館研究簡報：BNO 簽證途徑',
+        category: '政策與指引',
+        badge: '國會研究',
+        description:
+          '英國下議院圖書館發表的獨立非黨派研究報告，分析 BNO 簽證統計數據、法律背景、權利保障及政策演變。',
+        highlights: [
+          '英國國會官方研究報告，撮要政策決定、最新統計及居英權利',
+          '全面分析使用醫療服務、教育、社會福利及入籍途徑的權利',
+          '不含任何商業或政治偏見的客觀公共利益參考文件',
+        ],
+      },
+      bno_change_of_conditions_nrpf: {
+        title: '變更簽證附帶條件申請 (解除 NRPF 公共資助限制)',
+        category: '政策與指引',
+        badge: '豁免公共資助限制',
+        description:
+          '內政部官方指引及申請表格，供突發遭遇經濟困難或困頓的 BNO 簽證持有人申請解除不得接納公共資助 (NRPF) 的限制。',
+        highlights: [
+          '允許面臨極大經濟困境或無家可歸風險的 BNO 持有人申請解除 NRPF 限制',
+          '詳細說明需要提交的收入、居住環境及財務困難證明文件',
+          '在獲取英國社會安全網資助的同時保障合法居留身分',
+        ],
+      },
+      hmrc_statutory_residence_test: {
+        title: 'HMRC 法定稅務居留身份測試指引 (SRT / RDR3)',
+        category: '稅務與居留身分',
+        badge: '稅務居留',
+        description:
+          '英國皇家郵政及海關總署 (HMRC) 官方指引，說明如何判定英國稅務居留身分、在英日數計算 (午夜規則)、自動居留測試及分開稅務年度處理。',
+        highlights: [
+          'BNO 持有人判定全球收入及資本利得是否須於英國納稅的必備官方指南',
+          '詳細解釋自動海外測試、自動英國測試 (183 天規則) 及充分聯繫測試',
+          '明確指出午夜居住日數計算規則及移居英國首年的分開稅務年度 (Split-year) 處理',
+        ],
+      },
+      prove_right_to_work: {
+        title: '證明在英國工作權利 (僱主 Share Code 系統)',
+        category: '生活與權利',
+        badge: '工作許可',
+        description:
+          '英國政府官方網站，供 BNO 簽證持有人生成安全數位 Share Code，以便僱主核實其無限制工作的合法權利。',
+        highlights: [
+          '即時生成 9 位字元的 Share Code 供英國僱主在線核實工作許可',
+          '說明 BNO 簽證的全面工作權利 (受僱、自僱及創業經營)',
+          '以即時數位電子簽證 (eVisa) 驗證取代實體文件審核',
+        ],
+      },
+      prove_right_to_rent: {
+        title: '證明在英國租屋權利 (房東 Share Code 系統)',
+        category: '生活與權利',
+        badge: '租屋許可',
+        description:
+          '英國政府官方數位服務，供 BNO 持有人向英格蘭的房東及地產代理證明合法租賃住宅物業的權利。',
+        highlights: [
+          '生成數位 Share Code 供房東及地產中介核實租用房屋資格',
+          '提供官方數位居留證明，保障租客合法權益',
+          '直接與您的 UKVI 電子簽證 (eVisa) 帳戶相連',
+        ],
+      },
+      view_prove_immigration_status: {
+        title: '檢視及證明移民身分 (UKVI 電子簽證 eVisa 帳戶)',
+        category: '生活與權利',
+        badge: 'eVisa 帳戶',
+        description:
+          'UKVI 官方在線服務，用於查閱數位簽證紀錄、生成身分 Share Code 以及更新關聯的護照與旅行證件資料。',
+        highlights: [
+          '查閱及管理個人 UKVI 電子簽證 (eVisa) 狀態的中央在線平台',
+          '更新新護照號碼的必備途徑，避免於英國邊境過關時受阻',
+          '生成數位 Share Code 以作官方身分證明',
+        ],
+      },
+      register_to_vote_uk: {
+        title: '選民登記 (Electoral Roll 英國選民名冊)',
+        category: '生活與權利',
+        badge: '投票權利',
+        description:
+          '英國政府官方選民登記網站。由於 BNO 身份持有人屬於聯邦公民 (Commonwealth Citizens)，居英期間享有合法投票權。',
+        highlights: [
+          'BNO 身份持有人作為聯邦公民在英居住期間享有地方及國會大選的合法投票權',
+          '登記加入選民名冊 (Electoral Roll) 是提升英國信用評分、申請銀行戶口及房屋按揭的重要地址證明',
+          '經網上直接向地方議會 (Local Council) 完成登記',
+        ],
+      },
+      home_fee_status_guidance: {
+        title: '高等教育本地生學費 (Home Fee Status) 及資助指引',
+        category: '生活與權利',
+        badge: '教育權利',
+        description:
+          '由 UKCISA 及 GOV.UK 提供的官方指引，說明居住滿 3 年後如何符合資格享用大學本地生學費 (Home Fee) 及學生貸款。',
+        highlights: [
+          '解釋 BNO 持有人於英國普通居住滿 3 年後享用大學本地生學費 (Home Fee) 的條件',
+          '由英國官方教育諮詢機構 UKCISA 維護',
+          '提供英格蘭、蘇格蘭、威爾斯及北愛爾蘭各地的學費標準指引',
+        ],
+      },
       life_in_uk_test: {
         title: 'Life in the UK 考試官方預約網站',
         category: '資格與考試',
@@ -555,6 +677,18 @@ export default {
           '用於先前成功申請的 SELT 合格證書在申請 ILR 時永不逾期',
         ],
       },
+      ecctis_qualification_recognition: {
+        title: 'Ecctis 海外學歷認證與英文能力核實',
+        category: '資格與考試',
+        badge: '官方認證機構',
+        description:
+          '英國政府指定的官方國家學歷評估機構，負責評估海外學歷可比性及為簽證與永居申請核實英語能力。',
+        highlights: [
+          '為非英國大學學位提供官方可比性聲明 (Statement of Comparability)',
+          '滿足永居 (ILR) B1 英文要求的官方認可途徑，無須另外考取 SELT 英語考試',
+          '獲內政部審查官、英國僱主及專業註冊機構全面採納',
+        ],
+      },
       apply_citizenship_naturalisation: {
         title: '申請歸化入籍成為英國公民 (Form AN)',
         category: '英國國籍入籍',
@@ -566,6 +700,78 @@ export default {
           '離境限制二：申請前 12 個月內總離英日數不得超過 90 天',
           '實際身在英國要求：遞交申請當日倒數整整 5 年當天必須身在英國',
           '需要 2 名推薦人、良好的品格評估及出席入籍儀式',
+        ],
+      },
+      good_character_guidance: {
+        title: '英國國籍申請「良好品格」(Good Character) 審查指引',
+        category: '英國國籍入籍',
+        badge: '入籍品格審查',
+        description:
+          '內政部官方審查官指引，定義申請歸化英國公民時「良好品格」的審查標準，涵蓋納稅遵從、刑事紀錄及法規遵守。',
+        highlights: [
+          '所有成年人申請歸化英國公民 (Form AN) 時必須通過的審查標準',
+          '詳細說明 HMRC 納稅紀錄、交通違例、罰款單及財務誠信對入籍申請的影響',
+          '提供清晰指引以避免入籍申請因品格問題遭拒絕',
+        ],
+      },
+      hkb_hongkongers_in_britain: {
+        title: '英國港僑協會 (Hongkongers in Britain) 移居支援平台',
+        category: '生活與權利',
+        badge: '慈善團體',
+        description:
+          '由居英港人創立的領先非牟利慈善團體，提供安頓指南、求職工作坊、履歷修改診所及心理健康支援。',
+        highlights: [
+          '為 BNO 持有人提供免費雙語安頓指南、CV 履歷診所及就業導師計劃',
+          '於全英主要地區提供廣東話心理健康輔導及社區融入支援',
+          '發表關於居英港人定居現狀的政策研究報告及統計調查',
+        ],
+      },
+      hong_kong_watch: {
+        title: '香港監察 (Hong Kong Watch) 權利與政策簡報',
+        category: '政策與指引',
+        badge: '人權與政策 NGO',
+        description:
+          '總部位於英國的非政府組織 (NGO)，倡議 BNO 持有人權益、強積金 (MPF) 提領及大學本地生學費資格。',
+        highlights: [
+          '獨立倡議 NGO，保障 BNO 身份持有人權利及爭取強積金 (MPF) 提領權益',
+          '發布有關 BNO 簽證途徑、永居續簽及學生學費身份的政策簡報',
+          '與英國國會議員及民意代表合作，促進香港社群融入英國社會',
+        ],
+      },
+      citizens_advice_uk: {
+        title: '英國公民諮詢局 (Citizens Advice) 獨立權益諮詢',
+        category: '生活與權利',
+        badge: '獨立諮詢慈善機構',
+        description:
+          '英國最大的獨立諮詢慈善機構，就租客權益、僱傭合約、債務管理及公共資助 (NRPF) 提供免費獨立諮詢。',
+        highlights: [
+          '於英格蘭、蘇格蘭及威爾斯提供免費、保密且獨立的法律及權益諮詢服務',
+          '就租房保障、工作權益、地方稅 (Council Tax) 及福利提供客觀指引',
+          '協助陷入財政困難的移英人士處理 NRPF 公共資助限制及尋求緊急社區援助',
+        ],
+      },
+      hong_kong_well_uk: {
+        title: '英國心泉 (Hong Kong Well UK) 學童情緒與家庭支援',
+        category: '生活與權利',
+        badge: '非牟利社區機構',
+        description:
+          '英國註冊非牟利社區興趣公司 (CIC)，為 BNO 家庭提供資助廣東話心理輔導及特殊教育需要 (SEN) 諮詢。',
+        highlights: [
+          '關注移英 BNO 家庭及學童心理健康的非牟利社區服務機構',
+          '提供廣東話心理輔導及特殊教育需要 (SEN) 家庭專業諮詢服務',
+          '舉辦社區工作坊，協助家長及學童適應英國學校教育體系',
+        ],
+      },
+      migration_observatory_oxford: {
+        title: '牛津大學移民觀察站 (The Migration Observatory)',
+        category: '政策與指引',
+        badge: '獨立學術研究機構',
+        description:
+          '設於牛津大學的獨立非牟利學術研究單位，提供基於數據的英國移民政策及 BNO 人口數據權威分析。',
+        highlights: [
+          '來自牛津大學具權威性及數據支持的移民分析與研究',
+          '定期發表關於 BNO 簽證移民趨勢、就業率及房屋需求的客觀報告',
+          '完全不受政治、商業或移民中介利益干擾的客觀數據來源',
         ],
       },
       bno_visa_overview: {

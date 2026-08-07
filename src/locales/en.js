@@ -419,6 +419,8 @@ export default {
     cat_visa_extension: 'Visa Extension',
     cat_bno_settlement: 'BNO Settlement',
     cat_policy_guidance: 'Policy & Guidance',
+    cat_tax_residence: 'Tax & Residence',
+    cat_living_rights: 'Living & Rights',
     cat_qualifications: 'Qualifications & Tests',
     cat_citizenship: 'Citizenship',
     cat_tools: 'Tools & Source',
@@ -546,6 +548,126 @@ export default {
           'Supporting evidence requirements for ILR applications',
         ],
       },
+      bno_caseworker_guidance: {
+        title: 'Hong Kong BN(O) Route Caseworker Guidance',
+        category: 'Policy & Guidance',
+        badge: 'Caseworker Rules',
+        description:
+          'Official Home Office caseworker guidance specifying decision-making criteria for entry clearance, extension, adult child eligibility, and settlement under the BNO route.',
+        highlights: [
+          'Internal assessment rules used by Home Office caseworkers to process BNO applications',
+          'Detailed evidence criteria for maintenance funds, continuous residence, and family dependencies',
+          'Includes rules for adult children (born on or after 1 July 1979) and household relatives',
+        ],
+      },
+      bno_immigration_rules_appendix_hk: {
+        title: 'Immigration Rules Appendix Hong Kong British National (Overseas)',
+        category: 'Policy & Guidance',
+        badge: 'Statutory Rules',
+        description:
+          'Legally binding UK Parliament statutory immigration code establishing the BNO visa route, validity, suitability, and settlement criteria.',
+        highlights: [
+          'Statutory rules governing BNO status holders and dependent family members',
+          'Exact legal definitions of validity, suitability, continuous residence, and settlement eligibility (HK 51.1–HK 64.1)',
+          'Authoritative reference for legal requirements without relying on commercial legal advice',
+        ],
+      },
+      parliament_bno_briefing: {
+        title: 'UK Parliament Research Briefing: BNO Visa Route',
+        category: 'Policy & Guidance',
+        badge: 'Parliament Research',
+        description:
+          'Independent, non-partisan UK House of Commons Library briefing on BNO visa statistics, legal background, rights access, and policy developments.',
+        highlights: [
+          'Official UK Parliament research report summarizing policy decisions, statistics, and rights',
+          'Comprehensive analysis of access to healthcare, education, social security, and citizenship pathways',
+          'Impartial public interest reference free from commercial or political bias',
+        ],
+      },
+      bno_change_of_conditions_nrpf: {
+        title: 'Application for Change of Conditions (NRPF Waiver)',
+        category: 'Policy & Guidance',
+        badge: 'NRPF Waiver',
+        description:
+          'Official Home Office guidance and application for BNO visa holders experiencing sudden financial hardship or destitution to request lifting of No Recourse to Public Funds (NRPF).',
+        highlights: [
+          'Allows BNO holders facing extreme financial distress or destitution to apply to lift NRPF',
+          'Detailed guidance on required income, housing, and financial evidence',
+          'Protects lawful residence status while accessing the UK social safety net',
+        ],
+      },
+      hmrc_statutory_residence_test: {
+        title: 'HMRC Statutory Residence Test (SRT) Guidance (RDR3)',
+        category: 'Tax & Residence',
+        badge: 'Tax Residence',
+        description:
+          'Official HM Revenue & Customs (HMRC) guide on determining UK tax residence status, day-counting rules, automatic overseas/UK tests, and split-year tax treatment.',
+        highlights: [
+          'Essential for BNO holders determining whether global income/capital gains are subject to UK tax',
+          'Details Automatic Overseas Tests, Automatic UK Tests (183-day rule), and Sufficient Ties Tests',
+          'Clarifies midnight day-counting rules and split-year tax treatment upon relocating to the UK',
+        ],
+      },
+      prove_right_to_work: {
+        title: 'Prove Your Right to Work in the UK (Employer Share Code)',
+        category: 'Living & Rights',
+        badge: 'Work Permission',
+        description:
+          'Official GOV.UK portal for generating secure digital share codes for UK employers to verify BNO visa holders\' unrestricted right to work.',
+        highlights: [
+          'Instantly generate a 9-character share code for UK employers to check work permissions',
+          'Explains BNO visa work permissions (employed, self-employed, setting up a business)',
+          'Replaces physical document checks with instant digital eVisa verification',
+        ],
+      },
+      prove_right_to_rent: {
+        title: 'Prove Your Right to Rent in the UK (Landlord Share Code)',
+        category: 'Living & Rights',
+        badge: 'Housing Permission',
+        description:
+          'Official GOV.UK digital service allowing BNO holders to prove their legal right to rent residential property in England to landlords and estate agents.',
+        highlights: [
+          'Generate digital share code for landlords and letting agencies to verify tenancy eligibility',
+          'Protects tenants by providing official digital proof of legal UK residence',
+          'Integrates directly with your digital UKVI eVisa account',
+        ],
+      },
+      view_prove_immigration_status: {
+        title: 'View & Prove Your Immigration Status (eVisa UKVI Account)',
+        category: 'Living & Rights',
+        badge: 'eVisa Account',
+        description:
+          'Official UKVI online service to access digital visa records, generate status share codes, and update linked passport and travel document details.',
+        highlights: [
+          'Central online hub for accessing and managing your digital UKVI eVisa status',
+          'Critical for updating new passport numbers to avoid delays at UK border control',
+          'Generate digital share codes for official proof of UK status',
+        ],
+      },
+      register_to_vote_uk: {
+        title: 'Register to Vote in the UK (Electoral Roll)',
+        category: 'Living & Rights',
+        badge: 'Voting Rights',
+        description:
+          'Official UK Government voter registration service. As BN(O) status holders are Commonwealth citizens, BNO visa holders residing in the UK are eligible to vote.',
+        highlights: [
+          'BNO status holders in the UK have full voting rights in local and general elections as Commonwealth citizens',
+          'Registering on the Electoral Roll serves as key proof of address for UK credit scores, banking, and mortgages',
+          'Direct online registration linked to your local council',
+        ],
+      },
+      home_fee_status_guidance: {
+        title: 'Higher Education Home Fee Status & Student Support Guidance',
+        category: 'Living & Rights',
+        badge: 'Education Rights',
+        description:
+          'Official advisory rules from UKCISA & GOV.UK regarding 3-year ordinary residence rules for qualifying for Home Fee status and university student loans.',
+        highlights: [
+          'Explains the 3-year ordinary residence rule for BNO holders qualifying for Home Fee status in UK universities',
+          'Maintained by the UK Council for International Student Affairs (UKCISA), an official UK educational advisory body',
+          'Provides clear guidance on tuition fee status in England, Scotland, Wales, and Northern Ireland',
+        ],
+      },
       life_in_uk_test: {
         title: 'Life in the UK Test Official Portal',
         category: 'Qualifications & Tests',
@@ -571,6 +693,18 @@ export default {
           'SELT pass certificates do not expire for ILR if used in a previous successful application',
         ],
       },
+      ecctis_qualification_recognition: {
+        title: 'Ecctis Qualification Recognition & English Verification',
+        category: 'Qualifications & Tests',
+        badge: 'Official Recognition',
+        description:
+          'Official UK national agency designated by the UK Government for recognizing foreign qualifications and verifying English language proficiency for visa & ILR applications.',
+        highlights: [
+          'Provides official Statements of Comparability for non-UK university degrees',
+          'Alternative official pathway to satisfy the B1 English language requirement for ILR settlement without SELT exams',
+          'Recognized across Home Office caseworkers, UK employers, and professional registration bodies',
+        ],
+      },
       apply_citizenship_naturalisation: {
         title: 'Apply for British Citizenship (Form AN)',
         category: 'Citizenship',
@@ -582,6 +716,78 @@ export default {
           'Absence limit 2: Max 90 days absent in the 12 months immediately preceding application',
           'Physical presence requirement: Must have been in the UK exactly 5 years prior to application date',
           'Requires 2 referees, good character assessment, & citizenship ceremony',
+        ],
+      },
+      good_character_guidance: {
+        title: 'Good Character Requirement Caseworker Guidance',
+        category: 'Citizenship',
+        badge: 'Citizenship Rules',
+        description:
+          'Official Home Office caseworker guidance defining the Good Character requirement for British Citizenship naturalisation, covering tax compliance and legal conduct.',
+        highlights: [
+          'Mandatory assessment criteria for all adult applicants applying for British Citizenship (Form AN)',
+          'Details how HMRC tax compliance, driving offences, fixed penalty notices, and financial conduct affect applications',
+          'Provides clear guidelines to prevent citizenship application refusals',
+        ],
+      },
+      hkb_hongkongers_in_britain: {
+        title: 'Hongkongers in Britain (HKB) Resettlement Hub',
+        category: 'Living & Rights',
+        badge: 'Registered Charity',
+        description:
+          'Leading non-profit charity established by Hongkongers in the UK providing resettlement guides, employment workshops, CV clinics, and mental health support.',
+        highlights: [
+          'Provides free bilingual resettlement guides, CV clinics, and employment mentorship for BNO holders',
+          'Offers Cantonese-speaking mental health and community integration support across major UK regions',
+          'Publishes policy research and settlement surveys on Hong Kongers living in Britain',
+        ],
+      },
+      hong_kong_watch: {
+        title: 'Hong Kong Watch Policy & Rights Briefings',
+        category: 'Policy & Guidance',
+        badge: 'Registered NGO',
+        description:
+          'UK-based non-governmental organization (NGO) advocating for the rights of Hongkongers, pension MPF withdrawal, and university home fee status.',
+        highlights: [
+          'Independent advocacy NGO protecting BNO status holders\' rights and MPF pension withdrawal advocacy',
+          'Publishes policy briefings on BNO visa pathways, settlement extensions, and student fee status',
+          'Works directly with UK Parliamentarians and civil society to support Hong Kong community integration',
+        ],
+      },
+      citizens_advice_uk: {
+        title: 'Citizens Advice UK Independent Guidance',
+        category: 'Living & Rights',
+        badge: 'Advice Charity',
+        description:
+          'UK\'s largest independent advice charity offering free, impartial guidance on tenancy rights, employment contracts, debt advice, and public funds access (NRPF).',
+        highlights: [
+          'Free, confidential, and independent legal/rights advisory service across England, Scotland & Wales',
+          'Provides impartial guidance on tenant rights, employment contracts, council tax, and benefits',
+          'Assists migrants in distress navigating NRPF conditions and local social support',
+        ],
+      },
+      hong_kong_well_uk: {
+        title: 'Hong Kong Well UK Children & Family Support',
+        category: 'Living & Rights',
+        badge: 'Community Service',
+        description:
+          'Registered UK non-profit Community Interest Company (CIC) providing subsidized Cantonese mental health counseling and SEN educational advice for BNO families.',
+        highlights: [
+          'Non-profit community service supporting mental well-being of BNO families in the UK',
+          'Offers Cantonese-speaking psychological support and SEN (Special Educational Needs) family advisory',
+          'Conducts community workshops for parents and children adapting to the UK school system',
+        ],
+      },
+      migration_observatory_oxford: {
+        title: 'The Migration Observatory (University of Oxford)',
+        category: 'Policy & Guidance',
+        badge: 'Academic Research',
+        description:
+          'Independent, non-profit academic research unit based at the University of Oxford providing data-driven analysis of UK immigration policy and BNO population data.',
+        highlights: [
+          'Impartial, data-backed immigration analysis and research from the University of Oxford',
+          'Publishes objective reports on BNO visa migration trends, employment rates, and housing data',
+          '100% free of political, commercial, or immigration agent bias',
         ],
       },
       bno_visa_overview: {

@@ -11,7 +11,7 @@ import { useTheme, useDisplay } from 'vuetify'
 import { useI18n } from 'vue-i18n'
 import { useAbsentsStore } from './stores/absents'
 import { useDocumentsStore } from './stores/documents'
-import { exportFullBackup, importBackup } from './services/backupService'
+import { importBackup } from './services/backupService'
 import { exportZipBackup, importZipBackup } from './services/zipService'
 import ReloadPrompt from './components/ReloadPrompt.vue'
 

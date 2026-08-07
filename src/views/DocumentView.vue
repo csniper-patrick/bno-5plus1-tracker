@@ -2,7 +2,7 @@
 import { mapStores } from 'pinia'
 import { useDocumentsStore } from '../stores/documents'
 import { useAbsentsStore } from '../stores/absents'
-import { normalizeDate, formatDisplayDate } from '../utils/date'
+import { normalizeDate } from '../utils/date'
 import {
   formatFileSize,
   createFileURL,
@@ -1067,6 +1067,16 @@ export default {
     async unlinkFile(fileId) {
       await this.documentsStore.unlinkFileFromChecklist(fileId)
       this.showSnackbar(this.$t('document.file_unlinked'), 'info')
+    },
+
+    /**
+     * Closes the attached files dialog and opens the attach file picker dialog.
+     */
+    openAttachFromAttachedDialog() {
+      const year = this.attachedFilesDialog.year
+      const item = { id: this.attachedFilesDialog.itemId }
+      this.attachedFilesDialog.show = false
+      this.openAttachFileDialog(year, item)
     },
 
     /**
@@ -2707,7 +2717,7 @@ export default {
               variant="outlined"
               size="small"
               prepend-icon="mdi-paperclip"
-              @click="attachedFilesDialog.show = false; openAttachFileDialog(attachedFilesDialog.year, { id: attachedFilesDialog.itemId })"
+              @click="openAttachFromAttachedDialog"
             >
               {{ $t('document.attach_file') }}
             </v-btn>

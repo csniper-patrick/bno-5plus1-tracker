@@ -1,4 +1,4 @@
-<script setup>
+<script>
 /**
  * ReloadPrompt Component
  * Listens to VitePWA service worker events (`offlineReady` and `needRefresh`).
@@ -7,34 +7,47 @@
  */
 import { useRegisterSW } from 'virtual:pwa-register/vue'
 
-const { offlineReady, needRefresh, updateServiceWorker } = useRegisterSW({
-  onRegisteredSW(swUrl, r) {
-    if (r) {
-      // Periodically check for service worker updates every 1 hour (60 * 60 * 1000 ms)
-      setInterval(
-        () => {
-          r.update()
-        },
-        60 * 60 * 1000,
-      )
+export default {
+  name: 'ReloadPrompt',
+
+  data() {
+    const { offlineReady, needRefresh, updateServiceWorker } = useRegisterSW({
+      onRegisteredSW(swUrl, r) {
+        if (r) {
+          // Periodically check for service worker updates every 1 hour (60 * 60 * 1000 ms)
+          setInterval(
+            () => {
+              r.update()
+            },
+            60 * 60 * 1000,
+          )
+        }
+      },
+    })
+    return {
+      offlineReady,
+      needRefresh,
+      updateServiceWorker,
     }
   },
-})
 
-/**
- * Triggers service worker cache update and reloads window to apply latest app assets.
- */
-async function handleUpdate() {
-  await updateServiceWorker(true)
-  window.location.reload()
-}
+  methods: {
+    /**
+     * Triggers service worker cache update and reloads window to apply latest app assets.
+     */
+    async handleUpdate() {
+      await this.updateServiceWorker(true)
+      window.location.reload()
+    },
 
-/**
- * Dismisses update snackbar notification.
- */
-function close() {
-  offlineReady.value = false
-  needRefresh.value = false
+    /**
+     * Dismisses update snackbar notification.
+     */
+    close() {
+      this.offlineReady = false
+      this.needRefresh = false
+    },
+  },
 }
 </script>
 

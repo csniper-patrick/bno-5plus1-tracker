@@ -1,184 +1,201 @@
-<script setup>
+<script>
 /**
  * Root Application Component
  * Renders top-level Vuetify app container, app bar header with theme toggling,
  * right navigation drawer with consolidated data management (Export, Import, Clear All),
  * main RouterView, and PWA ReloadPrompt modal.
  */
-import { ref, onMounted, onUnmounted } from 'vue'
-import { RouterView, useRoute } from 'vue-router'
-import { useTheme, useDisplay } from 'vuetify'
-import { useI18n } from 'vue-i18n'
+import { mapStores } from 'pinia'
+import { RouterView } from 'vue-router'
 import { useAbsentsStore } from './stores/absents'
 import { useDocumentsStore } from './stores/documents'
 import { importBackup } from './services/backupService'
 import { exportZipBackup, importZipBackup } from './services/zipService'
 import ReloadPrompt from './components/ReloadPrompt.vue'
 
-// Vuetify theme, display breakpoints, router, i18n, and store instances
-const theme = useTheme()
-const { smAndUp, mdAndUp } = useDisplay()
-const route = useRoute()
-const { locale, t } = useI18n()
-const absentsStore = useAbsentsStore()
-const documentsStore = useDocumentsStore()
+export default {
+  name: 'App',
 
-// Navigation drawer and confirmation dialog states
-const drawer = ref(false)
-const clearAllDialog = ref(false)
+  components: {
+    RouterView,
+    ReloadPrompt,
+  },
 
-// Global snackbar feedback state
-const snackbar = ref({
-  show: false,
-  text: '',
-  color: 'success',
-})
-
-// File input element reference for YAML/ZIP import
-const fileInputRef = ref(null)
-
-let mediaQuery = null
-
-function handleSystemThemeChange(e) {
-  theme.global.name.value = e.matches ? 'dark' : 'light'
-}
-
-onMounted(async () => {
-  await Promise.all([absentsStore.initStore(), documentsStore.initStore()])
-
-  if (typeof window !== 'undefined' && window.matchMedia) {
-    mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleSystemThemeChange)
-    } else if (mediaQuery.addListener) {
-      mediaQuery.addListener(handleSystemThemeChange)
+  data() {
+    return {
+      drawer: false,
+      clearAllDialog: false,
+      snackbar: {
+        show: false,
+        text: '',
+        color: 'success',
+      },
+      mediaQuery: null,
     }
-  }
-})
+  },
 
-onUnmounted(() => {
-  if (mediaQuery) {
-    if (mediaQuery.removeEventListener) {
-      mediaQuery.removeEventListener('change', handleSystemThemeChange)
-    } else if (mediaQuery.removeListener) {
-      mediaQuery.removeListener(handleSystemThemeChange)
-    }
-  }
-})
+  computed: {
+    ...mapStores(useAbsentsStore, useDocumentsStore),
 
-/**
- * Toggles current active theme between Union Jack dark and light palettes.
- */
-function toggleTheme() {
-  theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
-}
+    smAndUp() {
+      return this.$vuetify.display.smAndUp
+    },
 
-/**
- * Toggles current active locale between English and Traditional Chinese (HK).
- */
-function toggleLanguage() {
-  const nextLocale = locale.value === 'en' ? 'zh-HK' : 'en'
-  locale.value = nextLocale
-  if (typeof window !== 'undefined' && window.localStorage) {
-    window.localStorage.setItem('bno_tracker_locale', nextLocale)
-  }
-}
+    mdAndUp() {
+      return this.$vuetify.display.mdAndUp
+    },
 
-function showSnackbar(text, color = 'success') {
-  snackbar.value = {
-    show: true,
-    text,
-    color,
-  }
-}
+    locale() {
+      return this.$i18n.locale
+    },
+  },
 
-/**
- * Merged Export: Exports full application data and uploaded document files to a ZIP backup archive.
- */
-async function exportAllData() {
-  try {
-    const { blob, fileCount } = await exportZipBackup(absentsStore, documentsStore)
+  mounted() {
+    this.absentsStore.initStore()
+    this.documentsStore.initStore()
 
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `bno-5plus1-tracker-backup_${new Date().toISOString().split('T')[0]}.zip`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-
-    showSnackbar(t('app.export_success', { fileCount }), 'success')
-  } catch (err) {
-    showSnackbar(t('app.export_failed') + err.message, 'error')
-  }
-}
-
-/**
- * Trigger hidden file input click for ZIP/YAML import.
- */
-function triggerImport() {
-  if (fileInputRef.value) {
-    fileInputRef.value.value = ''
-    fileInputRef.value.click()
-  }
-}
-
-/**
- * Consolidated Import handling both ZIP archives and standalone YAML files.
- */
-async function handleImportFileSelect(event) {
-  const file = event.target.files && event.target.files[0]
-  if (!file) return
-
-  if (file.name.toLowerCase().endsWith('.zip')) {
-    try {
-      const result = await importZipBackup(file, absentsStore, documentsStore)
-      showSnackbar(
-        t('app.import_success', {
-          absenceCount: result.absenceCount,
-          docs: result.docsImported ? t('app.import_docs_suffix') : '',
-          files:
-            result.filesImported > 0
-              ? t('app.import_files_suffix', { count: result.filesImported })
-              : '',
-        }),
-        'success',
-      )
-    } catch (err) {
-      showSnackbar(t('app.import_failed') + err.message, 'error')
-    }
-  } else {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      try {
-        const content = e.target.result
-        const result = importBackup(content, absentsStore, documentsStore)
-
-        showSnackbar(
-          t('app.import_success', {
-            absenceCount: result.absenceCount,
-            docs: result.docsImported ? t('app.import_docs_suffix') : '',
-          }),
-          'success',
-        )
-      } catch (err) {
-        showSnackbar(t('app.import_failed') + err.message, 'error')
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      this.mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      if (this.mediaQuery.addEventListener) {
+        this.mediaQuery.addEventListener('change', this.handleSystemThemeChange)
+      } else if (this.mediaQuery.addListener) {
+        this.mediaQuery.addListener(this.handleSystemThemeChange)
       }
     }
-    reader.readAsText(file)
-  }
-}
+  },
 
-/**
- * Consolidated Clear All for all application data.
- */
-function confirmClearAll() {
-  absentsStore.clearAbsences()
-  documentsStore.resetAll()
-  clearAllDialog.value = false
-  drawer.value = false
-  showSnackbar(t('app.cleared_all'), 'warning')
+  unmounted() {
+    if (this.mediaQuery) {
+      if (this.mediaQuery.removeEventListener) {
+        this.mediaQuery.removeEventListener('change', this.handleSystemThemeChange)
+      } else if (this.mediaQuery.removeListener) {
+        this.mediaQuery.removeListener(this.handleSystemThemeChange)
+      }
+    }
+  },
+
+  methods: {
+    handleSystemThemeChange(e) {
+      this.$vuetify.theme.global.name = e.matches ? 'dark' : 'light'
+    },
+
+    /**
+     * Toggles current active theme between Union Jack dark and light palettes.
+     */
+    toggleTheme() {
+      this.$vuetify.theme.global.name = this.$vuetify.theme.global.current.dark
+        ? 'light'
+        : 'dark'
+    },
+
+    /**
+     * Toggles current active locale between English and Traditional Chinese (HK).
+     */
+    toggleLanguage() {
+      const nextLocale = this.$i18n.locale === 'en' ? 'zh-HK' : 'en'
+      this.$i18n.locale = nextLocale
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem('bno_tracker_locale', nextLocale)
+      }
+    },
+
+    showSnackbar(text, color = 'success') {
+      this.snackbar = {
+        show: true,
+        text,
+        color,
+      }
+    },
+
+    /**
+     * Merged Export: Exports full application data and uploaded document files to a ZIP backup archive.
+     */
+    async exportAllData() {
+      try {
+        const { blob, fileCount } = await exportZipBackup(this.absentsStore, this.documentsStore)
+
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `bno-5plus1-tracker-backup_${new Date().toISOString().split('T')[0]}.zip`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+
+        this.showSnackbar(this.$t('app.export_success', { fileCount }), 'success')
+      } catch (err) {
+        this.showSnackbar(this.$t('app.export_failed') + err.message, 'error')
+      }
+    },
+
+    /**
+     * Trigger hidden file input click for ZIP/YAML import.
+     */
+    triggerImport() {
+      if (this.$refs.fileInputRef) {
+        this.$refs.fileInputRef.value = ''
+        this.$refs.fileInputRef.click()
+      }
+    },
+
+    /**
+     * Consolidated Import handling both ZIP archives and standalone YAML files.
+     */
+    async handleImportFileSelect(event) {
+      const file = event.target.files && event.target.files[0]
+      if (!file) return
+
+      if (file.name.toLowerCase().endsWith('.zip')) {
+        try {
+          const result = await importZipBackup(file, this.absentsStore, this.documentsStore)
+          this.showSnackbar(
+            this.$t('app.import_success', {
+              absenceCount: result.absenceCount,
+              docs: result.docsImported ? this.$t('app.import_docs_suffix') : '',
+              files:
+                result.filesImported > 0
+                  ? this.$t('app.import_files_suffix', { count: result.filesImported })
+                  : '',
+            }),
+            'success',
+          )
+        } catch (err) {
+          this.showSnackbar(this.$t('app.import_failed') + err.message, 'error')
+        }
+      } else {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          try {
+            const content = e.target.result
+            const result = importBackup(content, this.absentsStore, this.documentsStore)
+
+            this.showSnackbar(
+              this.$t('app.import_success', {
+                absenceCount: result.absenceCount,
+                docs: result.docsImported ? this.$t('app.import_docs_suffix') : '',
+              }),
+              'success',
+            )
+          } catch (err) {
+            this.showSnackbar(this.$t('app.import_failed') + err.message, 'error')
+          }
+        }
+        reader.readAsText(file)
+      }
+    },
+
+    /**
+     * Consolidated Clear All for all application data.
+     */
+    confirmClearAll() {
+      this.absentsStore.clearAbsences()
+      this.documentsStore.resetAll()
+      this.clearAllDialog = false
+      this.drawer = false
+      this.showSnackbar(this.$t('app.cleared_all'), 'warning')
+    },
+  },
 }
 </script>
 
@@ -243,7 +260,7 @@ function confirmClearAll() {
 
         <!-- Theme Switcher -->
         <v-btn
-          :icon="theme.global.current.value.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
+          :icon="$vuetify.theme.global.current.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
           variant="text"
           density="compact"
           class="px-1 px-sm-2"

@@ -216,7 +216,7 @@ export default {
     type_enic: 'Ecctis (UK ENIC) 可比性聲明',
     type_exempt: '獲豁免 (65歲以上或健康原因)',
     year: '第 {n} 年',
-    year_label: '第 {n} 年居住證明 (12個月區間)',
+    year_label: '第 {n} 年證明文件 (12個月區間)',
     add_custom_item: '新增自訂證明項目',
     item_title: '證明項目名稱',
     category: '類別',

@@ -152,7 +152,7 @@ bno-5plus1-tracker/
 │   ├── App.vue            # Root layout with right navigation drawer & language switcher
 │   └── main.js            # Vue app entrypoint with i18n plugin initialization
 ├── tests/                 # Automated test suite
-│   └── tracker.test.js    # Unit tests for date math, segment tree & backup service
+│   └── tracker.test.js    # Comprehensive unit tests for date math, segment tree, stores, backup & edge cases
 ├── .antigravity.md        # AI Agent workspace context & guidelines
 ├── .gitlab-ci.yml         # GitLab CI/CD pipeline for GitLab Pages
 ├── index.html             # HTML entry template

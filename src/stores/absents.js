@@ -44,10 +44,15 @@ export const useAbsentsStore = defineStore('absents', () => {
    * @returns {Array} Sorted absence array.
    */
   function sortAbsencesArray(arr) {
+    if (!Array.isArray(arr)) return []
     return arr.sort((a, b) => {
-      const startDiff = (a.startDate || '').localeCompare(b.startDate || '')
+      const startA = (a && a.startDate) || ''
+      const startB = (b && b.startDate) || ''
+      const startDiff = startA.localeCompare(startB)
       if (startDiff !== 0) return startDiff
-      return (a.endDate || '').localeCompare(b.endDate || '')
+      const endA = (a && a.endDate) || ''
+      const endB = (b && b.endDate) || ''
+      return endA.localeCompare(endB)
     })
   }
 
@@ -1227,7 +1232,10 @@ export const useAbsentsStore = defineStore('absents', () => {
       }
 
       if (!dest && stops.length > 0) {
-        dest = stops.map((s) => s.dest).filter(Boolean).join(' ➔ ')
+        dest = stops
+          .map((s) => s.dest)
+          .filter(Boolean)
+          .join(' ➔ ')
       }
 
       if (startDate && endDate) {
@@ -1251,8 +1259,6 @@ export const useAbsentsStore = defineStore('absents', () => {
     sortAbsencesArray(absences.value)
     syncArrivalRecord()
     rebuildSegmentTree()
-
-
 
     return {
       count: validNewEntries.length,

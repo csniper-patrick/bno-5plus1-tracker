@@ -138,7 +138,10 @@ async function handleImportFileSelect(event) {
         t('app.import_success', {
           absenceCount: result.absenceCount,
           docs: result.docsImported ? t('app.import_docs_suffix') : '',
-          files: result.filesImported > 0 ? t('app.import_files_suffix', { count: result.filesImported }) : '',
+          files:
+            result.filesImported > 0
+              ? t('app.import_files_suffix', { count: result.filesImported })
+              : '',
         }),
         'success',
       )
@@ -298,7 +301,9 @@ function confirmClearAll() {
           <template v-slot:prepend>
             <v-icon icon="mdi-airplane-takeoff" color="primary"></v-icon>
           </template>
-          <v-list-item-title class="font-weight-bold"> {{ $t('app.nav_absence') }} </v-list-item-title>
+          <v-list-item-title class="font-weight-bold">
+            {{ $t('app.nav_absence') }}
+          </v-list-item-title>
           <v-list-item-subtitle class="text-caption">
             {{ $t('app.nav_absence_sub') }}
           </v-list-item-subtitle>
@@ -315,7 +320,9 @@ function confirmClearAll() {
           <template v-slot:prepend>
             <v-icon icon="mdi-file-document-check-outline" color="primary"></v-icon>
           </template>
-          <v-list-item-title class="font-weight-bold"> {{ $t('app.nav_document') }} </v-list-item-title>
+          <v-list-item-title class="font-weight-bold">
+            {{ $t('app.nav_document') }}
+          </v-list-item-title>
           <v-list-item-subtitle class="text-caption">
             {{ $t('app.nav_document_sub') }}
           </v-list-item-subtitle>
@@ -332,7 +339,9 @@ function confirmClearAll() {
           <template v-slot:prepend>
             <v-icon icon="mdi-bookshelf" color="primary"></v-icon>
           </template>
-          <v-list-item-title class="font-weight-bold"> {{ $t('app.nav_reference') }} </v-list-item-title>
+          <v-list-item-title class="font-weight-bold">
+            {{ $t('app.nav_reference') }}
+          </v-list-item-title>
           <v-list-item-subtitle class="text-caption">
             {{ $t('app.nav_reference_sub') }}
           </v-list-item-subtitle>
@@ -418,8 +427,12 @@ function confirmClearAll() {
         </v-card-text>
         <v-card-actions class="px-6 pb-4">
           <v-spacer></v-spacer>
-          <v-btn variant="text" @click="clearAllDialog = false">{{ $t('app.clear_dialog_cancel') }}</v-btn>
-          <v-btn color="error" variant="flat" @click="confirmClearAll">{{ $t('app.clear_dialog_confirm') }}</v-btn>
+          <v-btn variant="text" @click="clearAllDialog = false">{{
+            $t('app.clear_dialog_cancel')
+          }}</v-btn>
+          <v-btn color="error" variant="flat" @click="confirmClearAll">{{
+            $t('app.clear_dialog_confirm')
+          }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -433,7 +446,9 @@ function confirmClearAll() {
     >
       {{ snackbar.text }}
       <template v-slot:actions>
-        <v-btn variant="text" size="small" @click="snackbar.show = false">{{ $t('app.close') }}</v-btn>
+        <v-btn variant="text" size="small" @click="snackbar.show = false">{{
+          $t('app.close')
+        }}</v-btn>
       </template>
     </v-snackbar>
 

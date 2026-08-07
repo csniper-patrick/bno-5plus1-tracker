@@ -118,7 +118,10 @@ export async function importZipBackup(zipBlob, absentsStore, documentsStore) {
           if (!zipFileRef) {
             // Fallback search by folder and filename pattern
             const safeFolder = (entry.folderId || '').replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')
-            const pattern = new RegExp(`files/${safeFolder}/.*${entry.name.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`, 'i')
+            const pattern = new RegExp(
+              `files/${safeFolder}/.*${entry.name.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`,
+              'i',
+            )
             const matches = zip.file(pattern)
             if (matches.length > 0) {
               zipFileRef = matches[0]

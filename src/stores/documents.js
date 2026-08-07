@@ -236,6 +236,7 @@ export const useDocumentsStore = defineStore('documents', () => {
     addressHistory.value.push(newAddress)
     sortAddresses(addressHistory.value)
     saveToStorage()
+    return newAddress
   }
 
   function updateAddress(id, addressObj) {
@@ -317,14 +318,18 @@ export const useDocumentsStore = defineStore('documents', () => {
    */
   async function uploadFile(browserFile, folderId, options = {}) {
     if (browserFile.size > fileStorage.MAX_FILE_SIZE) {
-      throw new Error(`File exceeds maximum size of ${fileStorage.formatFileSize(fileStorage.MAX_FILE_SIZE)}`)
+      throw new Error(
+        `File exceeds maximum size of ${fileStorage.formatFileSize(fileStorage.MAX_FILE_SIZE)}`,
+      )
     }
 
     const isDuplicate = uploadedFiles.value.some(
       (f) => f.name.trim().toLowerCase() === browserFile.name.trim().toLowerCase(),
     )
     if (isDuplicate) {
-      throw new Error(`A file named "${browserFile.name}" already exists. File names must be unique.`)
+      throw new Error(
+        `A file named "${browserFile.name}" already exists. File names must be unique.`,
+      )
     }
 
     const data = await fileStorage.readFileAsArrayBuffer(browserFile)
@@ -620,7 +625,9 @@ export const useDocumentsStore = defineStore('documents', () => {
   /** File count per folder */
   const fileCountByFolder = computed(() => {
     const counts = {}
-    folders.value.forEach((f) => { counts[f.id] = 0 })
+    folders.value.forEach((f) => {
+      counts[f.id] = 0
+    })
     uploadedFiles.value.forEach((f) => {
       if (counts[f.folderId] !== undefined) counts[f.folderId]++
       else counts[f.folderId] = 1
@@ -630,9 +637,7 @@ export const useDocumentsStore = defineStore('documents', () => {
 
   /** Files linked to a specific checklist item */
   function getFilesForItem(year, itemId) {
-    return uploadedFiles.value.filter(
-      (f) => f.linkedYear === year && f.linkedItemId === itemId,
-    )
+    return uploadedFiles.value.filter((f) => f.linkedYear === year && f.linkedItemId === itemId)
   }
 
   watch(lifeInUk, () => saveToStorage(), { deep: true })

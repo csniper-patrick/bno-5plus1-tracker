@@ -23,7 +23,8 @@ export default {
     footer_unofficial: 'BNO 5+1 追蹤工具 • 非官方應用程式',
     footer_disclaimer: '非英國官方應用 • 資料儲存於本地裝置',
     clear_dialog_title: '清除所有追蹤資料？',
-    clear_dialog_body: '此操作將永久刪除所有「離境記錄」、「簽證及抵英日期」、「Life in the UK 考試詳情」、「英文水平證明詳情」以及「連續居住證明清單」。除非您已備份 ZIP 或 YAML 檔案，否則無法復原。',
+    clear_dialog_body:
+      '此操作將永久刪除所有「離境記錄」、「簽證及抵英日期」、「Life in the UK 考試詳情」、「英文水平證明詳情」以及「連續居住證明清單」。除非您已備份 ZIP 或 YAML 檔案，否則無法復原。',
     clear_dialog_cancel: '取消',
     clear_dialog_confirm: '確認清除全部',
     close: '關閉',
@@ -37,7 +38,8 @@ export default {
     language: '語言',
     lang_en: 'English',
     lang_zh_hk: '繁體中文 (香港)',
-    disclaimer_text: '非官方應用程式：本工具僅供個人紀錄參考，與英國內政部或英國政府無關。在提出申請前，請務必核對英國內政部官方指引。',
+    disclaimer_text:
+      '非官方應用程式：本工具僅供個人紀錄參考，與英國內政部或英國政府無關。在提出申請前，請務必核對英國內政部官方指引。',
   },
   pwa: {
     new_version: '有新版本可供更新！',
@@ -51,7 +53,8 @@ export default {
     subtitle: '180日滾動限制與450日入籍限制計算',
     key_dates: '關鍵簽證日期',
     key_dates_required: '需要設定 BNO 簽證及抵英日期',
-    key_dates_desc: '請設定您的 BNO 簽證生效日期及抵英日期，以便準確計算您的 5 年居住路徑及定居里程碑。',
+    key_dates_desc:
+      '請設定您的 BNO 簽證生效日期及抵英日期，以便準確計算您的 5 年居住路徑及定居里程碑。',
     set_key_dates: '設定關鍵日期',
     visa_start: '簽證生效日期',
     visa_expiry: '簽證到期日期 (選填)',
@@ -136,9 +139,11 @@ export default {
     default_5yr: '預設 5 年',
     custom_expiry: '自訂到期日',
     visa_extension_needed_title: '需要續領簽證以完成永居 (ILR)',
-    visa_extension_needed_body: '您現時的簽證將於 {expiry} 到期，早於您最早的永居定居日期 {target}。您必須續領 BNO 簽證 (例如 30 個月) 以完成 5 年連續居住要求。',
+    visa_extension_needed_body:
+      '您現時的簽證將於 {expiry} 到期，早於您最早的永居定居日期 {target}。您必須續領 BNO 簽證 (例如 30 個月) 以完成 5 年連續居住要求。',
     visa_cover_verified_title: '簽證涵蓋已核實：',
-    visa_cover_verified_body: '您現時的簽證有效期至 {expiry}，已完整涵蓋您最早的永居定居日期 ({target})。',
+    visa_cover_verified_body:
+      '您現時的簽證有效期至 {expiry}，已完整涵蓋您最早的永居定居日期 ({target})。',
     ilr_title: '永居 (ILR) / 定居',
     ilr_limit_exceeded: '超出永居限制 (>10年)',
     ilr_window_delayed: '永居窗口順延',
@@ -149,7 +154,8 @@ export default {
     total_5yr_desc: '5 年路徑中累計的完整離英總日數。',
     earliest_application_date: '最早可申請日期：',
     earliest_delayed_app_date: '最早順延可申請永居日期：',
-    qualifying_period_delayed_notice: '原本基線計算日期為 {baseline}。由於首 5 年內滾動 12 個月離英日數超過 180 日，5 年永居資格窗口已自動順延至 {windowStart} – {settlementTarget}。',
+    qualifying_period_delayed_notice:
+      '原本基線計算日期為 {baseline}。由於首 5 年內滾動 12 個月離英日數超過 180 日，5 年永居資格窗口已自動順延至 {windowStart} – {settlementTarget}。',
     ilr_app_notice: '可以在完成 5 年資格期前最多 28 天遞交申請。',
     citizenship_title: '英國公民入籍',
     out_of_tracker_range: '超出 10 年追蹤器範圍',
@@ -169,7 +175,8 @@ export default {
     absences: '離英日數',
     reset_max_range: '重設為最大範圍',
     locked_title: '檢查器與查詢工具已鎖定',
-    locked_desc: '請先於左方設定您的 BNO 簽證生效日期，以解鎖連續居住與入籍限制檢查及自訂日期查詢功能。',
+    locked_desc:
+      '請先於左方設定您的 BNO 簽證生效日期，以解鎖連續居住與入籍限制檢查及自訂日期查詢功能。',
     start_date_err_vstart: '離英日期不能早於簽證生效日期 ({vStart})。',
     start_date_err_uarrival: '離英日期不能早於抵英日期 ({uArrival})。',
     start_date_err_return: '離英日期不能晚於返英日期。',
@@ -382,7 +389,8 @@ export default {
     subtitle: '直達英國內政部官方出版物、政策聲明、考試及簽證申請網站及相關開源資源。',
     curated_badge: '精選資源',
     sources_notice_title: '資源來源說明：',
-    sources_notice_body: '連結包含英國政府官方 ({code}) 網站及非官方/開源項目。請認明 {officialTag} 及 {thirdPartyTag} 標籤以辨識來源。',
+    sources_notice_body:
+      '連結包含英國政府官方 ({code}) 網站及非官方/開源項目。請認明 {officialTag} 及 {thirdPartyTag} 標籤以辨識來源。',
     official_source: '官方來源',
     third_party_source: '非官方來源',
     search_placeholder: '搜尋連結及主題...',
@@ -420,7 +428,8 @@ export default {
         title: 'BNO 簽證：續簽指引 (30個月或5年)',
         category: '簽證續簽',
         badge: '官方申請',
-        description: '英國政府官方指引和申請網站，供目前在英國境內的 BNO 持有人於現有簽證到期前申請續簽。',
+        description:
+          '英國政府官方指引和申請網站，供目前在英國境內的 BNO 持有人於現有簽證到期前申請續簽。',
         highlights: [
           '於現有簽證到期前在線提交申請 (審批期間受 Section 3C條款保障合法留英)',
           '可選擇 30個月 (2.5年) 續簽或一次過 5年續簽',
@@ -432,7 +441,8 @@ export default {
         title: 'BNO 簽證續簽費用及 IHS 醫療附加費明細',
         category: '簽證續簽',
         badge: '費用與成本',
-        description: '英國內政部官方續簽費用表及 Immigration Health Surcharge (IHS) 醫療附加費計算標準。',
+        description:
+          '英國內政部官方續簽費用表及 Immigration Health Surcharge (IHS) 醫療附加費計算標準。',
         highlights: [
           '簽證申請費：30個月續簽每人 £206，5年續簽每人 £285',
           '醫療附加費 (IHS)：成人每年 £1,035，18歲以下兒童每年 £776',
@@ -456,7 +466,8 @@ export default {
         title: 'UK Immigration: ID Check 身份驗證 App 指引',
         category: '簽證續簽',
         badge: '數位身份',
-        description: '關於如何在 iOS/Android 裝置上使用 UKVI 身分驗證 App 完成續簽身分核實的官方步驟指引。',
+        description:
+          '關於如何在 iOS/Android 裝置上使用 UKVI 身分驗證 App 完成續簽身分核實的官方步驟指引。',
         highlights: [
           '利用智慧型手機 NFC 讀取 BNO、特區護照或國際護照上的生物特徵晶片',
           '符合條件者免除親身前往 UKVCAS 服務中心面試預約',
@@ -478,7 +489,8 @@ export default {
         title: 'BNO 簽證：申請英國永久居留 (ILR 指引)',
         category: 'BNO 永居定居',
         badge: '核心指引',
-        description: '英國政府官方指南，說明於 BNO 簽證途徑連續居住滿 5 年後如何申請無限期居留 (ILR / 永居)。',
+        description:
+          '英國政府官方指南，說明於 BNO 簽證途徑連續居住滿 5 年後如何申請無限期居留 (ILR / 永居)。',
         highlights: [
           '合資格居住期：於英國連續居住滿 5 年',
           '離境限制：在任何連續 12 個月內離英不得超過 180 天',
@@ -490,7 +502,8 @@ export default {
         title: '香港 BNO 簽證政策聲明全文',
         category: '政策與指引',
         badge: '政策聲明',
-        description: '英國內政部詳盡政策聲明，概述 BNO 持有人的背景、權利、工作/學習許可、公共資助限制及定居途徑。',
+        description:
+          '英國內政部詳盡政策聲明，概述 BNO 持有人的背景、權利、工作/學習許可、公共資助限制及定居途徑。',
         highlights: [
           '詳細說明香港 BNO 簽證途徑的原始政策設計理念',
           '概述在英國工作、學習及使用 NHS 醫療服務的權利',
@@ -502,7 +515,8 @@ export default {
         title: 'UKVI 連續居住審查官員指引 (Continuous Residence)',
         category: '政策與指引',
         badge: '審查規則',
-        description: '內政部官方審查官指引，解釋連續居住的計算方式、出入境當日豁免規則及合理離境例外情況。',
+        description:
+          '內政部官方審查官指引，解釋連續居住的計算方式、出入境當日豁免規則及合理離境例外情況。',
         highlights: [
           '整日規則：離英當日及返英當日不計算入離境日數內',
           '5 年合資格期內任意 12 個月滾動計算規則',
@@ -514,7 +528,8 @@ export default {
         title: 'Life in the UK 考試官方預約網站',
         category: '資格與考試',
         badge: '法定考試',
-        description: '英國政府 Life in the UK 考試官方預約網站。所有 18 至 64 歲申請 ILR 永居或入籍者均須通過。',
+        description:
+          '英國政府 Life in the UK 考試官方預約網站。所有 18 至 64 歲申請 ILR 永居或入籍者均須通過。',
         highlights: [
           '考試費用：每次嘗試 £50',
           '須至少提前 3 天於全英 30 多個官方考場之一預約',
@@ -537,7 +552,8 @@ export default {
         title: '申請歸化入籍成為英國公民 (Form AN)',
         category: '英國國籍入籍',
         badge: '歸化入籍',
-        description: '關於持有 ILR 永居滿 12 個月後 (或如與英國公民結婚可即時) 申請歸化入籍英國公民的官方指引。',
+        description:
+          '關於持有 ILR 永居滿 12 個月後 (或如與英國公民結婚可即時) 申請歸化入籍英國公民的官方指引。',
         highlights: [
           '離境限制一：申請前 5 年內總離英日數不得超過 450 天',
           '離境限制二：申請前 12 個月內總離英日數不得超過 90 天',
@@ -549,7 +565,8 @@ export default {
         title: '香港 BNO 簽證總覽與續簽資訊',
         category: '簽證續簽',
         badge: '簽證總覽',
-        description: '英國國民 (海外) 簽證官方總覽頁面，詳細列出申請費用、醫療附加費 (IHS)、2.5年與5年選項及續簽流程。',
+        description:
+          '英國國民 (海外) 簽證官方總覽頁面，詳細列出申請費用、醫療附加費 (IHS)、2.5年與5年選項及續簽流程。',
         highlights: [
           '比較 2.5年續簽與 5年首次簽證途徑',
           '醫療附加費 (IHS) 繳費細節',

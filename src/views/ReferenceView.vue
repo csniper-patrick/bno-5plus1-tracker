@@ -38,7 +38,8 @@ export default {
           id: 'gitlab-repository',
           title: 'BNO 5+1 Tracker GitLab Repository',
           category: 'Tools & Source',
-          url: import.meta.env.VITE_CI_PROJECT_URL || 'https://gitlab.com/CSniper/bno-5plus1-tracker',
+          url:
+            import.meta.env.VITE_CI_PROJECT_URL || 'https://gitlab.com/CSniper/bno-5plus1-tracker',
           icon: 'mdi-gitlab',
           color: 'orange-darken-3',
           badge: 'Open Source',
@@ -300,7 +301,8 @@ export default {
           ...link,
           title: hasI18n ? this.$t(`${i18nPath}.title`) : link.title,
           categoryLabel: catMap ? catMap.label : link.category,
-          badge: hasI18n && this.$te(`${i18nPath}.badge`) ? this.$t(`${i18nPath}.badge`) : link.badge,
+          badge:
+            hasI18n && this.$te(`${i18nPath}.badge`) ? this.$t(`${i18nPath}.badge`) : link.badge,
           description:
             hasI18n && this.$te(`${i18nPath}.description`)
               ? this.$t(`${i18nPath}.description`)
@@ -466,7 +468,9 @@ export default {
 
         <v-col cols="12" md="8" class="d-flex align-center flex-wrap ga-2 justify-md-end">
           <div class="d-flex align-center ga-1 mr-sm-2">
-            <span class="text-caption text-medium-emphasis font-weight-bold">{{ $t('reference.source_filter') }}</span>
+            <span class="text-caption text-medium-emphasis font-weight-bold">{{
+              $t('reference.source_filter')
+            }}</span>
             <v-chip-group
               v-model="selectedSourceType"
               selected-class="v-chip--selected"
@@ -488,7 +492,9 @@ export default {
           </div>
 
           <div class="d-flex align-center ga-1">
-            <span class="text-caption text-medium-emphasis font-weight-bold">{{ $t('reference.category_filter') }}</span>
+            <span class="text-caption text-medium-emphasis font-weight-bold">{{
+              $t('reference.category_filter')
+            }}</span>
             <v-chip-group
               v-model="selectedCategory"
               selected-class="v-chip--selected"
@@ -547,7 +553,11 @@ export default {
                       item.isOfficial ? 'mdi-shield-check-outline' : 'mdi-account-group-outline'
                     "
                   >
-                    {{ item.isOfficial ? $t('reference.official_source') : $t('reference.third_party_source') }}
+                    {{
+                      item.isOfficial
+                        ? $t('reference.official_source')
+                        : $t('reference.third_party_source')
+                    }}
                   </v-chip>
                   <v-chip
                     size="x-small"
@@ -665,7 +675,9 @@ export default {
     >
       {{ snackbar.text }}
       <template v-slot:actions>
-        <v-btn variant="text" size="small" @click="snackbar.show = false">{{ $t('app.close') }}</v-btn>
+        <v-btn variant="text" size="small" @click="snackbar.show = false">{{
+          $t('app.close')
+        }}</v-btn>
       </template>
     </v-snackbar>
   </div>

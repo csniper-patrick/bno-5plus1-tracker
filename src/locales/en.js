@@ -19,11 +19,13 @@ export default {
     import_data: 'Import Data',
     clear_data: 'Clear All Data',
     privacy_note_title: 'Privacy Note:',
-    privacy_note_text: 'All data input is stored locally on your device in browser {code}. No data is sent to external servers.',
+    privacy_note_text:
+      'All data input is stored locally on your device in browser {code}. No data is sent to external servers.',
     footer_unofficial: 'BNO 5+1 Tracker • Unofficial 3rd-Party App',
     footer_disclaimer: 'Not affiliated with the UK Home Office • Stored Locally on Device',
     clear_dialog_title: 'Clear All Tracker Data?',
-    clear_dialog_body: 'This action will permanently delete all Absence Records, Visa & Arrival Dates, Life in the UK Test details, English Qualification details, and Continuous Residence Checklists across all trackers. This cannot be undone unless you have a ZIP or YAML backup file.',
+    clear_dialog_body:
+      'This action will permanently delete all Absence Records, Visa & Arrival Dates, Life in the UK Test details, English Qualification details, and Continuous Residence Checklists across all trackers. This cannot be undone unless you have a ZIP or YAML backup file.',
     clear_dialog_cancel: 'Cancel',
     clear_dialog_confirm: 'Clear Everything',
     close: 'Close',
@@ -37,7 +39,8 @@ export default {
     language: 'Language',
     lang_en: 'English',
     lang_zh_hk: '繁體中文 (香港)',
-    disclaimer_text: 'Unofficial 3rd-Party Application: Provided for personal tracking only. Not affiliated with or endorsed by the UK Home Office or UK Government. Always verify dates against official UK Home Office guidelines before applying.',
+    disclaimer_text:
+      'Unofficial 3rd-Party Application: Provided for personal tracking only. Not affiliated with or endorsed by the UK Home Office or UK Government. Always verify dates against official UK Home Office guidelines before applying.',
   },
   pwa: {
     new_version: 'New Version Available!',
@@ -51,7 +54,8 @@ export default {
     subtitle: '180-day rolling rule & 450-day naturalisation limit',
     key_dates: 'Key Visa Dates',
     key_dates_required: 'BNO Visa & UK Arrival Dates Required',
-    key_dates_desc: 'Please set your BNO Visa Start Date and UK Arrival Date to calculate your 5-year residency path and settlement milestones accurately.',
+    key_dates_desc:
+      'Please set your BNO Visa Start Date and UK Arrival Date to calculate your 5-year residency path and settlement milestones accurately.',
     set_key_dates: 'Set Key Dates',
     visa_start: 'Visa Start Date',
     visa_expiry: 'Visa Expiry Date (Optional)',
@@ -100,7 +104,8 @@ export default {
     managed: 'Managed',
     unspecified: 'Unspecified',
     no_records_title: 'No Absence Records',
-    no_records_desc: 'You haven\'t logged any travel absence records yet. Use the form above to add your first entry.',
+    no_records_desc:
+      "You haven't logged any travel absence records yet. Use the form above to add your first entry.",
     destination_placeholder: 'e.g. Hong Kong family visit, Paris holiday',
     save_trip: 'Save Record',
     update_trip: 'Update Record',
@@ -122,7 +127,8 @@ export default {
     edit: 'Edit',
     delete: 'Delete',
     delete_dialog_title: 'Delete Absence Record?',
-    delete_dialog_body: 'Are you sure you want to delete the record for "{dest}" ({start} to {end})?',
+    delete_dialog_body:
+      'Are you sure you want to delete the record for "{dest}" ({start} to {end})?',
     delete_confirm: 'Delete',
     query_tool: 'Custom Date Range Query',
     query_start: 'Query Start Date',
@@ -136,9 +142,11 @@ export default {
     default_5yr: 'Default 5-Yr',
     custom_expiry: 'Custom Expiry',
     visa_extension_needed_title: 'Visa Extension Needed to Complete ILR',
-    visa_extension_needed_body: 'Your current visa expires on {expiry}, which is before your earliest ILR settlement date {target}. You must extend your BNO visa (e.g. by 30 months) to complete your 5-year continuous residence for ILR.',
+    visa_extension_needed_body:
+      'Your current visa expires on {expiry}, which is before your earliest ILR settlement date {target}. You must extend your BNO visa (e.g. by 30 months) to complete your 5-year continuous residence for ILR.',
     visa_cover_verified_title: 'Visa Cover Verified:',
-    visa_cover_verified_body: 'Your current visa is valid until {expiry}, which covers your earliest ILR settlement date ({target}).',
+    visa_cover_verified_body:
+      'Your current visa is valid until {expiry}, which covers your earliest ILR settlement date ({target}).',
     ilr_title: 'ILR / Settlement',
     ilr_limit_exceeded: 'ILR Limit Exceeded (>10 Yrs)',
     ilr_window_delayed: 'ILR Window Delayed',
@@ -149,8 +157,10 @@ export default {
     total_5yr_desc: 'Total cumulative full days absent over the 5-year route.',
     earliest_application_date: 'Earliest Application Date:',
     earliest_delayed_app_date: 'Earliest Delayed ILR Application Date:',
-    qualifying_period_delayed_notice: 'Baseline calculated date was {baseline}. Because rolling 12-month absences exceeded 180 days in the initial 5 years, the 5-year ILR qualifying window automatically delayed to {windowStart} – {settlementTarget}.',
-    ilr_app_notice: 'Applications can be submitted up to 28 days before completing the 5-year qualifying period.',
+    qualifying_period_delayed_notice:
+      'Baseline calculated date was {baseline}. Because rolling 12-month absences exceeded 180 days in the initial 5 years, the 5-year ILR qualifying window automatically delayed to {windowStart} – {settlementTarget}.',
+    ilr_app_notice:
+      'Applications can be submitted up to 28 days before completing the 5-year qualifying period.',
     citizenship_title: 'British Citizenship',
     out_of_tracker_range: 'Period Exceeds 10-Yr Tracker Range',
     within_cit_limit_delayed: 'Within Citizenship Limit (Delayed)',
@@ -161,20 +171,24 @@ export default {
     cit_5yr_desc: 'Total full days absent in 5-year qualifying period.',
     cit_final_12mo_limit: 'Final 12-Month Limit',
     cit_final_12mo_desc: 'Total absent days in final 12 months pre-application.',
-    cit_app_notice: 'Requires physical presence in the UK exactly 5 years before naturalisation application.',
+    cit_app_notice:
+      'Requires physical presence in the UK exactly 5 years before naturalisation application.',
     custom_range_title: 'Custom Date Range',
     instant_query: 'Instant Query',
-    custom_range_desc: 'Query total absent days within any custom interval across 10 years from Visa Start Date.',
+    custom_range_desc:
+      'Query total absent days within any custom interval across 10 years from Visa Start Date.',
     queried_range_absences: 'Queried Range Absences:',
     absences: 'Absences',
     reset_max_range: 'Reset to Max Range',
     locked_title: 'Checkers & Query Tool Locked',
-    locked_desc: 'Please set your BNO Visa Start Date on the left to unlock residency & naturalisation limit checking and custom date range queries.',
+    locked_desc:
+      'Please set your BNO Visa Start Date on the left to unlock residency & naturalisation limit checking and custom date range queries.',
     start_date_err_vstart: 'Departure date cannot be earlier than Visa Start Date ({vStart}).',
     start_date_err_uarrival: 'Departure date cannot be earlier than UK Arrival Date ({uArrival}).',
     start_date_err_return: 'Departure date cannot be later than return date.',
     end_date_err_departure: 'Return date cannot be earlier than departure date.',
-    end_date_err_max: 'Return date cannot be later than 10 years from Visa Start Date ({maxReturn}).',
+    end_date_err_max:
+      'Return date cannot be later than 10 years from Visa Start Date ({maxReturn}).',
     added_success: 'Absence record added!',
     updated_success: 'Absence record updated!',
     deleted_success: 'Absence record deleted.',
@@ -251,9 +265,11 @@ export default {
     percent_done: '{percent}% Done',
     uk_addresses: 'UK Addresses',
     logged_count: '{count} Logged',
-    life_desc: 'Mandatory test on British customs, history, and government for ILR & Naturalisation applications.',
+    life_desc:
+      'Mandatory test on British customs, history, and government for ILR & Naturalisation applications.',
     english_desc: 'Requires B1 SELT test, UK degree taught in English, or official exemption.',
-    address_desc: 'Reference record for Home Office SET(O) ILR & Naturalisation applications covering your 5-year UK residence.',
+    address_desc:
+      'Reference record for Home Office SET(O) ILR & Naturalisation applications covering your 5-year UK residence.',
     present: 'Present',
     no_notes: 'No notes',
     no_notes_added: 'No notes added',
@@ -296,7 +312,8 @@ export default {
 
     // Document Vault & File Upload
     vault_title: 'Document Vault',
-    vault_desc: 'Upload and organise scans, certificates, and evidence files. All files are stored locally in your browser.',
+    vault_desc:
+      'Upload and organise scans, certificates, and evidence files. All files are stored locally in your browser.',
     sort_by: 'Sort by',
     sort_name: 'File Name',
     sort_folder: 'Folder',
@@ -351,7 +368,8 @@ export default {
     move_dialog_title: 'Move File',
     move_label: 'Destination Folder',
     delete_file_title: 'Delete File?',
-    delete_file_body: 'Are you sure you want to permanently delete "{name}"? This cannot be undone.',
+    delete_file_body:
+      'Are you sure you want to permanently delete "{name}"? This cannot be undone.',
     link_dialog_title: 'Link File to Checklist Item',
     link_year_label: 'Evidence Year',
     link_item_label: 'Evidence Item',
@@ -379,10 +397,12 @@ export default {
   },
   reference: {
     title: 'Reference & Guidance Resources',
-    subtitle: 'Direct links to official UK Home Office publications, policy statements, test portals, and open-source resources for BNO holders.',
+    subtitle:
+      'Direct links to official UK Home Office publications, policy statements, test portals, and open-source resources for BNO holders.',
     curated_badge: 'Curated Resources',
     sources_notice_title: 'Sources Notice:',
-    sources_notice_body: 'Links include both official UK Government ({code}) portals and 3rd-party/open-source project resources. Look for the {officialTag} and {thirdPartyTag} chips to distinguish source origins.',
+    sources_notice_body:
+      'Links include both official UK Government ({code}) portals and 3rd-party/open-source project resources. Look for the {officialTag} and {thirdPartyTag} chips to distinguish source origins.',
     official_source: 'Official Source',
     third_party_source: '3rd Party Source',
     search_placeholder: 'Search links & topics...',
@@ -408,7 +428,8 @@ export default {
         title: 'BNO 5+1 Tracker GitLab Repository',
         category: 'Tools & Source',
         badge: 'Open Source',
-        description: 'Open-source repository for this BNO 5+1 Tracker web application. Access source code, project issues, and contribution guidelines.',
+        description:
+          'Open-source repository for this BNO 5+1 Tracker web application. Access source code, project issues, and contribution guidelines.',
         highlights: [
           'Open-source web application for BNO visa holders tracking ILR continuous residence',
           'Client-side offline processing with IndexedDB data persistence',
@@ -420,7 +441,8 @@ export default {
         title: 'BNO Visa: Extend Your Visa (30 Months or 5 Years)',
         category: 'Visa Extension',
         badge: 'Official Application',
-        description: 'Official UK Government guide and application portal for extending your BNO visa from within the UK before your current permission expires.',
+        description:
+          'Official UK Government guide and application portal for extending your BNO visa from within the UK before your current permission expires.',
         highlights: [
           'Apply online before current visa expires (protected under Section 3C leave while decision is pending)',
           'Choose between a 30-month (2.5-year) extension or a full 5-year extension',
@@ -432,7 +454,8 @@ export default {
         title: 'BNO Visa Extension Fees & IHS Cost Breakdown',
         category: 'Visa Extension',
         badge: 'Fees & Costs',
-        description: 'Official Home Office fee table and Immigration Health Surcharge (IHS) mandatory calculations for renewing a BNO visa.',
+        description:
+          'Official Home Office fee table and Immigration Health Surcharge (IHS) mandatory calculations for renewing a BNO visa.',
         highlights: [
           'Visa Application Fee: £206 for 30-month extension, £285 for 5-year extension per applicant',
           'Immigration Health Surcharge (IHS): £1,035/year for adults, £776/year for children under 18',
@@ -444,7 +467,8 @@ export default {
         title: 'BNO Visa Dependant & Family Member Extension',
         category: 'Visa Extension',
         badge: 'Family Rules',
-        description: 'Official Home Office rules and instructions for extending BNO visas for partners, dependent children, and adult dependent relatives.',
+        description:
+          'Official Home Office rules and instructions for extending BNO visas for partners, dependent children, and adult dependent relatives.',
         highlights: [
           "Family members submit separate online applications linked via main applicant's UAN / GWF reference",
           'Dependants can apply to extend at any time before their current individual visa expires',
@@ -456,7 +480,8 @@ export default {
         title: 'UK Immigration: ID Check App Guidance',
         category: 'Visa Extension',
         badge: 'Digital Identity',
-        description: 'Official step-by-step guidance on using the UKVI identity check app on iOS/Android to verify identity for visa extension without in-person appointments.',
+        description:
+          'Official step-by-step guidance on using the UKVI identity check app on iOS/Android to verify identity for visa extension without in-person appointments.',
         highlights: [
           'Scan biometric chip on BNO, HKSAR, or international passport using smartphone NFC',
           'Eliminates requirement to attend in-person UKVCAS service center appointment for eligible holders',
@@ -467,7 +492,8 @@ export default {
         title: 'Switch to BNO Visa from Inside the UK',
         category: 'Visa Extension',
         badge: 'In-UK Switch',
-        description: 'Official Home Office guidance for switching onto the BNO visa route from other valid UK visa categories without leaving the UK.',
+        description:
+          'Official Home Office guidance for switching onto the BNO visa route from other valid UK visa categories without leaving the UK.',
         highlights: [
           'Switch from Student, Skilled Worker, Graduate, or LOTR visa statuses',
           'Must apply before your current valid leave to remain expires',
@@ -478,7 +504,8 @@ export default {
         title: 'BNO Visa: Settle in the UK (ILR Guidance)',
         category: 'BNO Settlement',
         badge: 'Essential Guidance',
-        description: 'Official UK Government guide on how to apply for Indefinite Leave to Remain (ILR) / UK Settlement under the BNO visa route after 5 years of continuous residence.',
+        description:
+          'Official UK Government guide on how to apply for Indefinite Leave to Remain (ILR) / UK Settlement under the BNO visa route after 5 years of continuous residence.',
         highlights: [
           'Qualifying period: 5 years continuous residence in the UK',
           'Absence limit: Maximum 180 days absent in any continuous 12-month period',
@@ -490,7 +517,8 @@ export default {
         title: 'Hong Kong BNO Visa Policy Statement',
         category: 'Policy & Guidance',
         badge: 'Policy Statement',
-        description: 'Comprehensive UK Home Office policy statement outlining background, rights, work/study permissions, public fund restrictions, and settlement pathways for BNO holders.',
+        description:
+          'Comprehensive UK Home Office policy statement outlining background, rights, work/study permissions, public fund restrictions, and settlement pathways for BNO holders.',
         highlights: [
           'Details original policy design for the Hong Kong BNO visa route',
           'Outlines rights to work, study, and use NHS healthcare in the UK',
@@ -502,7 +530,8 @@ export default {
         title: 'UKVI Continuous Residence Caseworker Guidance',
         category: 'Policy & Guidance',
         badge: 'Caseworker Rules',
-        description: 'Official Home Office caseworker guidance explaining how continuous residence is calculated, departure/arrival day exclusion rules, and valid absence exceptions.',
+        description:
+          'Official Home Office caseworker guidance explaining how continuous residence is calculated, departure/arrival day exclusion rules, and valid absence exceptions.',
         highlights: [
           'Full-day rule: Days of departure & arrival are excluded from absence counts',
           'Rolling 12-month calculation rules across 5-year qualifying period',
@@ -514,7 +543,8 @@ export default {
         title: 'Life in the UK Test Official Portal',
         category: 'Qualifications & Tests',
         badge: 'Mandatory Test',
-        description: 'Official UK Government booking portal for the Life in the UK Test. Required for all applicants aged 18–64 applying for ILR or British Citizenship.',
+        description:
+          'Official UK Government booking portal for the Life in the UK Test. Required for all applicants aged 18–64 applying for ILR or British Citizenship.',
         highlights: [
           'Booking cost: £50 per test attempt',
           'Must book at least 3 days in advance at one of 30+ official test centers',
@@ -526,7 +556,8 @@ export default {
         title: 'Prove Your Knowledge of English (B1 Level)',
         category: 'Qualifications & Tests',
         badge: 'Language Requirement',
-        description: 'Official guidelines on proving English language capability at B1 CEFR level or higher for ILR settlement and citizenship applications.',
+        description:
+          'Official guidelines on proving English language capability at B1 CEFR level or higher for ILR settlement and citizenship applications.',
         highlights: [
           'Accepted pathways: B1 SELT Test (Trinity/PSI/IELTS SELT), UK Degree, or Ecctis statement',
           'Exemptions apply for applicants over 65 or with specific medical conditions',
@@ -537,7 +568,8 @@ export default {
         title: 'Apply for British Citizenship (Form AN)',
         category: 'Citizenship',
         badge: 'Naturalisation',
-        description: 'Official guidance on applying for British Citizenship by Naturalisation after holding ILR for at least 12 months (or immediately if married to a UK citizen).',
+        description:
+          'Official guidance on applying for British Citizenship by Naturalisation after holding ILR for at least 12 months (or immediately if married to a UK citizen).',
         highlights: [
           'Absence limit 1: Max 450 days total absent in the 5 years before applying',
           'Absence limit 2: Max 90 days absent in the 12 months immediately preceding application',
@@ -549,7 +581,8 @@ export default {
         title: 'Hong Kong BNO Visa General Overview & Extensions',
         category: 'Visa Extension',
         badge: 'Visa Overview',
-        description: 'Official overview page for the British National (Overseas) visa, detailing application fees, Immigration Health Surcharge (IHS), 2.5-year vs 5-year visa options, and visa extension processes.',
+        description:
+          'Official overview page for the British National (Overseas) visa, detailing application fees, Immigration Health Surcharge (IHS), 2.5-year vs 5-year visa options, and visa extension processes.',
         highlights: [
           'Compare 2.5-year extension vs 5-year initial visa paths',
           'Immigration Health Surcharge (IHS) payment details',

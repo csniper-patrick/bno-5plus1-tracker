@@ -3,7 +3,12 @@ import { mapStores } from 'pinia'
 import { useDocumentsStore } from '../stores/documents'
 import { useAbsentsStore } from '../stores/absents'
 import { normalizeDate, formatDisplayDate } from '../utils/date'
-import { formatFileSize, createFileURL, ALLOWED_EXTENSIONS, MAX_FILE_SIZE } from '../services/fileStorageService'
+import {
+  formatFileSize,
+  createFileURL,
+  ALLOWED_EXTENSIONS,
+  MAX_FILE_SIZE,
+} from '../services/fileStorageService'
 
 export default {
   name: 'DocumentView',
@@ -303,7 +308,10 @@ export default {
     /** Attached files for the currently viewed checklist item */
     attachedFilesForDialog() {
       if (!this.attachedFilesDialog.year || !this.attachedFilesDialog.itemId) return []
-      return this.documentsStore.getFilesForItem(this.attachedFilesDialog.year, this.attachedFilesDialog.itemId)
+      return this.documentsStore.getFilesForItem(
+        this.attachedFilesDialog.year,
+        this.attachedFilesDialog.itemId,
+      )
     },
   },
 
@@ -827,7 +835,8 @@ export default {
       const files = event.dataTransfer?.files
       if (files && files.length > 0) {
         this.uploadDialog.files = Array.from(files)
-        this.uploadDialog.folderId = this.vaultActiveFolder !== 'all' ? this.vaultActiveFolder : 'other'
+        this.uploadDialog.folderId =
+          this.vaultActiveFolder !== 'all' ? this.vaultActiveFolder : 'other'
         this.uploadDialog.show = true
       }
     },
@@ -842,21 +851,14 @@ export default {
       let successCount = 0
       for (const file of this.uploadDialog.files) {
         try {
-          await this.documentsStore.uploadFile(
-            file,
-            this.uploadDialog.folderId,
-            {
-              linkedYear: this.uploadDialog.linkedYear,
-              linkedItemId: this.uploadDialog.linkedItemId,
-              notes: this.uploadDialog.notes,
-            },
-          )
+          await this.documentsStore.uploadFile(file, this.uploadDialog.folderId, {
+            linkedYear: this.uploadDialog.linkedYear,
+            linkedItemId: this.uploadDialog.linkedItemId,
+            notes: this.uploadDialog.notes,
+          })
           successCount++
         } catch (e) {
-          this.showSnackbar(
-            this.$t('document.upload_error', { error: e.message }),
-            'error',
-          )
+          this.showSnackbar(this.$t('document.upload_error', { error: e.message }), 'error')
         }
       }
 
@@ -864,9 +866,10 @@ export default {
       this.uploadDialog.show = false
 
       if (successCount > 0) {
-        const msg = successCount === 1
-          ? this.$t('document.upload_success')
-          : this.$t('document.upload_success_multi', { count: successCount })
+        const msg =
+          successCount === 1
+            ? this.$t('document.upload_success')
+            : this.$t('document.upload_success_multi', { count: successCount })
         this.showSnackbar(msg, 'success')
       }
     },
@@ -950,7 +953,10 @@ export default {
     async executeRename() {
       if (!this.renameDialog.name.trim()) return
       try {
-        await this.documentsStore.renameFile(this.renameDialog.fileId, this.renameDialog.name.trim())
+        await this.documentsStore.renameFile(
+          this.renameDialog.fileId,
+          this.renameDialog.name.trim(),
+        )
         this.renameDialog.show = false
         this.showSnackbar(this.$t('document.file_renamed'), 'success')
       } catch (e) {
@@ -998,7 +1004,10 @@ export default {
      * Saves file notes.
      */
     async saveFileNotes() {
-      await this.documentsStore.updateFileNotes(this.fileNotesDialog.fileId, this.fileNotesDialog.notes)
+      await this.documentsStore.updateFileNotes(
+        this.fileNotesDialog.fileId,
+        this.fileNotesDialog.notes,
+      )
       this.fileNotesDialog.show = false
       this.showSnackbar(this.$t('document.file_notes_updated'), 'success')
     },
@@ -1149,7 +1158,9 @@ export default {
 
       <v-row class="align-center">
         <v-col cols="12" md="4" class="text-center text-md-left">
-          <div class="text-overline text-medium-emphasis mb-1">{{ $t('document.overall_readiness') }}</div>
+          <div class="text-overline text-medium-emphasis mb-1">
+            {{ $t('document.overall_readiness') }}
+          </div>
           <div class="d-flex align-center justify-center justify-md-start ga-3">
             <v-progress-circular
               :model-value="overallReadinessPercent"
@@ -1161,10 +1172,19 @@ export default {
             </v-progress-circular>
             <div>
               <div class="text-h6 font-weight-bold">
-                {{ overallReadinessPercent === 100 ? $t('document.ready_for_app') : $t('document.in_progress') }}
+                {{
+                  overallReadinessPercent === 100
+                    ? $t('document.ready_for_app')
+                    : $t('document.in_progress')
+                }}
               </div>
               <div class="text-caption text-medium-emphasis">
-                {{ $t('document.items_collected', { collected: residenceStats.collectedItems, total: residenceStats.totalItems }) }}
+                {{
+                  $t('document.items_collected', {
+                    collected: residenceStats.collectedItems,
+                    total: residenceStats.totalItems,
+                  })
+                }}
               </div>
             </div>
           </div>
@@ -1201,7 +1221,11 @@ export default {
                   <v-icon icon="mdi-translate" size="small"></v-icon>
                 </div>
                 <div class="text-subtitle-2 font-weight-bold">
-                  {{ englishTest.type === 'exempt' ? $t('document.type_exempt') : getStatusText(englishTest.status) }}
+                  {{
+                    englishTest.type === 'exempt'
+                      ? $t('document.type_exempt')
+                      : getStatusText(englishTest.status)
+                  }}
                 </div>
               </v-card>
             </v-col>
@@ -1227,7 +1251,9 @@ export default {
                 class="pa-3 rounded-lg"
               >
                 <div class="d-flex align-center justify-space-between mb-1">
-                  <span class="text-caption font-weight-bold">{{ $t('document.uk_addresses') }}</span>
+                  <span class="text-caption font-weight-bold">{{
+                    $t('document.uk_addresses')
+                  }}</span>
                   <v-icon icon="mdi-home-city-outline" size="small"></v-icon>
                 </div>
                 <div class="text-subtitle-2 font-weight-bold">
@@ -1264,7 +1290,9 @@ export default {
             </p>
 
             <div class="mb-4">
-              <label class="text-caption font-weight-bold d-block mb-1">{{ $t('document.test_status') }}</label>
+              <label class="text-caption font-weight-bold d-block mb-1">{{
+                $t('document.test_status')
+              }}</label>
               <v-btn-toggle
                 v-model="lifeForm.status"
                 mandatory
@@ -1273,11 +1301,15 @@ export default {
                 class="w-100"
                 @update:model-value="saveLifeInUk"
               >
-                <v-btn value="not_started" class="flex-grow-1" size="small">{{ $t('document.status_not_started') }}</v-btn>
-                <v-btn value="scheduled" class="flex-grow-1" size="small">{{ $t('document.status_scheduled') }}</v-btn>
-                <v-btn value="passed" class="flex-grow-1" color="success" size="small"
-                  >{{ $t('document.status_passed') }}</v-btn
-                >
+                <v-btn value="not_started" class="flex-grow-1" size="small">{{
+                  $t('document.status_not_started')
+                }}</v-btn>
+                <v-btn value="scheduled" class="flex-grow-1" size="small">{{
+                  $t('document.status_scheduled')
+                }}</v-btn>
+                <v-btn value="passed" class="flex-grow-1" color="success" size="small">{{
+                  $t('document.status_passed')
+                }}</v-btn>
               </v-btn-toggle>
             </div>
 
@@ -1348,7 +1380,11 @@ export default {
               variant="flat"
               class="font-weight-bold"
             >
-              {{ englishForm.type === 'exempt' ? $t('document.type_exempt') : getStatusText(englishForm.status) }}
+              {{
+                englishForm.type === 'exempt'
+                  ? $t('document.type_exempt')
+                  : getStatusText(englishForm.status)
+              }}
             </v-chip>
           </v-card-title>
           <v-card-text class="px-0 pb-0">
@@ -1397,7 +1433,9 @@ export default {
             </v-row>
 
             <div class="mb-4" v-if="englishForm.type !== 'exempt'">
-              <label class="text-caption font-weight-bold d-block mb-1">{{ $t('document.test_status') }}</label>
+              <label class="text-caption font-weight-bold d-block mb-1">{{
+                $t('document.test_status')
+              }}</label>
               <v-btn-toggle
                 v-model="englishForm.status"
                 mandatory
@@ -1406,11 +1444,15 @@ export default {
                 class="w-100"
                 @update:model-value="saveEnglishTest"
               >
-                <v-btn value="not_started" class="flex-grow-1" size="small">{{ $t('document.status_not_started') }}</v-btn>
-                <v-btn value="scheduled" class="flex-grow-1" size="small">{{ $t('document.status_scheduled') }}</v-btn>
-                <v-btn value="passed" class="flex-grow-1" color="success" size="small"
-                  >{{ $t('document.status_passed') }}</v-btn
-                >
+                <v-btn value="not_started" class="flex-grow-1" size="small">{{
+                  $t('document.status_not_started')
+                }}</v-btn>
+                <v-btn value="scheduled" class="flex-grow-1" size="small">{{
+                  $t('document.status_scheduled')
+                }}</v-btn>
+                <v-btn value="passed" class="flex-grow-1" color="success" size="small">{{
+                  $t('document.status_passed')
+                }}</v-btn>
               </v-btn-toggle>
             </div>
 
@@ -1476,7 +1518,9 @@ export default {
 
             <div v-if="addressHistory.length === 0" class="text-center py-6 text-medium-emphasis">
               <v-icon icon="mdi-map-marker-off-outline" size="large" class="mb-2"></v-icon>
-              <div class="text-subtitle-2 font-weight-bold">{{ $t('document.no_addresses_title') }}</div>
+              <div class="text-subtitle-2 font-weight-bold">
+                {{ $t('document.no_addresses_title') }}
+              </div>
               <div class="text-caption mb-3">
                 {{ $t('document.no_addresses_desc') }}
               </div>
@@ -1567,7 +1611,12 @@ export default {
             </v-table>
 
             <div class="d-flex justify-end mt-3">
-              <v-btn color="primary" prepend-icon="mdi-plus" size="small" @click="openAddAddressDialog">
+              <v-btn
+                color="primary"
+                prepend-icon="mdi-plus"
+                size="small"
+                @click="openAddAddressDialog"
+              >
                 {{ $t('document.add_address') }}
               </v-btn>
             </div>
@@ -1613,7 +1662,12 @@ export default {
                     <div class="d-flex align-center ga-3">
                       <div class="text-right d-none d-sm-block">
                         <span class="text-caption font-weight-bold">
-                          {{ $t('document.items_count', { collected: residenceStats.perYear[year]?.collected || 0, total: residenceStats.perYear[year]?.total || 0 }) }}
+                          {{
+                            $t('document.items_count', {
+                              collected: residenceStats.perYear[year]?.collected || 0,
+                              total: residenceStats.perYear[year]?.total || 0,
+                            })
+                          }}
                         </span>
                         <v-progress-linear
                           :model-value="residenceStats.perYear[year]?.percent || 0"
@@ -1653,9 +1707,15 @@ export default {
                     <thead>
                       <tr>
                         <th class="text-left font-weight-bold">{{ $t('document.status') }}</th>
-                        <th class="text-left font-weight-bold">{{ $t('document.evidence_item') }}</th>
-                        <th class="text-left font-weight-bold d-none d-sm-table-cell">{{ $t('document.category') }}</th>
-                        <th class="text-right font-weight-bold">{{ $t('absence.table_actions') }}</th>
+                        <th class="text-left font-weight-bold">
+                          {{ $t('document.evidence_item') }}
+                        </th>
+                        <th class="text-left font-weight-bold d-none d-sm-table-cell">
+                          {{ $t('document.category') }}
+                        </th>
+                        <th class="text-right font-weight-bold">
+                          {{ $t('absence.table_actions') }}
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1676,15 +1736,19 @@ export default {
                             </template>
                             <v-list density="compact">
                               <v-list-item @click="updateItemStatus(year, item.id, 'pending')">
-                                <v-list-item-title class="text-caption">{{ $t('document.status_pending') }}</v-list-item-title>
+                                <v-list-item-title class="text-caption">{{
+                                  $t('document.status_pending')
+                                }}</v-list-item-title>
                               </v-list-item>
                               <v-list-item @click="updateItemStatus(year, item.id, 'collected')">
-                                <v-list-item-title class="text-caption text-info font-weight-bold"
+                                <v-list-item-title
+                                  class="text-caption text-info font-weight-bold"
                                   >{{ $t('document.status_collected') }}</v-list-item-title
                                 >
                               </v-list-item>
                               <v-list-item @click="updateItemStatus(year, item.id, 'verified')">
-                                <v-list-item-title class="text-caption text-success font-weight-bold"
+                                <v-list-item-title
+                                  class="text-caption text-success font-weight-bold"
                                   >{{ $t('document.status_verified') }}</v-list-item-title
                                 >
                               </v-list-item>
@@ -1694,7 +1758,9 @@ export default {
 
                         <td>
                           <div class="d-flex align-center ga-2 flex-wrap">
-                            <span class="font-weight-medium text-body-2">{{ getItemTitle(item) }}</span>
+                            <span class="font-weight-medium text-body-2">{{
+                              getItemTitle(item)
+                            }}</span>
                             <v-chip
                               v-if="item.importance"
                               :color="getImportanceColor(item.importance)"
@@ -1791,17 +1857,8 @@ export default {
 
       <!-- Folder Tabs & Sort Controls Toolbar -->
       <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
-        <v-chip-group
-          v-model="vaultActiveFolder"
-          mandatory
-          selected-class="text-primary"
-        >
-          <v-chip
-            value="all"
-            variant="tonal"
-            size="small"
-            filter
-          >
+        <v-chip-group v-model="vaultActiveFolder" mandatory selected-class="text-primary">
+          <v-chip value="all" variant="tonal" size="small" filter>
             {{ $t('document.folder_all') }}
             <template v-if="uploadedFiles.length > 0">
               <span class="ml-1 text-caption">({{ uploadedFiles.length }})</span>
@@ -1843,7 +1900,9 @@ export default {
             :title="vaultSortOrder === 'asc' ? $t('document.sort_asc') : $t('document.sort_desc')"
             @click="toggleSortOrder"
           >
-            <v-icon :icon="vaultSortOrder === 'asc' ? 'mdi-sort-ascending' : 'mdi-sort-descending'"></v-icon>
+            <v-icon
+              :icon="vaultSortOrder === 'asc' ? 'mdi-sort-ascending' : 'mdi-sort-descending'"
+            ></v-icon>
             <span class="ml-1 text-caption font-weight-medium d-none d-sm-inline">
               {{ vaultSortOrder === 'asc' ? $t('document.sort_asc') : $t('document.sort_desc') }}
             </span>
@@ -1857,8 +1916,16 @@ export default {
         class="vault-empty-state text-center py-8 border rounded-lg"
         :class="{ 'vault-drag-over': vaultDragOver }"
       >
-        <v-icon icon="mdi-cloud-upload-outline" size="48" color="primary" class="mb-3" style="opacity: 0.5"></v-icon>
-        <div class="text-subtitle-1 font-weight-bold text-medium-emphasis">{{ $t('document.vault_empty_title') }}</div>
+        <v-icon
+          icon="mdi-cloud-upload-outline"
+          size="48"
+          color="primary"
+          class="mb-3"
+          style="opacity: 0.5"
+        ></v-icon>
+        <div class="text-subtitle-1 font-weight-bold text-medium-emphasis">
+          {{ $t('document.vault_empty_title') }}
+        </div>
         <div class="text-caption text-medium-emphasis mb-3">
           {{ $t('document.vault_empty_desc') }}
         </div>
@@ -1945,13 +2012,19 @@ export default {
                 ></v-icon>
               </div>
             </th>
-            <th class="text-right font-weight-bold" style="width: 50px">{{ $t('absence.table_actions') }}</th>
+            <th class="text-right font-weight-bold" style="width: 50px">
+              {{ $t('absence.table_actions') }}
+            </th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="file in sortedFiles" :key="file.id">
             <td>
-              <v-icon :icon="getFileIcon(file.mimeType)" :color="getFileColor(file.mimeType)" size="small"></v-icon>
+              <v-icon
+                :icon="getFileIcon(file.mimeType)"
+                :color="getFileColor(file.mimeType)"
+                size="small"
+              ></v-icon>
             </td>
             <td>
               <div class="d-flex align-center ga-2 flex-wrap">
@@ -1971,12 +2044,23 @@ export default {
                   {{ $t('document.file_link') }}
                 </v-chip>
               </div>
-              <div v-if="file.notes" class="text-caption text-medium-emphasis text-truncate" style="max-width: 300px">
+              <div
+                v-if="file.notes"
+                class="text-caption text-medium-emphasis text-truncate"
+                style="max-width: 300px"
+              >
                 {{ file.notes }}
               </div>
             </td>
             <td class="d-none d-sm-table-cell">
-              <v-chip size="x-small" variant="tonal" color="primary" :prepend-icon="folders.find(f => f.id === file.folderId)?.icon || 'mdi-folder-outline'">
+              <v-chip
+                size="x-small"
+                variant="tonal"
+                color="primary"
+                :prepend-icon="
+                  folders.find((f) => f.id === file.folderId)?.icon || 'mdi-folder-outline'
+                "
+              >
                 {{ getFolderLabel(file.folderId) }}
               </v-chip>
             </td>
@@ -2058,15 +2142,11 @@ export default {
           color="primary"
           class="font-weight-bold"
         >
-          {{ uploadedFiles.length }} {{ uploadedFiles.length === 1 ? 'file' : 'files' }} · {{ formatSize(totalFileStorageBytes) }}
+          {{ uploadedFiles.length }} {{ uploadedFiles.length === 1 ? 'file' : 'files' }} ·
+          {{ formatSize(totalFileStorageBytes) }}
         </v-chip>
         <v-spacer v-else></v-spacer>
-        <v-btn
-          color="primary"
-          prepend-icon="mdi-upload"
-          size="small"
-          @click="openUploadDialog()"
-        >
+        <v-btn color="primary" prepend-icon="mdi-upload" size="small" @click="openUploadDialog()">
           {{ $t('document.upload_files') }}
         </v-btn>
       </div>
@@ -2174,8 +2254,12 @@ export default {
           </v-row>
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="addressDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveAddress">{{ $t('document.save') }}</v-btn>
+          <v-btn variant="text" @click="addressDialog.show = false">{{
+            $t('absence.cancel')
+          }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="saveAddress">{{
+            $t('document.save')
+          }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -2190,8 +2274,12 @@ export default {
           {{ $t('document.delete_address_body', { address: deleteAddressDialog.addressLine1 }) }}
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="deleteAddressDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
-          <v-btn color="error" variant="flat" @click="executeDeleteAddress">{{ $t('absence.delete_confirm') }}</v-btn>
+          <v-btn variant="text" @click="deleteAddressDialog.show = false">{{
+            $t('absence.cancel')
+          }}</v-btn>
+          <v-btn color="error" variant="flat" @click="executeDeleteAddress">{{
+            $t('absence.delete_confirm')
+          }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -2200,7 +2288,9 @@ export default {
     <v-dialog v-model="customDocDialog.show" max-width="450px">
       <v-card elevation="2" class="rounded-lg pa-3" color="surface">
         <v-card-title class="px-0 pt-0 font-weight-bold text-h6">
-          {{ $t('document.add_custom_item') }} ({{ $t('document.year', { n: customDocDialog.year }) }})
+          {{ $t('document.add_custom_item') }} ({{
+            $t('document.year', { n: customDocDialog.year })
+          }})
         </v-card-title>
         <v-card-text class="px-0 py-2">
           <v-text-field
@@ -2221,8 +2311,12 @@ export default {
           ></v-select>
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="customDocDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveCustomDocument">{{ $t('document.save') }}</v-btn>
+          <v-btn variant="text" @click="customDocDialog.show = false">{{
+            $t('absence.cancel')
+          }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="saveCustomDocument">{{
+            $t('document.save')
+          }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -2244,7 +2338,9 @@ export default {
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
           <v-btn variant="text" @click="notesDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveItemNotes">{{ $t('document.save') }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="saveItemNotes">{{
+            $t('document.save')
+          }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -2263,7 +2359,11 @@ export default {
             :class="{ 'upload-drop-active': uploadDialog.files.length > 0 }"
             @click="$refs.fileInput?.click()"
             @dragover.prevent
-            @drop.prevent="(e) => { handleFileSelect(e.dataTransfer.files) }"
+            @drop.prevent="
+              (e) => {
+                handleFileSelect(e.dataTransfer.files)
+              }
+            "
           >
             <input
               ref="fileInput"
@@ -2273,10 +2373,17 @@ export default {
               style="display: none"
               @change="handleFileSelect($event)"
             />
-            <v-icon icon="mdi-cloud-upload-outline" size="40" color="primary" class="mb-2" style="opacity: 0.6"></v-icon>
+            <v-icon
+              icon="mdi-cloud-upload-outline"
+              size="40"
+              color="primary"
+              class="mb-2"
+              style="opacity: 0.6"
+            ></v-icon>
             <div class="text-body-2 font-weight-medium">{{ $t('document.upload_drop_hint') }}</div>
             <div class="text-caption text-medium-emphasis mt-1">
-              {{ $t('document.upload_type_hint') }} · {{ $t('document.upload_size_limit', { size: maxFileSizeFormatted }) }}
+              {{ $t('document.upload_type_hint') }} ·
+              {{ $t('document.upload_size_limit', { size: maxFileSizeFormatted }) }}
             </div>
           </div>
 
@@ -2318,7 +2425,9 @@ export default {
           ></v-textarea>
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="uploadDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
+          <v-btn variant="text" @click="uploadDialog.show = false">{{
+            $t('absence.cancel')
+          }}</v-btn>
           <v-btn
             color="primary"
             variant="flat"
@@ -2334,7 +2443,15 @@ export default {
     </v-dialog>
 
     <!-- File Preview Dialog -->
-    <v-dialog v-model="filePreviewDialog.show" max-width="800px" @update:model-value="(v) => { if (!v) closeFilePreview() }">
+    <v-dialog
+      v-model="filePreviewDialog.show"
+      max-width="800px"
+      @update:model-value="
+        (v) => {
+          if (!v) closeFilePreview()
+        }
+      "
+    >
       <v-card elevation="2" class="rounded-lg" color="surface">
         <v-card-title class="d-flex align-center ga-2 pa-3">
           <v-icon
@@ -2354,16 +2471,15 @@ export default {
             :title="$t('document.file_download')"
             @click="downloadFile(filePreviewDialog.file)"
           ></v-btn>
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            size="small"
-            @click="closeFilePreview"
-          ></v-btn>
+          <v-btn icon="mdi-close" variant="text" size="small" @click="closeFilePreview"></v-btn>
         </v-card-title>
         <v-divider></v-divider>
-        <v-card-text class="pa-0" style="min-height: 300px; max-height: 70vh; overflow: auto;">
-          <div v-if="filePreviewDialog.loading" class="d-flex justify-center align-center" style="min-height: 300px">
+        <v-card-text class="pa-0" style="min-height: 300px; max-height: 70vh; overflow: auto">
+          <div
+            v-if="filePreviewDialog.loading"
+            class="d-flex justify-center align-center"
+            style="min-height: 300px"
+          >
             <v-progress-circular indeterminate color="primary"></v-progress-circular>
           </div>
           <template v-else-if="filePreviewDialog.objectUrl && filePreviewDialog.file">
@@ -2373,23 +2489,30 @@ export default {
               :src="filePreviewDialog.objectUrl"
               :alt="filePreviewDialog.file.name"
               class="d-block mx-auto"
-              style="max-width: 100%; max-height: 65vh; object-fit: contain;"
+              style="max-width: 100%; max-height: 65vh; object-fit: contain"
             />
             <!-- PDF Preview -->
             <iframe
               v-else-if="filePreviewDialog.file.mimeType === 'application/pdf'"
               :src="filePreviewDialog.objectUrl"
-              style="width: 100%; height: 65vh; border: none;"
+              style="width: 100%; height: 65vh; border: none"
             ></iframe>
             <!-- Unsupported -->
             <div v-else class="text-center py-8">
               <v-icon icon="mdi-file-question-outline" size="48" color="grey" class="mb-3"></v-icon>
-              <div class="text-body-2 text-medium-emphasis">{{ $t('document.preview_unsupported') }}</div>
-              <div class="text-caption text-medium-emphasis">{{ $t('document.preview_download_instead') }}</div>
+              <div class="text-body-2 text-medium-emphasis">
+                {{ $t('document.preview_unsupported') }}
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                {{ $t('document.preview_download_instead') }}
+              </div>
             </div>
           </template>
         </v-card-text>
-        <v-card-text v-if="filePreviewDialog.file" class="pa-3 text-caption text-medium-emphasis d-flex ga-4 flex-wrap">
+        <v-card-text
+          v-if="filePreviewDialog.file"
+          class="pa-3 text-caption text-medium-emphasis d-flex ga-4 flex-wrap"
+        >
           <span>{{ formatSize(filePreviewDialog.file.size) }}</span>
           <span>{{ filePreviewDialog.file.mimeType }}</span>
           <span>{{ formatUploadDate(filePreviewDialog.file.uploadedAt) }}</span>
@@ -2414,8 +2537,12 @@ export default {
           ></v-text-field>
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="renameDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
-          <v-btn color="primary" variant="flat" @click="executeRename">{{ $t('document.save') }}</v-btn>
+          <v-btn variant="text" @click="renameDialog.show = false">{{
+            $t('absence.cancel')
+          }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="executeRename">{{
+            $t('document.save')
+          }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -2437,7 +2564,9 @@ export default {
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
           <v-btn variant="text" @click="moveDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
-          <v-btn color="primary" variant="flat" @click="executeMove">{{ $t('document.save') }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="executeMove">{{
+            $t('document.save')
+          }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -2452,8 +2581,12 @@ export default {
           {{ $t('document.delete_file_body', { name: deleteFileDialog.fileName }) }}
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="deleteFileDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
-          <v-btn color="error" variant="flat" @click="executeDeleteFile">{{ $t('absence.delete_confirm') }}</v-btn>
+          <v-btn variant="text" @click="deleteFileDialog.show = false">{{
+            $t('absence.cancel')
+          }}</v-btn>
+          <v-btn color="error" variant="flat" @click="executeDeleteFile">{{
+            $t('absence.delete_confirm')
+          }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -2473,8 +2606,12 @@ export default {
           ></v-textarea>
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="fileNotesDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
-          <v-btn color="primary" variant="flat" @click="saveFileNotes">{{ $t('document.save') }}</v-btn>
+          <v-btn variant="text" @click="fileNotesDialog.show = false">{{
+            $t('absence.cancel')
+          }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="saveFileNotes">{{
+            $t('document.save')
+          }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -2504,7 +2641,13 @@ export default {
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
           <v-btn variant="text" @click="linkDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
-          <v-btn color="primary" variant="flat" :disabled="!linkDialog.itemId" @click="executeLinkFile">{{ $t('document.save') }}</v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            :disabled="!linkDialog.itemId"
+            @click="executeLinkFile"
+            >{{ $t('document.save') }}</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -2517,7 +2660,10 @@ export default {
           {{ attachedFilesDialog.itemTitle }}
         </v-card-title>
         <v-card-text class="px-0 py-2">
-          <div v-if="attachedFilesForDialog.length === 0" class="text-center py-4 text-medium-emphasis">
+          <div
+            v-if="attachedFilesForDialog.length === 0"
+            class="text-center py-4 text-medium-emphasis"
+          >
             <v-icon icon="mdi-paperclip-off" size="large" class="mb-2"></v-icon>
             <div class="text-subtitle-2">{{ $t('document.vault_empty_title') }}</div>
           </div>
@@ -2568,7 +2714,9 @@ export default {
           </div>
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="attachedFilesDialog.show = false">{{ $t('app.close') }}</v-btn>
+          <v-btn variant="text" @click="attachedFilesDialog.show = false">{{
+            $t('app.close')
+          }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -2582,7 +2730,9 @@ export default {
     >
       {{ snackbar.text }}
       <template v-slot:actions>
-        <v-btn variant="text" size="small" @click="snackbar.show = false">{{ $t('app.close') }}</v-btn>
+        <v-btn variant="text" size="small" @click="snackbar.show = false">{{
+          $t('app.close')
+        }}</v-btn>
       </template>
     </v-snackbar>
   </div>

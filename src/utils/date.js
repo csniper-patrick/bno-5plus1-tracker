@@ -21,8 +21,18 @@ export function parseDateUTC(dateInput) {
   if (typeof dateInput === 'string') {
     const cleanStr = dateInput.split('T')[0]
     const parts = cleanStr.split('-').map(Number)
-    if (parts.length !== 3 || parts.some(isNaN)) return null
-    return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]))
+    if (parts.length !== 3 || parts.some((p) => isNaN(p))) return null
+    const [y, m, d] = parts
+    if (m < 1 || m > 12 || d < 1 || d > 31) return null
+    const utcDate = new Date(Date.UTC(y, m - 1, d))
+    if (
+      utcDate.getUTCFullYear() !== y ||
+      utcDate.getUTCMonth() !== m - 1 ||
+      utcDate.getUTCDate() !== d
+    ) {
+      return null
+    }
+    return utcDate
   }
   return null
 }

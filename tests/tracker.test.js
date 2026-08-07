@@ -59,11 +59,7 @@ describe('Date Utilities', () => {
 
 describe('AbsenceSegmentTree', () => {
   it('should correctly build from an array of intervals and a target val', () => {
-    const intervals = [
-      { startIdx: 1, endIdx: 2 },
-      [4, 4],
-      { start: 6, end: 6 },
-    ]
+    const intervals = [{ startIdx: 1, endIdx: 2 }, [4, 4], { start: 6, end: 6 }]
     const tree = new AbsenceSegmentTree(7)
     tree.build(intervals, 1)
 
@@ -182,7 +178,12 @@ describe('Backup Service', () => {
     const fakeAbsentsStore = {
       absences: [
         { id: '1', startDate: '2023-05-10', endDate: '2023-05-20', dest: 'Japan' },
-        { id: 'auto_uk_arrival_record', isAutoArrival: true, startDate: '2022-01-01', endDate: '2022-01-10' },
+        {
+          id: 'auto_uk_arrival_record',
+          isAutoArrival: true,
+          startDate: '2022-01-01',
+          endDate: '2022-01-10',
+        },
       ],
       visaStartDate: '2022-01-01',
       ukArrivalDate: '2022-01-10',
@@ -346,7 +347,10 @@ absences:
     // Naturalisation baseline target should be 1 year after the shifted ILR target date
     const natPeriod = store.naturalizationQualifyingPeriod
     assert.ok(natPeriod)
-    assert.strictEqual(natPeriod.baselineTargetDate, store.naturalizationQualifyingPeriod.targetDate)
+    assert.strictEqual(
+      natPeriod.baselineTargetDate,
+      store.naturalizationQualifyingPeriod.targetDate,
+    )
     assert.ok(natPeriod.targetDate > '2026-01-01')
   })
 
@@ -368,7 +372,11 @@ absences:
     assert.strictEqual(store.isIlrWindowShifted, false)
 
     // Add 4th trip adding 1 more day (181 days total in 12 months)
-    const trip4 = store.addAbsence({ startDate: '2022-11-01', endDate: '2022-11-03', dest: 'Trip D' }) // 1 day
+    const trip4 = store.addAbsence({
+      startDate: '2022-11-01',
+      endDate: '2022-11-03',
+      dest: 'Trip D',
+    }) // 1 day
     assert.strictEqual(store.ilrQualifyingPeriod.baselineMax12MonthAbsence, 181)
     assert.strictEqual(store.isRuleExceeded, true)
     assert.strictEqual(store.isIlrWindowShifted, true)
@@ -440,8 +448,14 @@ absences:
     store.addAbsence({ startDate: '2022-01-05', endDate: '2022-01-20', dest: 'Winter Break' })
 
     const fullYaml = exportFullBackup(store, { getDocumentsExportData: () => [] })
-    assert.ok(fullYaml.includes('visa_expiry_date: 2023-09-01') || fullYaml.includes('visa_expiry_date: \'2023-09-01\''))
-    assert.ok(fullYaml.includes('ilr_approved_date: 2026-03-01') || fullYaml.includes('ilr_approved_date: \'2026-03-01\''))
+    assert.ok(
+      fullYaml.includes('visa_expiry_date: 2023-09-01') ||
+        fullYaml.includes("visa_expiry_date: '2023-09-01'"),
+    )
+    assert.ok(
+      fullYaml.includes('ilr_approved_date: 2026-03-01') ||
+        fullYaml.includes("ilr_approved_date: '2026-03-01'"),
+    )
 
     // Clear store and re-import
     store.clearAbsences()
@@ -601,5 +615,128 @@ describe('Multi-Stop Trip Support', () => {
     assert.strictEqual(importedTrips[0].endDate, '2022-06-15')
     assert.strictEqual(importedTrips[0].stops.length, 3)
     assert.strictEqual(importedTrips[0].stops[1].dest, 'Osaka')
+  })
+})
+
+describe('Date Utilities Edge Cases', () => {
+  it('should handle invalid date string inputs safely', () => {
+    assert.strictEqual(parseDateUTC('invalid-date'), null)
+    assert.strictEqual(parseDateUTC('2024-13-45'), null)
+    assert.strictEqual(parseDateUTC(null), null)
+    assert.strictEqual(parseDateUTC(undefined), null)
+    assert.strictEqual(parseDateUTC(12345), null)
+    assert.strictEqual(parseDateUTC(new Date(NaN)), null)
+
+    assert.strictEqual(formatDateUTC(null), '')
+    assert.strictEqual(formatDateUTC(new Date(NaN)), '')
+
+    assert.strictEqual(normalizeDate('not-a-date'), 'not-a-date')
+    assert.strictEqual(normalizeDate(undefined), '')
+
+    assert.strictEqual(getOneDayBefore('invalid-date'), '')
+    assert.strictEqual(getOneDayBefore(''), '')
+
+    assert.strictEqual(getMaxSegmentTreeReturnDate('invalid-date'), null)
+    assert.strictEqual(getMaxSegmentTreeReturnDate(''), null)
+
+    assert.strictEqual(calculateDays('2024-01-15', '2024-01-10'), 0)
+    assert.strictEqual(calculateDays('', '2024-01-10'), 0)
+    assert.strictEqual(calculateDays('2024-01-10', ''), 0)
+
+    assert.strictEqual(formatDisplayDate('invalid-date'), '')
+  })
+
+  it('should handle leap years correctly in date calculations', () => {
+    // 2024 is a leap year (Feb 29 exists)
+    const feb28 = parseDateUTC('2024-02-28')
+    assert.notStrictEqual(feb28, null)
+
+    assert.strictEqual(getOneDayBefore('2024-03-01'), '2024-02-29')
+    // Departure 2024-02-28, Return 2024-03-01 -> full day absent is Feb 29 (1 day)
+    assert.strictEqual(calculateDays('2024-02-28', '2024-03-01'), 1)
+  })
+})
+
+describe('AbsenceSegmentTree Edge Cases', () => {
+  it('should handle zero size tree safely', () => {
+    const tree = new AbsenceSegmentTree(0)
+    tree.build([{ startIdx: 0, endIdx: 0 }])
+    assert.strictEqual(tree.query(0, 5), 0)
+    assert.strictEqual(tree.queryPoint(0), 0)
+    tree.updateRange(0, 5, 1)
+    assert.strictEqual(tree.query(0, 5), 0)
+  })
+
+  it('should handle empty or null build arguments', () => {
+    const tree = new AbsenceSegmentTree(5)
+    tree.build(null)
+    assert.strictEqual(tree.query(0, 4), 0)
+
+    tree.build([])
+    assert.strictEqual(tree.query(0, 4), 0)
+
+    tree.build([null, undefined, { start: 1, end: 2 }])
+    assert.strictEqual(tree.query(0, 4), 2)
+  })
+
+  it('should handle invalid range queries gracefully', () => {
+    const tree = new AbsenceSegmentTree(5)
+    tree.updateRange(0, 4, 1)
+    assert.strictEqual(tree.query(3, 1), 0) // start > end
+    assert.strictEqual(tree.query(-10, -5), 0) // out of bounds left
+    assert.strictEqual(tree.query(10, 20), 0) // out of bounds right
+  })
+})
+
+describe('Document Store Helper Operations', () => {
+  it('should initialize documents store and support adding/updating addresses', async () => {
+    if (typeof globalThis.localStorage === 'undefined') {
+      const storage = new Map()
+      globalThis.localStorage = {
+        getItem: (k) => storage.get(k) || null,
+        setItem: (k, v) => storage.set(k, String(v)),
+        removeItem: (k) => storage.delete(k),
+        clear: () => storage.clear(),
+      }
+    }
+    await dbService.clear()
+    setActivePinia(createPinia())
+    const docStore = useDocumentsStore()
+    await docStore.initStore()
+
+    assert.strictEqual(docStore.addressHistory.length, 0)
+
+    const addr1 = docStore.addAddress({
+      startDate: '2023-01-01',
+      endDate: '2024-01-01',
+      addressLine1: '123 Main St, London',
+      postcode: 'SW1A 1AA',
+    })
+    assert.ok(addr1.id)
+    assert.strictEqual(docStore.addressHistory.length, 1)
+
+    const addr2 = docStore.addAddress({
+      startDate: '2022-01-01',
+      endDate: '2022-12-31',
+      addressLine1: '456 Old Rd, Manchester',
+      postcode: 'M1 1AA',
+    })
+
+    // Address history should sort chronologically (addr2 from 2022 before addr1 from 2023)
+    assert.strictEqual(docStore.addressHistory.length, 2)
+    assert.strictEqual(docStore.addressHistory[0].id, addr2.id)
+
+    docStore.updateAddress(addr2.id, { addressLine1: '456 Updated Rd, Manchester' })
+    assert.strictEqual(docStore.addressHistory[0].addressLine1, '456 Updated Rd, Manchester')
+
+    docStore.deleteAddress(addr1.id)
+    assert.strictEqual(docStore.addressHistory.length, 1)
+  })
+})
+
+describe('Backup Service Parsing & Error Handling', () => {
+  it('should throw explicit error on invalid or empty YAML input', () => {
+    assert.throws(() => parseYAML(''), /must be a non-empty string/)
+    assert.throws(() => parseYAML(null), /must be a non-empty string/)
   })
 })

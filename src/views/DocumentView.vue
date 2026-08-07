@@ -83,6 +83,8 @@ export default {
       // Document Vault state
       vaultActiveFolder: 'all',
       vaultDragOver: false,
+      vaultSortBy: 'name',
+      vaultSortOrder: 'asc',
 
       // Upload Dialog state
       uploadDialog: {
@@ -216,12 +218,51 @@ export default {
       return this.documentsStore.fileCountByFolder
     },
 
+    /** Sort field options for dropdown */
+    sortOptions() {
+      return [
+        { title: this.$t('document.sort_name'), value: 'name' },
+        { title: this.$t('document.sort_folder'), value: 'folder' },
+        { title: this.$t('document.sort_size'), value: 'size' },
+        { title: this.$t('document.sort_uploaded_at'), value: 'uploadedAt' },
+      ]
+    },
+
     /** Files filtered by currently active vault folder */
     filteredFiles() {
       if (this.vaultActiveFolder === 'all') {
         return this.uploadedFiles
       }
       return this.uploadedFiles.filter((f) => f.folderId === this.vaultActiveFolder)
+    },
+
+    /** Files sorted according to vaultSortBy and vaultSortOrder */
+    sortedFiles() {
+      const list = [...this.filteredFiles]
+      const field = this.vaultSortBy || 'name'
+      const isAsc = this.vaultSortOrder === 'asc'
+
+      return list.sort((a, b) => {
+        let valA, valB
+        if (field === 'name') {
+          valA = (a.name || '').toLowerCase()
+          valB = (b.name || '').toLowerCase()
+          return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA)
+        } else if (field === 'folder') {
+          valA = (this.getFolderLabel(a.folderId) || '').toLowerCase()
+          valB = (this.getFolderLabel(b.folderId) || '').toLowerCase()
+          return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA)
+        } else if (field === 'size') {
+          valA = a.size || 0
+          valB = b.size || 0
+          return isAsc ? valA - valB : valB - valA
+        } else if (field === 'uploadedAt') {
+          valA = new Date(a.uploadedAt || 0).getTime()
+          valB = new Date(b.uploadedAt || 0).getTime()
+          return isAsc ? valA - valB : valB - valA
+        }
+        return 0
+      })
     },
 
     /** Folder options for select dropdowns */
@@ -663,6 +704,26 @@ export default {
     },
 
     // ── File Vault Methods ──────────────────────────────────────────────
+
+    /**
+     * Sorts table by header click. Toggles order if clicking current sort field.
+     * @param {string} field - Sort field name.
+     */
+    sortByHeader(field) {
+      if (this.vaultSortBy === field) {
+        this.vaultSortOrder = this.vaultSortOrder === 'asc' ? 'desc' : 'asc'
+      } else {
+        this.vaultSortBy = field
+        this.vaultSortOrder = 'asc'
+      }
+    },
+
+    /**
+     * Toggles sort direction between ascending and descending.
+     */
+    toggleSortOrder() {
+      this.vaultSortOrder = this.vaultSortOrder === 'asc' ? 'desc' : 'asc'
+    },
 
     /**
      * Returns a display-friendly folder name.
@@ -1728,39 +1789,67 @@ export default {
         {{ $t('document.vault_desc') }}
       </p>
 
-      <!-- Folder Tabs -->
-      <v-chip-group
-        v-model="vaultActiveFolder"
-        mandatory
-        selected-class="text-primary"
-        class="mb-3"
-      >
-        <v-chip
-          value="all"
-          variant="tonal"
-          size="small"
-          filter
+      <!-- Folder Tabs & Sort Controls Toolbar -->
+      <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
+        <v-chip-group
+          v-model="vaultActiveFolder"
+          mandatory
+          selected-class="text-primary"
         >
-          {{ $t('document.folder_all') }}
-          <template v-if="uploadedFiles.length > 0">
-            <span class="ml-1 text-caption">({{ uploadedFiles.length }})</span>
-          </template>
-        </v-chip>
-        <v-chip
-          v-for="folder in folders"
-          :key="folder.id"
-          :value="folder.id"
-          :prepend-icon="folder.icon"
-          variant="tonal"
-          size="small"
-          filter
-        >
-          {{ $t(`document.folder_${folder.id}`) }}
-          <template v-if="fileCountByFolder[folder.id] > 0">
-            <span class="ml-1 text-caption">({{ fileCountByFolder[folder.id] }})</span>
-          </template>
-        </v-chip>
-      </v-chip-group>
+          <v-chip
+            value="all"
+            variant="tonal"
+            size="small"
+            filter
+          >
+            {{ $t('document.folder_all') }}
+            <template v-if="uploadedFiles.length > 0">
+              <span class="ml-1 text-caption">({{ uploadedFiles.length }})</span>
+            </template>
+          </v-chip>
+          <v-chip
+            v-for="folder in folders"
+            :key="folder.id"
+            :value="folder.id"
+            :prepend-icon="folder.icon"
+            variant="tonal"
+            size="small"
+            filter
+          >
+            {{ $t(`document.folder_${folder.id}`) }}
+            <template v-if="fileCountByFolder[folder.id] > 0">
+              <span class="ml-1 text-caption">({{ fileCountByFolder[folder.id] }})</span>
+            </template>
+          </v-chip>
+        </v-chip-group>
+
+        <!-- Sort Column Dropdown & Order Toggle -->
+        <div class="d-flex align-center ga-2 flex-wrap ml-auto" v-if="uploadedFiles.length > 0">
+          <v-select
+            v-model="vaultSortBy"
+            :items="sortOptions"
+            :label="$t('document.sort_by')"
+            density="compact"
+            variant="outlined"
+            hide-details
+            style="min-width: 140px; max-width: 170px"
+          ></v-select>
+          <v-btn
+            variant="tonal"
+            density="compact"
+            color="primary"
+            class="px-2"
+            style="height: 40px"
+            :title="vaultSortOrder === 'asc' ? $t('document.sort_asc') : $t('document.sort_desc')"
+            @click="toggleSortOrder"
+          >
+            <v-icon :icon="vaultSortOrder === 'asc' ? 'mdi-sort-ascending' : 'mdi-sort-descending'"></v-icon>
+            <span class="ml-1 text-caption font-weight-medium d-none d-sm-inline">
+              {{ vaultSortOrder === 'asc' ? $t('document.sort_asc') : $t('document.sort_desc') }}
+            </span>
+          </v-btn>
+        </div>
+      </div>
 
       <!-- Empty State -->
       <div
@@ -1784,26 +1873,83 @@ export default {
         </v-btn>
       </div>
 
-      <!-- File List Table -->
+      <!-- File List Table with Frozen Header and Height Limit -->
       <v-table
         v-else
         density="comfortable"
         hover
-        class="border rounded-lg"
+        fixed-header
+        height="420px"
+        class="vault-table border rounded-lg"
         :class="{ 'vault-drag-over': vaultDragOver }"
       >
         <thead>
           <tr>
             <th class="text-left font-weight-bold" style="width: 50px"></th>
-            <th class="text-left font-weight-bold">{{ $t('document.rename_label') }}</th>
-            <th class="text-left font-weight-bold d-none d-sm-table-cell" style="width: 120px">{{ $t('document.upload_folder') }}</th>
-            <th class="text-left font-weight-bold d-none d-md-table-cell" style="width: 100px">{{ $t('document.storage_used') }}</th>
-            <th class="text-left font-weight-bold d-none d-md-table-cell" style="width: 130px">{{ $t('document.upload_date') }}</th>
+            <th
+              class="text-left font-weight-bold cursor-pointer user-select-none"
+              @click="sortByHeader('name')"
+            >
+              <div class="d-flex align-center ga-1">
+                <span>{{ $t('document.rename_label') }}</span>
+                <v-icon
+                  v-if="vaultSortBy === 'name'"
+                  :icon="vaultSortOrder === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down'"
+                  size="x-small"
+                  color="primary"
+                ></v-icon>
+              </div>
+            </th>
+            <th
+              class="text-left font-weight-bold d-none d-sm-table-cell cursor-pointer user-select-none"
+              style="width: 140px"
+              @click="sortByHeader('folder')"
+            >
+              <div class="d-flex align-center ga-1">
+                <span>{{ $t('document.upload_folder') }}</span>
+                <v-icon
+                  v-if="vaultSortBy === 'folder'"
+                  :icon="vaultSortOrder === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down'"
+                  size="x-small"
+                  color="primary"
+                ></v-icon>
+              </div>
+            </th>
+            <th
+              class="text-left font-weight-bold d-none d-md-table-cell cursor-pointer user-select-none"
+              style="width: 120px"
+              @click="sortByHeader('size')"
+            >
+              <div class="d-flex align-center ga-1">
+                <span>{{ $t('document.storage_used') }}</span>
+                <v-icon
+                  v-if="vaultSortBy === 'size'"
+                  :icon="vaultSortOrder === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down'"
+                  size="x-small"
+                  color="primary"
+                ></v-icon>
+              </div>
+            </th>
+            <th
+              class="text-left font-weight-bold d-none d-md-table-cell cursor-pointer user-select-none"
+              style="width: 140px"
+              @click="sortByHeader('uploadedAt')"
+            >
+              <div class="d-flex align-center ga-1">
+                <span>{{ $t('document.upload_date') }}</span>
+                <v-icon
+                  v-if="vaultSortBy === 'uploadedAt'"
+                  :icon="vaultSortOrder === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down'"
+                  size="x-small"
+                  color="primary"
+                ></v-icon>
+              </div>
+            </th>
             <th class="text-right font-weight-bold" style="width: 50px">{{ $t('absence.table_actions') }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="file in filteredFiles" :key="file.id">
+          <tr v-for="file in sortedFiles" :key="file.id">
             <td>
               <v-icon :icon="getFileIcon(file.mimeType)" :color="getFileColor(file.mimeType)" size="small"></v-icon>
             </td>
@@ -2445,6 +2591,23 @@ export default {
 <style scoped>
 .cursor-pointer {
   cursor: pointer;
+}
+
+.user-select-none {
+  user-select: none;
+}
+
+.vault-table :deep(.v-table__wrapper) {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.vault-table :deep(th) {
+  position: sticky !important;
+  top: 0 !important;
+  background-color: rgb(var(--v-theme-surface)) !important;
+  z-index: 2 !important;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
 }
 
 .vault-empty-state {

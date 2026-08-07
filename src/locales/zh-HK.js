@@ -294,9 +294,16 @@ export default {
     importance_recommended: '建議',
     importance_supporting: '輔助',
 
-    // 文件保險庫與檔案上傳
-    vault_title: '文件保險庫',
+    // 文件庫與檔案上傳
+    vault_title: '文件庫',
     vault_desc: '上傳及整理掃描件、證書及證明文件。所有檔案均儲存於瀏覽器本機。',
+    sort_by: '排序依據',
+    sort_name: '檔案名稱',
+    sort_folder: '資料夾',
+    sort_size: '檔案大小',
+    sort_uploaded_at: '上載日期',
+    sort_asc: '升序',
+    sort_desc: '降序',
     upload_date: '上載日期',
     vault_empty_title: '尚未上傳任何檔案',
     vault_empty_desc: '拖放檔案至此處或點擊「上傳檔案」開始使用。',

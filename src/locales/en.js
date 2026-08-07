@@ -297,6 +297,13 @@ export default {
     // Document Vault & File Upload
     vault_title: 'Document Vault',
     vault_desc: 'Upload and organise scans, certificates, and evidence files. All files are stored locally in your browser.',
+    sort_by: 'Sort by',
+    sort_name: 'File Name',
+    sort_folder: 'Folder',
+    sort_size: 'File Size',
+    sort_uploaded_at: 'Upload Date',
+    sort_asc: 'Ascending',
+    sort_desc: 'Descending',
     upload_date: 'Upload Date',
     vault_empty_title: 'No files uploaded yet',
     vault_empty_desc: 'Drag & drop files here or click "Upload Files" to get started.',

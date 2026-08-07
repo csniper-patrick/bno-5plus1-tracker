@@ -87,6 +87,56 @@ describe('Absence Form & Validation Utilities', () => {
   })
 })
 
+describe('Absence Record Table Sorting Logic', () => {
+  const records = [
+    { id: '1', startDate: '2023-05-01', endDate: '2023-05-15', dest: 'Japan' }, // 13 days
+    { id: '2', startDate: '2022-01-10', endDate: '2022-01-15', dest: 'France' }, // 4 days
+    { id: '3', startDate: '2024-02-01', endDate: '2024-02-25', dest: 'Canada' }, // 23 days
+  ]
+
+  function sortDisplayAbsences(list, field = 'startDate', order = 'asc') {
+    const isAsc = order === 'asc'
+    return [...list].sort((a, b) => {
+      if (field === 'startDate') {
+        const valA = a.startDate || ''
+        const valB = b.startDate || ''
+        const cmp = valA.localeCompare(valB)
+        if (cmp !== 0) return isAsc ? cmp : -cmp
+        return (a.endDate || '').localeCompare(b.endDate || '')
+      } else if (field === 'days') {
+        const valA = calculateDays(a.startDate, a.endDate)
+        const valB = calculateDays(b.startDate, b.endDate)
+        const cmp = isAsc ? valA - valB : valB - valA
+        if (cmp !== 0) return cmp
+        return (a.startDate || '').localeCompare(b.startDate || '')
+      }
+      return 0
+    })
+  }
+
+  it('should sort by departure date (timeline) by default in ascending order', () => {
+    const sorted = sortDisplayAbsences(records, 'startDate', 'asc')
+    assert.deepStrictEqual(
+      sorted.map((r) => r.id),
+      ['2', '1', '3'],
+    )
+  })
+
+  it('should sort by absence days correctly', () => {
+    const sortedAsc = sortDisplayAbsences(records, 'days', 'asc')
+    assert.deepStrictEqual(
+      sortedAsc.map((r) => r.id),
+      ['2', '1', '3'],
+    )
+
+    const sortedDesc = sortDisplayAbsences(records, 'days', 'desc')
+    assert.deepStrictEqual(
+      sortedDesc.map((r) => r.id),
+      ['3', '1', '2'],
+    )
+  })
+})
+
 describe('End-to-End User Flow 1: Absence Tracking & Rolling Rule Compliance', () => {
   let absentsStore
 

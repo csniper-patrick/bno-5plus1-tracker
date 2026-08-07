@@ -104,16 +104,20 @@ export default {
           valA = a.startDate || ''
           valB = b.startDate || ''
           const cmp = valA.localeCompare(valB)
-          return isAsc ? cmp : -cmp
+          if (cmp !== 0) return isAsc ? cmp : -cmp
+          return (a.endDate || '').localeCompare(b.endDate || '')
         } else if (field === 'days') {
-          valA = Number(a.days) || 0
-          valB = Number(b.days) || 0
-          return isAsc ? valA - valB : valB - valA
+          valA = calculateDays(a.startDate, a.endDate)
+          valB = calculateDays(b.startDate, b.endDate)
+          const cmp = isAsc ? valA - valB : valB - valA
+          if (cmp !== 0) return cmp
+          return (a.startDate || '').localeCompare(b.startDate || '')
         } else if (field === 'dest') {
           valA = (a.dest || '').toLowerCase()
           valB = (b.dest || '').toLowerCase()
           const cmp = valA.localeCompare(valB)
-          return isAsc ? cmp : -cmp
+          if (cmp !== 0) return isAsc ? cmp : -cmp
+          return (a.startDate || '').localeCompare(b.startDate || '')
         } else if (field === 'status') {
           const getStatusWeight = (item) => {
             if (item.isAutoArrival) return 0
@@ -123,7 +127,9 @@ export default {
           }
           valA = getStatusWeight(a)
           valB = getStatusWeight(b)
-          return isAsc ? valA - valB : valB - valA
+          const cmp = isAsc ? valA - valB : valB - valA
+          if (cmp !== 0) return cmp
+          return (a.startDate || '').localeCompare(b.startDate || '')
         }
         return 0
       })

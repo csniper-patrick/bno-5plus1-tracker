@@ -2,7 +2,7 @@
 import { mapStores } from 'pinia'
 import { useDocumentsStore } from '../stores/documents'
 import { useAbsentsStore } from '../stores/absents'
-import { normalizeDate } from '../utils/date'
+import { normalizeDate, parseDateUTC, formatDateUTC } from '../utils/date'
 import {
   formatFileSize,
   createFileURL,
@@ -609,18 +609,17 @@ export default {
       const baseDateStr = this.absentsStore.ukArrivalDate || this.absentsStore.visaStartDate
       if (!baseDateStr) return this.$t('document.year', { n: year })
 
-      const start = new Date(baseDateStr)
-      if (isNaN(start.getTime())) return this.$t('document.year', { n: year })
+      const start = parseDateUTC(baseDateStr)
+      if (!start) return this.$t('document.year', { n: year })
 
       const yearStart = new Date(start)
-      yearStart.setFullYear(start.getFullYear() + (year - 1))
+      yearStart.setUTCFullYear(start.getUTCFullYear() + (year - 1))
 
       const yearEnd = new Date(start)
-      yearEnd.setFullYear(start.getFullYear() + year)
-      yearEnd.setDate(yearEnd.getDate() - 1)
+      yearEnd.setUTCFullYear(start.getUTCFullYear() + year)
+      yearEnd.setUTCDate(yearEnd.getUTCDate() - 1)
 
-      const formatDate = (d) => d.toISOString().split('T')[0]
-      return `${formatDate(yearStart)} to ${formatDate(yearEnd)}`
+      return `${formatDateUTC(yearStart)} to ${formatDateUTC(yearEnd)}`
     },
 
     /**

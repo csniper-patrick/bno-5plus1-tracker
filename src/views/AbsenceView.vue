@@ -1,7 +1,7 @@
 <script>
 import { mapStores } from 'pinia'
-import { useAbsentsStore, calculateDays, getMaxSegmentTreeReturnDate } from '../stores/absents'
-import { normalizeDate } from '../utils/date'
+import { useAbsentsStore } from '../stores/absents'
+import { normalizeDate, calculateDays, getMaxSegmentTreeReturnDate } from '../utils/date'
 
 /**
  * AbsenceView Component

@@ -786,3 +786,28 @@ describe('Backup Service Parsing & Error Handling', () => {
     assert.throws(() => parseYAML(null), /must be a non-empty string/)
   })
 })
+
+describe('Residence Checklist Date Range Hints (UTC Consistency)', () => {
+  it('should compute exact UTC date ranges for residence years 1 to 5', () => {
+    const baseDateStr = '2024-01-15'
+    const start = parseDateUTC(baseDateStr)
+
+    const computeRange = (year) => {
+      const yearStart = new Date(start)
+      yearStart.setUTCFullYear(start.getUTCFullYear() + (year - 1))
+
+      const yearEnd = new Date(start)
+      yearEnd.setUTCFullYear(start.getUTCFullYear() + year)
+      yearEnd.setUTCDate(yearEnd.getUTCDate() - 1)
+
+      return `${formatDateUTC(yearStart)} to ${formatDateUTC(yearEnd)}`
+    }
+
+    assert.strictEqual(computeRange(1), '2024-01-15 to 2025-01-14')
+    assert.strictEqual(computeRange(2), '2025-01-15 to 2026-01-14')
+    assert.strictEqual(computeRange(3), '2026-01-15 to 2027-01-14')
+    assert.strictEqual(computeRange(4), '2027-01-15 to 2028-01-14')
+    assert.strictEqual(computeRange(5), '2028-01-15 to 2029-01-14')
+  })
+})
+

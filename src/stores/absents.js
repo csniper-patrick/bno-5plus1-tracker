@@ -14,9 +14,6 @@ import { generateId } from '../utils/id.js'
 import { exportAbsencesBackup, parseYAML } from '../services/backupService.js'
 import * as dbService from '../services/dbService.js'
 
-// Re-export utilities for backwards compatibility
-export { AbsenceSegmentTree, calculateDays, getMaxSegmentTreeReturnDate }
-
 /**
  * Storage keys used to persist user data across browser sessions in IndexedDB.
  */

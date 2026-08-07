@@ -266,8 +266,13 @@ export const useDocumentsStore = defineStore('documents', () => {
     saveToStorage()
   }
 
-  function deleteAddress(id) {
+  async function deleteAddress(id) {
     addressHistory.value = addressHistory.value.filter((a) => a.id !== id)
+    // Unlink any documents linked to this address
+    const linkedFiles = uploadedFiles.value.filter((f) => f.linkedAddressId === id)
+    for (const f of linkedFiles) {
+      await unlinkFileFromChecklist(f.id)
+    }
     saveToStorage()
   }
 
@@ -345,6 +350,7 @@ export const useDocumentsStore = defineStore('documents', () => {
       notes: options.notes || '',
       linkedYear: options.linkedYear || null,
       linkedItemId: options.linkedItemId || null,
+      linkedAddressId: options.linkedAddressId || null,
     }
 
     await fileStorage.saveFile(fileRecord)
@@ -360,6 +366,7 @@ export const useDocumentsStore = defineStore('documents', () => {
       notes: fileRecord.notes,
       linkedYear: fileRecord.linkedYear,
       linkedItemId: fileRecord.linkedItemId,
+      linkedAddressId: fileRecord.linkedAddressId,
     })
 
     autoPromoteChecklistStatuses()
@@ -423,25 +430,54 @@ export const useDocumentsStore = defineStore('documents', () => {
    * @param {string} itemId - Checklist item ID.
    */
   async function linkFileToChecklist(fileId, year, itemId) {
-    await fileStorage.updateFileMeta(fileId, { linkedYear: year, linkedItemId: itemId })
+    await fileStorage.updateFileMeta(fileId, {
+      linkedYear: year,
+      linkedItemId: itemId,
+      linkedAddressId: null,
+    })
     const file = uploadedFiles.value.find((f) => f.id === fileId)
     if (file) {
       file.linkedYear = year
       file.linkedItemId = itemId
+      file.linkedAddressId = null
     }
     autoPromoteChecklistStatuses()
   }
 
   /**
-   * Unlinks a file from its checklist item.
+   * Links a file to a specific UK address entry.
    * @param {string} fileId - File ID.
+   * @param {string} addressId - Address record ID.
    */
-  async function unlinkFileFromChecklist(fileId) {
-    await fileStorage.updateFileMeta(fileId, { linkedYear: null, linkedItemId: null })
+  async function linkFileToAddress(fileId, addressId) {
+    await fileStorage.updateFileMeta(fileId, {
+      linkedYear: null,
+      linkedItemId: null,
+      linkedAddressId: addressId,
+    })
     const file = uploadedFiles.value.find((f) => f.id === fileId)
     if (file) {
       file.linkedYear = null
       file.linkedItemId = null
+      file.linkedAddressId = addressId
+    }
+  }
+
+  /**
+   * Unlinks a file from its checklist item or address.
+   * @param {string} fileId - File ID.
+   */
+  async function unlinkFileFromChecklist(fileId) {
+    await fileStorage.updateFileMeta(fileId, {
+      linkedYear: null,
+      linkedItemId: null,
+      linkedAddressId: null,
+    })
+    const file = uploadedFiles.value.find((f) => f.id === fileId)
+    if (file) {
+      file.linkedYear = null
+      file.linkedItemId = null
+      file.linkedAddressId = null
     }
   }
 
@@ -640,6 +676,11 @@ export const useDocumentsStore = defineStore('documents', () => {
     return uploadedFiles.value.filter((f) => f.linkedYear === year && f.linkedItemId === itemId)
   }
 
+  /** Files linked to a specific address entry */
+  function getFilesForAddress(addressId) {
+    return uploadedFiles.value.filter((f) => f.linkedAddressId === addressId)
+  }
+
   watch(lifeInUk, () => saveToStorage(), { deep: true })
   watch(englishTest, () => saveToStorage(), { deep: true })
   watch(residenceChecklist, () => saveToStorage(), { deep: true })
@@ -668,9 +709,11 @@ export const useDocumentsStore = defineStore('documents', () => {
     renameFile,
     updateFileNotes,
     linkFileToChecklist,
+    linkFileToAddress,
     unlinkFileFromChecklist,
     getFullFileRecord,
     getFilesForItem,
+    getFilesForAddress,
     resetAll,
     importData,
     saveToStorage,

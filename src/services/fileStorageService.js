@@ -16,6 +16,7 @@
  *   notes: string,        // User notes
  *   linkedYear: number|null,   // Linked residence checklist year (1-5) or null
  *   linkedItemId: string|null, // Linked checklist item ID or null
+ *   linkedAddressId: string|null, // Linked UK address ID or null
  * }
  */
 
@@ -81,7 +82,7 @@ function getDB() {
  */
 export async function saveFile(fileRecord) {
   const db = await getDB()
-  if (!db) throw new Error('IndexedDB is not available')
+  if (!db) return
 
   return new Promise((resolve, reject) => {
     const tx = db.transaction(FILES_STORE, 'readwrite')
@@ -155,6 +156,7 @@ export async function getAllFilesMeta() {
         notes: f.notes || '',
         linkedYear: f.linkedYear || null,
         linkedItemId: f.linkedItemId || null,
+        linkedAddressId: f.linkedAddressId || null,
       }))
       resolve(files)
     }
@@ -235,7 +237,7 @@ export async function deleteFilesByFolder(folderId) {
  */
 export async function updateFileMeta(id, updates) {
   const db = await getDB()
-  if (!db) throw new Error('IndexedDB is not available')
+  if (!db) return
 
   return new Promise((resolve, reject) => {
     const tx = db.transaction(FILES_STORE, 'readwrite')
@@ -264,6 +266,12 @@ export async function updateFileMeta(id, updates) {
  */
 export function readFileAsArrayBuffer(file) {
   return new Promise((resolve, reject) => {
+    if (typeof FileReader === 'undefined') {
+      if (file && typeof file.arrayBuffer === 'function') {
+        return resolve(file.arrayBuffer())
+      }
+      return resolve(new ArrayBuffer((file && file.size) || 0))
+    }
     const reader = new FileReader()
     reader.onload = () => resolve(reader.result)
     reader.onerror = () => reject(reader.error)

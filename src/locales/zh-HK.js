@@ -348,9 +348,11 @@ export default {
     file_delete: '刪除檔案',
     file_preview: '預覽',
     file_download: '下載',
-    file_link: '關聯至清單項目',
-    file_unlink: '取消清單關聯',
+    file_link: '關聯檔案',
+    file_unlink: '取消檔案關聯',
     file_linked_to: '已關聯：{item}',
+    file_linked_to_address: '已關聯：{address}',
+    linked_to_address: '已關聯至地址',
 
     // 檔案管理對話框
     rename_dialog_title: '重新命名檔案',
@@ -359,9 +361,13 @@ export default {
     move_label: '目標資料夾',
     delete_file_title: '刪除檔案？',
     delete_file_body: '確定要永久刪除「{name}」嗎？此操作無法復原。',
-    link_dialog_title: '將檔案關聯至清單項目',
+    link_dialog_title: '關聯檔案',
+    link_type_label: '關聯目標類型',
+    link_target_checklist: '居住證明清單 (第 1-5 年)',
+    link_target_address: '英國居住地址紀錄',
     link_year_label: '證明年份',
     link_item_label: '證明項目',
+    link_address_label: '選擇地址',
     file_notes_dialog_title: '檔案備註',
 
     // 檔案狀態訊息
@@ -369,7 +375,8 @@ export default {
     file_moved: '檔案已移至「{folder}」！',
     file_deleted: '已刪除檔案。',
     file_linked: '已關聯至清單項目！',
-    file_unlinked: '已取消清單關聯。',
+    file_linked_address: '檔案已關聯至地址！',
+    file_unlinked: '已取消檔案關聯。',
     file_notes_updated: '已更新檔案備註！',
 
     // 檔案預覽

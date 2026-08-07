@@ -732,6 +732,52 @@ describe('Document Store Helper Operations', () => {
     docStore.deleteAddress(addr1.id)
     assert.strictEqual(docStore.addressHistory.length, 1)
   })
+
+  it('should support linking, retrieving, and unlinking files for address entries', async () => {
+    await dbService.clear()
+    setActivePinia(createPinia())
+    const docStore = useDocumentsStore()
+    await docStore.initStore()
+
+    const addr = docStore.addAddress({
+      startDate: '2023-01-01',
+      addressLine1: '10 Downing Street',
+      postcode: 'SW1A 2AA',
+    })
+
+    // Simulate uploading a file linked to address
+    const fakeFile = new File(['sample content'], 'tenancy_agreement.pdf', {
+      type: 'application/pdf',
+    })
+
+    const uploaded = await docStore.uploadFile(fakeFile, 'addresses', {
+      linkedAddressId: addr.id,
+    })
+
+    assert.strictEqual(uploaded.linkedAddressId, addr.id)
+    assert.strictEqual(docStore.getFilesForAddress(addr.id).length, 1)
+    assert.strictEqual(docStore.getFilesForAddress(addr.id)[0].name, 'tenancy_agreement.pdf')
+
+    // Link file to checklist item instead
+    await docStore.linkFileToChecklist(uploaded.id, 1, 'housing_proof')
+    assert.strictEqual(docStore.getFilesForAddress(addr.id).length, 0)
+    assert.strictEqual(docStore.getFilesForItem(1, 'housing_proof').length, 1)
+
+    // Link file back to address
+    await docStore.linkFileToAddress(uploaded.id, addr.id)
+    assert.strictEqual(docStore.getFilesForAddress(addr.id).length, 1)
+    assert.strictEqual(docStore.getFilesForItem(1, 'housing_proof').length, 0)
+
+    // Unlink file
+    await docStore.unlinkFileFromChecklist(uploaded.id)
+    assert.strictEqual(docStore.getFilesForAddress(addr.id).length, 0)
+
+    // Link again and delete address -> should auto-unlink
+    await docStore.linkFileToAddress(uploaded.id, addr.id)
+    assert.strictEqual(docStore.getFilesForAddress(addr.id).length, 1)
+    await docStore.deleteAddress(addr.id)
+    assert.strictEqual(docStore.getFilesForAddress(addr.id).length, 0)
+  })
 })
 
 describe('Backup Service Parsing & Error Handling', () => {

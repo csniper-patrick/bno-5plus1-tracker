@@ -98,6 +98,7 @@ export default {
         folderId: 'other',
         linkedYear: null,
         linkedItemId: null,
+        linkedAddressId: null,
         notes: '',
         uploading: false,
       },
@@ -142,15 +143,18 @@ export default {
       linkDialog: {
         show: false,
         fileId: null,
+        targetType: 'checklist',
         year: 1,
         itemId: null,
+        addressId: null,
       },
 
-      // Attached files viewer dialog (for checklist item)
+      // Attached files viewer dialog (for checklist item or address)
       attachedFilesDialog: {
         show: false,
         year: null,
         itemId: null,
+        addressId: null,
         itemTitle: '',
       },
     }
@@ -305,8 +309,25 @@ export default {
       }))
     },
 
-    /** Attached files for the currently viewed checklist item */
+    linkTargetTypeOptions() {
+      return [
+        { title: this.$t('document.link_target_checklist'), value: 'checklist' },
+        { title: this.$t('document.link_target_address'), value: 'address' },
+      ]
+    },
+
+    linkAddressOptions() {
+      return this.addressHistory.map((addr) => ({
+        title: `${addr.addressLine1}${addr.postcode ? ', ' + addr.postcode : ''}${addr.isCurrent ? ' (' + this.$t('document.present') + ')' : ''}`,
+        value: addr.id,
+      }))
+    },
+
+    /** Attached files for the currently viewed checklist item or address */
     attachedFilesForDialog() {
+      if (this.attachedFilesDialog.addressId) {
+        return this.documentsStore.getFilesForAddress(this.attachedFilesDialog.addressId)
+      }
       if (!this.attachedFilesDialog.year || !this.attachedFilesDialog.itemId) return []
       return this.documentsStore.getFilesForItem(
         this.attachedFilesDialog.year,
@@ -794,14 +815,16 @@ export default {
      * @param {string} [folderId] - Pre-selected folder.
      * @param {number} [linkedYear] - Pre-linked year.
      * @param {string} [linkedItemId] - Pre-linked item ID.
+     * @param {string} [linkedAddressId] - Pre-linked address ID.
      */
-    openUploadDialog(folderId, linkedYear, linkedItemId) {
+    openUploadDialog(folderId, linkedYear, linkedItemId, linkedAddressId) {
       this.uploadDialog = {
         show: true,
         files: [],
         folderId: folderId || 'other',
         linkedYear: linkedYear || null,
         linkedItemId: linkedItemId || null,
+        linkedAddressId: linkedAddressId || null,
         notes: '',
         uploading: false,
       }
@@ -854,6 +877,7 @@ export default {
           await this.documentsStore.uploadFile(file, this.uploadDialog.folderId, {
             linkedYear: this.uploadDialog.linkedYear,
             linkedItemId: this.uploadDialog.linkedItemId,
+            linkedAddressId: this.uploadDialog.linkedAddressId,
             notes: this.uploadDialog.notes,
           })
           successCount++
@@ -1034,34 +1058,52 @@ export default {
     },
 
     /**
-     * Opens the link-to-checklist dialog.
+     * Opens the link-to-checklist or link-to-address dialog.
      * @param {Object} fileMeta - File metadata.
      */
     openLinkDialog(fileMeta) {
+      let targetType = 'checklist'
+      let addressId = null
+      if (fileMeta.linkedAddressId) {
+        targetType = 'address'
+        addressId = fileMeta.linkedAddressId
+      }
       this.linkDialog = {
         show: true,
         fileId: fileMeta.id,
+        targetType,
         year: fileMeta.linkedYear || 1,
         itemId: fileMeta.linkedItemId || null,
+        addressId: addressId || (this.addressHistory[0] ? this.addressHistory[0].id : null),
       }
     },
 
     /**
-     * Executes linking a file to a checklist item.
+     * Executes linking a file to a checklist item or address.
      */
     async executeLinkFile() {
-      if (!this.linkDialog.itemId) return
-      await this.documentsStore.linkFileToChecklist(
-        this.linkDialog.fileId,
-        this.linkDialog.year,
-        this.linkDialog.itemId,
-      )
-      this.linkDialog.show = false
-      this.showSnackbar(this.$t('document.file_linked'), 'success')
+      if (this.linkDialog.targetType === 'address') {
+        if (!this.linkDialog.addressId) return
+        await this.documentsStore.linkFileToAddress(
+          this.linkDialog.fileId,
+          this.linkDialog.addressId,
+        )
+        this.linkDialog.show = false
+        this.showSnackbar(this.$t('document.file_linked_address'), 'success')
+      } else {
+        if (!this.linkDialog.itemId) return
+        await this.documentsStore.linkFileToChecklist(
+          this.linkDialog.fileId,
+          this.linkDialog.year,
+          this.linkDialog.itemId,
+        )
+        this.linkDialog.show = false
+        this.showSnackbar(this.$t('document.file_linked'), 'success')
+      }
     },
 
     /**
-     * Unlinks a file from its checklist item.
+     * Unlinks a file from its checklist item or address.
      * @param {string} fileId - File ID.
      */
     async unlinkFile(fileId) {
@@ -1073,10 +1115,16 @@ export default {
      * Closes the attached files dialog and opens the attach file picker dialog.
      */
     openAttachFromAttachedDialog() {
-      const year = this.attachedFilesDialog.year
-      const item = { id: this.attachedFilesDialog.itemId }
-      this.attachedFilesDialog.show = false
-      this.openAttachFileDialog(year, item)
+      if (this.attachedFilesDialog.addressId) {
+        const addressId = this.attachedFilesDialog.addressId
+        this.attachedFilesDialog.show = false
+        this.openAttachAddressFileDialog({ id: addressId })
+      } else {
+        const year = this.attachedFilesDialog.year
+        const item = { id: this.attachedFilesDialog.itemId }
+        this.attachedFilesDialog.show = false
+        this.openAttachFileDialog(year, item)
+      }
     },
 
     /**
@@ -1090,6 +1138,15 @@ export default {
     },
 
     /**
+     * Gets the count of files attached to an address record.
+     * @param {string} addressId - Address record ID.
+     * @returns {number} File count.
+     */
+    getAttachedAddressFileCount(addressId) {
+      return this.documentsStore.getFilesForAddress(addressId).length
+    },
+
+    /**
      * Opens the attached files viewer for a checklist item.
      * @param {number} year - Year.
      * @param {Object} item - Checklist item.
@@ -1099,8 +1156,43 @@ export default {
         show: true,
         year,
         itemId: item.id,
+        addressId: null,
         itemTitle: this.getItemTitle(item),
       }
+    },
+
+    /**
+     * Opens the attached files viewer for an address entry.
+     * @param {Object} item - Address record object.
+     */
+    openAttachedAddressFilesDialog(item) {
+      const title = `${item.addressLine1}${item.postcode ? ', ' + item.postcode : ''}`
+      this.attachedFilesDialog = {
+        show: true,
+        year: null,
+        itemId: null,
+        addressId: item.id,
+        itemTitle: title,
+      }
+    },
+
+    /**
+     * Opens upload dialog pre-linked to an address record.
+     * @param {Object} item - Address record object.
+     */
+    openAttachAddressFileDialog(item) {
+      this.openUploadDialog('addresses', null, null, item.id)
+    },
+
+    /**
+     * Returns display string for an address linked to a document.
+     * @param {string} addressId - Address record ID.
+     * @returns {string} Address label.
+     */
+    getLinkedAddressLabel(addressId) {
+      const addr = this.addressHistory.find((a) => a.id === addressId)
+      if (!addr) return this.$t('document.linked_to_address')
+      return `${addr.addressLine1}${addr.postcode ? ', ' + addr.postcode : ''}`
     },
 
     /**
@@ -1583,8 +1675,21 @@ export default {
                   </td>
 
                   <td>
-                    <div class="font-weight-medium text-body-2">
-                      {{ item.addressLine1 }}{{ item.addressLine2 ? `, ${item.addressLine2}` : '' }}
+                    <div class="d-flex align-center ga-2 flex-wrap">
+                      <span class="font-weight-medium text-body-2">
+                        {{ item.addressLine1 }}{{ item.addressLine2 ? `, ${item.addressLine2}` : '' }}
+                      </span>
+                      <v-chip
+                        v-if="getAttachedAddressFileCount(item.id) > 0"
+                        size="x-small"
+                        variant="tonal"
+                        color="primary"
+                        prepend-icon="mdi-paperclip"
+                        class="font-weight-bold cursor-pointer"
+                        @click="openAttachedAddressFilesDialog(item)"
+                      >
+                        {{ getAttachedAddressFileCount(item.id) }}
+                      </v-chip>
                     </div>
                     <div class="text-caption text-medium-emphasis">
                       {{ item.city ? `${item.city}, ` : '' }}{{ item.postcode }}
@@ -1603,6 +1708,18 @@ export default {
                         ></v-btn>
                       </template>
                       <v-list density="compact" class="rounded-lg elevation-4">
+                        <v-list-item
+                          prepend-icon="mdi-paperclip"
+                          :title="$t('document.attach_file')"
+                          @click="openAttachAddressFileDialog(item)"
+                        ></v-list-item>
+                        <v-list-item
+                          v-if="getAttachedAddressFileCount(item.id) > 0"
+                          prepend-icon="mdi-file-eye-outline"
+                          :title="$t('document.view_attached')"
+                          @click="openAttachedAddressFilesDialog(item)"
+                        ></v-list-item>
+                        <v-divider></v-divider>
                         <v-list-item
                           prepend-icon="mdi-pencil-outline"
                           :title="$t('document.edit_address')"
@@ -2053,6 +2170,16 @@ export default {
                 >
                   {{ $t('document.file_link') }}
                 </v-chip>
+                <v-chip
+                  v-else-if="file.linkedAddressId"
+                  size="x-small"
+                  variant="tonal"
+                  color="info"
+                  prepend-icon="mdi-home-city-outline"
+                  :title="getLinkedAddressLabel(file.linkedAddressId)"
+                >
+                  {{ $t('document.linked_to_address') }}
+                </v-chip>
               </div>
               <div
                 v-if="file.notes"
@@ -2124,7 +2251,7 @@ export default {
                     @click="openLinkDialog(file)"
                   ></v-list-item>
                   <v-list-item
-                    v-if="file.linkedItemId"
+                    v-if="file.linkedItemId || file.linkedAddressId"
                     prepend-icon="mdi-link-variant-off"
                     :title="$t('document.file_unlink')"
                     @click="unlinkFile(file.id)"
@@ -2626,7 +2753,7 @@ export default {
       </v-card>
     </v-dialog>
 
-    <!-- Link to Checklist Item Dialog -->
+    <!-- Link Document Dialog -->
     <v-dialog v-model="linkDialog.show" max-width="450px">
       <v-card elevation="2" class="rounded-lg pa-3" color="surface">
         <v-card-title class="px-0 pt-0 font-weight-bold text-h6">
@@ -2634,27 +2761,51 @@ export default {
         </v-card-title>
         <v-card-text class="px-0 py-2">
           <v-select
-            v-model="linkDialog.year"
-            :items="linkYearOptions"
-            :label="$t('document.link_year_label')"
+            v-model="linkDialog.targetType"
+            :items="linkTargetTypeOptions"
+            :label="$t('document.link_type_label')"
             variant="outlined"
             density="compact"
             class="mb-3"
           ></v-select>
-          <v-select
-            v-model="linkDialog.itemId"
-            :items="linkItemOptions"
-            :label="$t('document.link_item_label')"
-            variant="outlined"
-            density="compact"
-          ></v-select>
+
+          <template v-if="linkDialog.targetType === 'checklist'">
+            <v-select
+              v-model="linkDialog.year"
+              :items="linkYearOptions"
+              :label="$t('document.link_year_label')"
+              variant="outlined"
+              density="compact"
+              class="mb-3"
+            ></v-select>
+            <v-select
+              v-model="linkDialog.itemId"
+              :items="linkItemOptions"
+              :label="$t('document.link_item_label')"
+              variant="outlined"
+              density="compact"
+            ></v-select>
+          </template>
+
+          <template v-else-if="linkDialog.targetType === 'address'">
+            <v-select
+              v-model="linkDialog.addressId"
+              :items="linkAddressOptions"
+              :label="$t('document.link_address_label')"
+              variant="outlined"
+              density="compact"
+              :no-data-text="$t('document.no_addresses_title')"
+            ></v-select>
+          </template>
         </v-card-text>
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
           <v-btn variant="text" @click="linkDialog.show = false">{{ $t('absence.cancel') }}</v-btn>
           <v-btn
             color="primary"
             variant="flat"
-            :disabled="!linkDialog.itemId"
+            :disabled="
+              linkDialog.targetType === 'checklist' ? !linkDialog.itemId : !linkDialog.addressId
+            "
             @click="executeLinkFile"
             >{{ $t('document.save') }}</v-btn
           >

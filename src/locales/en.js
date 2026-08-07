@@ -358,9 +358,11 @@ export default {
     file_delete: 'Delete File',
     file_preview: 'Preview',
     file_download: 'Download',
-    file_link: 'Link to Checklist Item',
-    file_unlink: 'Unlink from Checklist',
+    file_link: 'Link Document',
+    file_unlink: 'Unlink Document',
     file_linked_to: 'Linked to: {item}',
+    file_linked_to_address: 'Linked to: {address}',
+    linked_to_address: 'Linked to Address',
 
     // File management dialogs
     rename_dialog_title: 'Rename File',
@@ -370,9 +372,13 @@ export default {
     delete_file_title: 'Delete File?',
     delete_file_body:
       'Are you sure you want to permanently delete "{name}"? This cannot be undone.',
-    link_dialog_title: 'Link File to Checklist Item',
+    link_dialog_title: 'Link Document',
+    link_type_label: 'Target Type',
+    link_target_checklist: 'Residence Checklist (Years 1-5)',
+    link_target_address: 'UK Address History',
     link_year_label: 'Evidence Year',
     link_item_label: 'Evidence Item',
+    link_address_label: 'Select Address',
     file_notes_dialog_title: 'File Notes',
 
     // File status messages
@@ -380,7 +386,8 @@ export default {
     file_moved: 'File moved to {folder}!',
     file_deleted: 'File deleted.',
     file_linked: 'File linked to checklist item!',
-    file_unlinked: 'File unlinked from checklist.',
+    file_linked_address: 'File linked to address!',
+    file_unlinked: 'File unlinked.',
     file_notes_updated: 'File notes updated!',
 
     // File preview

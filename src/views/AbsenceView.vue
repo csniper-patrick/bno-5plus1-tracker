@@ -75,12 +75,59 @@ export default {
 
       /** View mode toggle for records list timeline: 'full' | 'compact' */
       timelineViewMode: 'compact',
+
+      /** Table sort field: 'startDate' | 'days' | 'dest' | 'status' */
+      tableSortBy: 'startDate',
+
+      /** Table sort direction: 'asc' | 'desc' */
+      tableSortOrder: 'asc',
     }
   },
 
   computed: {
     // Generates this.absentsStore mapping to Pinia store
     ...mapStores(useAbsentsStore),
+
+    /**
+     * Returns stored absences list sorted according to tableSortBy and tableSortOrder.
+     * @returns {Array}
+     */
+    displayAbsences() {
+      const list = [...this.absentsStore.sortedAbsences]
+      const field = this.tableSortBy || 'startDate'
+      const isAsc = this.tableSortOrder === 'asc'
+
+      return list.sort((a, b) => {
+        let valA, valB
+
+        if (field === 'startDate') {
+          valA = a.startDate || ''
+          valB = b.startDate || ''
+          const cmp = valA.localeCompare(valB)
+          return isAsc ? cmp : -cmp
+        } else if (field === 'days') {
+          valA = Number(a.days) || 0
+          valB = Number(b.days) || 0
+          return isAsc ? valA - valB : valB - valA
+        } else if (field === 'dest') {
+          valA = (a.dest || '').toLowerCase()
+          valB = (b.dest || '').toLowerCase()
+          const cmp = valA.localeCompare(valB)
+          return isAsc ? cmp : -cmp
+        } else if (field === 'status') {
+          const getStatusWeight = (item) => {
+            if (item.isAutoArrival) return 0
+            if (this.isOngoingEvent(item)) return 1
+            if (this.isFutureEvent(item)) return 2
+            return 3
+          }
+          valA = getStatusWeight(a)
+          valB = getStatusWeight(b)
+          return isAsc ? valA - valB : valB - valA
+        }
+        return 0
+      })
+    },
 
     /**
      * Maximum return date string (YYYY-MM-DD) supported by the Segment Tree (10 years from visa start).
@@ -385,6 +432,19 @@ export default {
 
   methods: {
     calculateDays,
+
+    /**
+     * Toggles sorting order or changes sort column field for absence records table.
+     * @param {string} field - Column key to sort by ('startDate' | 'days' | 'dest' | 'status').
+     */
+    sortByColumn(field) {
+      if (this.tableSortBy === field) {
+        this.tableSortOrder = this.tableSortOrder === 'asc' ? 'desc' : 'asc'
+      } else {
+        this.tableSortBy = field
+        this.tableSortOrder = 'asc'
+      }
+    },
 
     /**
      * Resets custom query date range inputs to the maximum 10-year range (Visa Start Date to 10-Yr Limit).
@@ -1641,19 +1701,56 @@ export default {
           <v-card-text class="px-0 pb-0">
             <!-- Records Table -->
             <v-table
-              v-if="absentsStore.sortedAbsences.length > 0"
+              v-if="displayAbsences.length > 0"
               density="comfortable"
               hover
               class="border rounded-lg"
             >
               <thead>
                 <tr>
-                  <th class="text-left font-weight-bold" style="width: 100px">
-                    {{ $t('absence.table_status') }}
+                  <th
+                    class="text-left font-weight-bold cursor-pointer user-select-none"
+                    style="width: 110px"
+                    @click="sortByColumn('status')"
+                  >
+                    <div class="d-flex align-center ga-1">
+                      <span>{{ $t('absence.table_status') }}</span>
+                      <v-icon
+                        v-if="tableSortBy === 'status'"
+                        :icon="tableSortOrder === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down'"
+                        size="x-small"
+                        color="primary"
+                      ></v-icon>
+                    </div>
                   </th>
-                  <th class="text-left font-weight-bold">{{ $t('absence.trip_timeline') }}</th>
-                  <th class="text-center font-weight-bold" style="width: 140px">
-                    {{ $t('absence.full_days') }}
+                  <th
+                    class="text-left font-weight-bold cursor-pointer user-select-none"
+                    @click="sortByColumn('startDate')"
+                  >
+                    <div class="d-flex align-center ga-1">
+                      <span>{{ $t('absence.trip_timeline') }}</span>
+                      <v-icon
+                        v-if="tableSortBy === 'startDate'"
+                        :icon="tableSortOrder === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down'"
+                        size="x-small"
+                        color="primary"
+                      ></v-icon>
+                    </div>
+                  </th>
+                  <th
+                    class="text-center font-weight-bold cursor-pointer user-select-none"
+                    style="width: 140px"
+                    @click="sortByColumn('days')"
+                  >
+                    <div class="d-flex align-center justify-center ga-1">
+                      <span>{{ $t('absence.full_days') }}</span>
+                      <v-icon
+                        v-if="tableSortBy === 'days'"
+                        :icon="tableSortOrder === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down'"
+                        size="x-small"
+                        color="primary"
+                      ></v-icon>
+                    </div>
                   </th>
                   <th class="text-right font-weight-bold" style="width: 110px">
                     {{ $t('absence.table_actions') }}
@@ -1662,7 +1759,7 @@ export default {
               </thead>
               <tbody>
                 <tr
-                  v-for="item in absentsStore.sortedAbsences"
+                  v-for="item in displayAbsences"
                   :key="item.id"
                   :class="{
                     'bg-action-hover': editingId === item.id,
@@ -2110,5 +2207,11 @@ export default {
   height: 5px;
   background-color: rgba(var(--v-theme-primary), 0.55);
   border-radius: 3px;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+.user-select-none {
+  user-select: none;
 }
 </style>

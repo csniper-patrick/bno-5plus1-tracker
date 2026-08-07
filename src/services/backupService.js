@@ -153,13 +153,16 @@ export function exportAbsencesBackup(absentsStore) {
   return doc.toString()
 }
 
+import { validateBackupData } from './schemaValidationService.js'
+
 /**
- * Parses raw YAML text into a JS object.
+ * Parses raw YAML text into a JS object and enforces schema validation.
  *
  * @param {string} yamlString - Raw YAML string.
- * @returns {Object} Parsed JS object.
+ * @param {Object} [options={}] - Validation options (e.g. { strict: true }).
+ * @returns {Object} Parsed and validated JS object.
  */
-export function parseYAML(yamlString) {
+export function parseYAML(yamlString, options = { strict: true }) {
   if (!yamlString || typeof yamlString !== 'string') {
     throw new Error('Invalid YAML input: content must be a non-empty string.')
   }
@@ -172,7 +175,13 @@ export function parseYAML(yamlString) {
   if (!parsed || typeof parsed !== 'object') {
     throw new Error('Parsed YAML content is empty or invalid.')
   }
-  return parsed
+
+  const validation = validateBackupData(parsed)
+  if (options.strict !== false && !validation.isValid) {
+    throw new Error('Validation error in import payload:\n- ' + validation.errors.join('\n- '))
+  }
+
+  return validation.sanitized || parsed
 }
 
 /**

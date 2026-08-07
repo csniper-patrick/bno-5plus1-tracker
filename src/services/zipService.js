@@ -2,6 +2,7 @@ import JSZip from 'jszip'
 import { stringify, parse } from 'yaml'
 import { exportFullBackup, importBackup } from './backupService.js'
 import { getAllFilesWithData, saveFile } from './fileStorageService.js'
+import { validateZipManifest } from './schemaValidationService.js'
 import { generateId } from '../utils/id.js'
 
 /**
@@ -110,7 +111,12 @@ export async function importZipBackup(zipBlob, absentsStore, documentsStore) {
       if (!manifest && manifestText.trim().startsWith('[')) {
         manifest = JSON.parse(manifestText)
       }
+
       if (Array.isArray(manifest)) {
+        const manifestValidation = validateZipManifest(manifest)
+        if (!manifestValidation.isValid) {
+          throw new Error('ZIP manifest validation error:\n- ' + manifestValidation.errors.join('\n- '))
+        }
         for (const entry of manifest) {
           const zipPath = entry.zipPath ? `files/${entry.zipPath}` : null
           let zipFileRef = zipPath ? zip.file(zipPath) : null

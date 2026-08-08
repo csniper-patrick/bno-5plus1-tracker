@@ -41,7 +41,7 @@ An unofficial, 3rd-party web application designed for **British National (Overse
   - **English Language Requirement (B1)**: Track pathway (B1 SELT Test, UK Degree, Ecctis/ENIC Statement, Exemption), provider, test date, and certificate reference.
   - **5-Year Continuous Residence Evidence Checklist**: Year-by-year checklist (Years 1 to 5) covering Council Tax, P60/Tax, Bank Statements, Housing proof, Utility Bills, and custom evidence items.
   - **UK Address History Log**: Log residential addresses lived at during your 5-year qualifying period (Move-in/out dates, postcode, tenure type) required for Home Office SET(O) and Naturalisation AN application forms.
-  - **📁 Document Vault**: Drag-and-drop file upload zone supporting PDFs, images (JPG, PNG, WebP, HEIC), and text files up to 10 MB. Organize files into folders (`Year 1-5`, `Life in UK`, `English B1`, `Addresses`, `Other`), view inline image/PDF previews, edit file notes, rename/move files, and link files directly to specific residence checklist items with paperclip count indicators.
+  - **📁 Document Vault**: Drag-and-drop file upload zone supporting PDFs, images (JPG, PNG, WebP, HEIC), and text files up to 10 MB. Organize files into folders (`Year 1-5`, `Life in UK`, `English B1`, `Addresses`, `Other`), open files directly in a new browser tab (`window.open`), edit file notes, rename/move files, and link files directly to specific residence checklist items with paperclip count indicators.
 - **🔗 Reference & Official Guidance Page (`ReferenceView`)**
   - **Curated Official & NGO Resources**: Quick reference page presenting 30 curated official UK Home Office publications, statutory immigration rules (Appendix HK), HMRC tax residence guides, digital share codes, higher education rules, and verified non-commercial registered charities/NGOs in structured cards with search and category filtering.
   - **Category & Search Filters**: Instantly filter official resources by category (BNO Settlement, Policy & Guidance, Qualifications & Tests, Citizenship) or text search.
@@ -113,10 +113,13 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 | Command | Description |
 | :--- | :--- |
 | `npm run dev` | Starts the Vite local development server with hot module reloading. |
-| `npm run build` | Compiles and bundles production assets into `dist/`. |
+| `npm run build` | Compiles production bundle into `dist/`. |
 | `npm run preview` | Serves the locally built `dist/` production bundle. |
-| `npm run test` | Runs the automated Node test suite for date math, segment tree, and backup service. |
-| `npm run format` | Runs Prettier to format all source files in `src/`. |
+| `npm run test` | Runs the full test pipeline (Unit test suite + Playwright E2E tests). |
+| `npm run test:unit` | Runs Node native unit test suite (`tests/*.test.js`). |
+| `npm run test:e2e` | Runs Playwright end-to-end browser tests. |
+| `npm run test:e2e:ui` | Runs Playwright test inspector in interactive UI mode. |
+| `npm run format` | Runs Prettier to format all source code files in `src/`. |
 
 ---
 
@@ -146,13 +149,17 @@ bno-5plus1-tracker/
 │   │   ├── segmentTree.js # AbsenceSegmentTree O(log N) data structure
 │   │   └── id.js          # Unique ID generator utility
 │   ├── views/             # Application views
-│   │   ├── AbsenceView.vue  # Absence tracker dashboard
-│   │   ├── DocumentView.vue # Qualifications, Document Vault & Residence proof checklist
-│   │   └── ReferenceView.vue # Useful links & official guidance page
+│   │   ├── AbsenceView.vue     # Absence tracker dashboard
+│   │   ├── DocumentView.vue    # Qualifications, Document Vault & Residence proof checklist
+│   │   ├── ReferenceView.vue   # Useful links & official guidance page
+│   │   └── InstructionView.vue # User guide & operation manual with responsive screenshots
 │   ├── App.vue            # Root layout with right navigation drawer & language switcher
 │   └── main.js            # Vue app entrypoint with i18n plugin initialization
 ├── tests/                 # Automated test suite
-│   └── tracker.test.js    # Comprehensive unit tests for date math, segment tree, stores, backup & edge cases
+│   ├── tracker.test.js            # Core absence store, segment tree & backup unit tests
+│   ├── components_and_e2e.test.js # E2E user flows & binary file upload integration tests
+│   ├── indexeddb_emulation.test.js# IndexedDB app_state & files object store tests
+│   └── validation.test.js         # Strict YAML schema validation & date utility edge case tests
 ├── .antigravity.md        # AI Agent workspace context & guidelines
 ├── .gitlab-ci.yml         # GitLab CI/CD pipeline for GitLab Pages
 ├── index.html             # HTML entry template

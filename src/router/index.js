@@ -6,6 +6,7 @@ import { createRouter, createWebHistory, createMemoryHistory } from 'vue-router'
 import AbsenceView from '../views/AbsenceView.vue'
 import DocumentView from '../views/DocumentView.vue'
 import ReferenceView from '../views/ReferenceView.vue'
+import InstructionView from '../views/InstructionView.vue'
 
 export const routes = [
   {
@@ -26,7 +27,7 @@ export const routes = [
   {
     path: '/instruction',
     name: 'instruction',
-    component: () => import('../views/InstructionView.vue'),
+    component: InstructionView,
   },
   {
     path: '/guide',

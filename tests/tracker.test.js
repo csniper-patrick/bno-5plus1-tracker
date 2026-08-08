@@ -12,6 +12,7 @@ import {
 } from '../src/utils/date.js'
 import { AbsenceSegmentTree } from '../src/utils/segmentTree.js'
 import { generateId } from '../src/utils/id.js'
+import { formatNin } from '../src/utils/format.js'
 import { exportAbsencesBackup, exportFullBackup, parseYAML } from '../src/services/backupService.js'
 import { useAbsentsStore } from '../src/stores/absents.js'
 import { useDocumentsStore } from '../src/stores/documents.js'
@@ -794,15 +795,21 @@ describe('Document Store Helper Operations', () => {
     assert.strictEqual(docStore.nationalInsurance.status, 'not_applied')
     assert.strictEqual(docStore.nationalInsurance.number, '')
 
-    // Update National Insurance details
+    // Update National Insurance details with unformatted string and verify auto-received status
     docStore.updateNationalInsurance({
-      number: 'qq 12 34 56 a',
-      status: 'received',
+      number: 'qq123456a',
       notes: 'HMRC confirmation letter received',
     })
 
     assert.strictEqual(docStore.nationalInsurance.number, 'QQ 12 34 56 A')
     assert.strictEqual(docStore.nationalInsurance.status, 'received')
+
+    // Test formatNin utility directly
+    assert.strictEqual(formatNin('qq123456a'), 'QQ 12 34 56 A')
+    assert.strictEqual(formatNin('QQ 12 34 56 A'), 'QQ 12 34 56 A')
+    assert.strictEqual(formatNin('qq-12-34-56-a'), 'QQ 12 34 56 A')
+    assert.strictEqual(formatNin('qq12'), 'QQ 12')
+    assert.strictEqual(formatNin(''), '')
 
     // Reset store
     docStore.resetAll()

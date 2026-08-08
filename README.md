@@ -37,7 +37,7 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 - **🪪 BNO Visa Overview Card**
   - Summarizes Visa Start Date, Visa Expiry Date (with Default 5-Year / Custom badges), Earliest ILR Settlement Date, and displays prominent yellow extension warning alerts if visa extension is needed before ILR qualification.
 - **📋 Document & Qualification Tracker & Document Vault (`DocumentView`)**
-  - **National Insurance Number (NI)**: Track your NIN format (e.g., `QQ123456C`), application status, and official HMRC confirmation letters (positioned at top left / upper section for quick access).
+  - **National Insurance Number (NI)**: Track your NIN format in standard UK space-delimited format (e.g., `QQ 12 34 56 A`), application status (auto-promoted to "Received" upon entering an NI number), and official HMRC confirmation letters.
   - **Life in the UK Test**: Track status (Not Started / Scheduled / Passed), test date, Unique Reference Number (URN), test center location, and notes.
   - **English Language Requirement (B1)**: Track pathway (B1 SELT Test, UK Degree, Ecctis/ENIC Statement, Exemption), provider, test date, and certificate reference.
   - **Adaptive 3-Tier Responsive Card Arrangement**: Layout automatically adapts across viewports (Wide: Title banner above 3 side-by-side cards with NI on left; Medium: Title + NI on top row, Life in UK + B1 English on second row; Mobile: vertically stacked single column).

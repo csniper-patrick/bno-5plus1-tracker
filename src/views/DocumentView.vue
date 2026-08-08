@@ -3,6 +3,7 @@ import { mapStores } from 'pinia'
 import { useDocumentsStore } from '../stores/documents'
 import { useAbsentsStore } from '../stores/absents'
 import { normalizeDate, parseDateUTC, formatDateUTC } from '../utils/date'
+import { formatNin } from '../utils/format'
 import {
   formatFileSize,
   createFileURL,
@@ -412,7 +413,25 @@ export default {
       this.showSnackbar(this.$t('document.english_saved'), 'success')
     },
 
+    handleNinInput() {
+      const formatted = formatNin(this.ninForm.number)
+      this.ninForm.number = formatted
+      if (formatted.trim().length > 0) {
+        if (this.ninForm.status !== 'received') {
+          this.ninForm.status = 'received'
+        }
+      } else if (this.ninForm.status === 'received') {
+        this.ninForm.status = 'not_applied'
+      }
+      this.saveNationalInsurance()
+    },
+
     saveNationalInsurance() {
+      const formatted = formatNin(this.ninForm.number)
+      this.ninForm.number = formatted
+      if (formatted.trim().length > 0 && (!this.ninForm.status || this.ninForm.status === 'not_applied' || this.ninForm.status === 'applied')) {
+        this.ninForm.status = 'received'
+      }
       this.documentsStore.updateNationalInsurance(this.ninForm)
       this.showSnackbar(this.$t('document.nin_saved'), 'success')
     },
@@ -1468,8 +1487,8 @@ export default {
                   density="compact"
                   hide-details="auto"
                   class="mb-3 text-uppercase"
+                  @input="handleNinInput"
                   @change="saveNationalInsurance"
-                  @input="ninForm.number = (ninForm.number || '').toUpperCase()"
                 ></v-text-field>
               </v-col>
 

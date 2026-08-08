@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { normalizeDate } from '../utils/date.js'
 import { generateId } from '../utils/id.js'
+import { formatNin } from '../utils/format.js'
 import * as dbService from '../services/dbService.js'
 import * as fileStorage from '../services/fileStorageService.js'
 
@@ -232,7 +233,14 @@ export const useDocumentsStore = defineStore('documents', () => {
     if (savedData && typeof savedData === 'object') {
       if (savedData.lifeInUk) lifeInUk.value = savedData.lifeInUk
       if (savedData.englishTest) englishTest.value = savedData.englishTest
-      if (savedData.nationalInsurance) nationalInsurance.value = savedData.nationalInsurance
+      if (savedData.nationalInsurance) {
+        const nin = { ...savedData.nationalInsurance }
+        nin.number = formatNin(nin.number)
+        if (nin.number.trim().length > 0 && (!nin.status || nin.status === 'not_applied' || nin.status === 'applied')) {
+          nin.status = 'received'
+        }
+        nationalInsurance.value = nin
+      }
       if (savedData.residenceChecklist) {
         residenceChecklist.value = sanitizeResidenceChecklist(
           savedData.residenceChecklist,
@@ -287,10 +295,22 @@ export const useDocumentsStore = defineStore('documents', () => {
   }
 
   function updateNationalInsurance(payload) {
-    nationalInsurance.value = { ...nationalInsurance.value, ...payload }
-    if (payload && payload.number) {
-      nationalInsurance.value.number = String(payload.number).toUpperCase()
+    const updated = { ...nationalInsurance.value, ...payload }
+    if (payload && payload.number !== undefined) {
+      const formatted = formatNin(payload.number)
+      updated.number = formatted
+      if (
+        formatted.trim().length > 0 &&
+        (!payload.status || payload.status === 'not_applied' || payload.status === 'applied')
+      ) {
+        updated.status = 'received'
+      } else if (formatted.trim().length === 0 && payload.status === undefined && updated.status === 'received') {
+        updated.status = 'not_applied'
+      }
+    } else if (updated.number && updated.number.trim().length > 0 && (!payload || !payload.status)) {
+      updated.status = 'received'
     }
+    nationalInsurance.value = updated
     saveToStorage()
   }
 
@@ -641,10 +661,16 @@ export const useDocumentsStore = defineStore('documents', () => {
     }
 
     if (docObj.nationalInsurance && typeof docObj.nationalInsurance === 'object') {
+      const formattedNum = formatNin(docObj.nationalInsurance.number)
+      let ninStatus = docObj.nationalInsurance.status || nationalInsurance.value.status
+      if (formattedNum.trim().length > 0 && (!ninStatus || ninStatus === 'not_applied' || ninStatus === 'applied')) {
+        ninStatus = 'received'
+      }
       nationalInsurance.value = {
         ...nationalInsurance.value,
         ...docObj.nationalInsurance,
-        number: docObj.nationalInsurance.number ? String(docObj.nationalInsurance.number).toUpperCase() : '',
+        number: formattedNum,
+        status: ninStatus,
       }
       importedCount++
     }

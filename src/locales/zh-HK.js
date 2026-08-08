@@ -297,7 +297,7 @@ export default {
     cat_education_employment: '教育與就業',
     cat_medical_insurance: '醫療與保險',
     cat_custom: '自訂證明',
-    importance_essential: '必要',
+    importance_essential: '極力建議',
     importance_recommended: '建議',
     importance_supporting: '輔助',
 

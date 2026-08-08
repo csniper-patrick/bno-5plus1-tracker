@@ -1815,8 +1815,8 @@ export default {
                   </div>
                 </v-expansion-panel-title>
 
-                <v-expansion-panel-text class="pt-2 px-2 px-sm-4">
-                  <div class="d-flex align-center justify-end mb-3 ga-2 flex-wrap">
+                <v-expansion-panel-text class="compact-panel-text">
+                  <div class="d-flex align-center justify-end mb-2 ga-2 flex-wrap">
                     <v-btn
                       color="primary"
                       variant="outlined"
@@ -1829,7 +1829,7 @@ export default {
                   </div>
 
                   <!-- Evidence Table -->
-                  <v-table density="comfortable" hover class="border rounded-lg">
+                  <v-table density="compact" hover class="border rounded-lg">
                     <thead>
                       <tr>
                         <th class="text-left font-weight-bold">{{ $t('document.status') }}</th>
@@ -2951,5 +2951,9 @@ export default {
 .vault-file-name:hover {
   color: rgb(var(--v-theme-primary));
   text-decoration: underline;
+}
+
+.compact-panel-text :deep(.v-expansion-panel-text__wrapper) {
+  padding: 4px 6px 8px 6px !important;
 }
 </style>

@@ -306,7 +306,7 @@ export default {
     cat_education_employment: 'Education & Employment',
     cat_medical_insurance: 'Medical & Insurance',
     cat_custom: 'Custom Evidence',
-    importance_essential: 'Essential',
+    importance_essential: 'Highly recommended',
     importance_recommended: 'Recommended',
     importance_supporting: 'Supporting',
 

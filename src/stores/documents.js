@@ -21,59 +21,150 @@ const DEFAULT_FOLDERS = [
   { id: 'other', label: 'Other', icon: 'mdi-folder-outline' },
 ]
 
+/** Standard default evidence item definitions (4 items per year) */
+const STANDARD_DEFAULT_ITEMS = [
+  {
+    idSuffix: 'council_tax',
+    title: 'Council Tax Bill / Demand',
+    category: 'Official & Government',
+    importance: 'essential',
+  },
+  {
+    idSuffix: 'p60_employment',
+    title: 'P60 / Tax Return (SA302)',
+    category: 'Tax & Employment',
+    importance: 'essential',
+  },
+  {
+    idSuffix: 'housing_proof',
+    title: 'Tenancy Agreement / Mortgage Statement',
+    category: 'Housing',
+    importance: 'recommended',
+  },
+  {
+    idSuffix: 'bank_statements',
+    title: 'UK Bank Statements',
+    category: 'Financial',
+    importance: 'recommended',
+  },
+]
+
 /**
  * Generates default 5-year continuous residence proof checklist.
  *
- * @returns {Object<number, Array<{id: string, title: string, category: string, status: string, notes: string, dateCollected: string}>>}
+ * @returns {Object<number, Array<{id: string, title: string, category: string, importance: string, status: string, notes: string, dateCollected: string}>>}
  */
 function getDefaultResidenceChecklist() {
-  const defaultItems = [
-    {
-      id: 'council_tax',
-      title: 'Council Tax Bill / Demand',
-      category: 'Official & Government',
-      importance: 'essential',
-      status: 'pending',
-      notes: '',
-      dateCollected: '',
-    },
-    {
-      id: 'p60_employment',
-      title: 'P60 / Tax Return (SA302)',
-      category: 'Tax & Employment',
-      importance: 'essential',
-      status: 'pending',
-      notes: '',
-      dateCollected: '',
-    },
-    {
-      id: 'housing_proof',
-      title: 'Tenancy Agreement / Mortgage Statement',
-      category: 'Housing',
-      importance: 'recommended',
-      status: 'pending',
-      notes: '',
-      dateCollected: '',
-    },
-    {
-      id: 'bank_statements',
-      title: 'UK Bank Statements',
-      category: 'Financial',
-      importance: 'recommended',
-      status: 'pending',
-      notes: '',
-      dateCollected: '',
-    },
-  ]
-
   const checklist = {}
   for (let year = 1; year <= 5; year++) {
-    checklist[year] = defaultItems.map((item) => ({
-      ...item,
-      id: `year_${year}_${item.id}`,
+    checklist[year] = STANDARD_DEFAULT_ITEMS.map((item) => ({
+      id: `year_${year}_${item.idSuffix}`,
+      title: item.title,
+      category: item.category,
+      importance: item.importance,
+      status: 'pending',
+      notes: '',
+      dateCollected: '',
     }))
   }
   return checklist
+}
+
+/**
+ * Sanitizes and normalizes residence checklist data from storage or backup imports.
+ * Ensures the standard 4 default items exist for each year, preserves custom or modified user items,
+ * and prunes untouched obsolete default items.
+ *
+ * @param {Object} loadedChecklist - Raw residence checklist object keyed by year (1 to 5).
+ * @param {Array} [uploadedFilesList=[]] - Metadata list of uploaded files to check attached items.
+ * @returns {Object} Sanitized residence checklist object.
+ */
+export function sanitizeResidenceChecklist(loadedChecklist, uploadedFilesList = []) {
+  if (!loadedChecklist || typeof loadedChecklist !== 'object') {
+    return getDefaultResidenceChecklist()
+  }
+
+  const linkedItemKeys = new Set()
+  if (Array.isArray(uploadedFilesList)) {
+    uploadedFilesList.forEach((f) => {
+      if (f.linkedYear && f.linkedItemId) {
+        linkedItemKeys.add(`${f.linkedYear}_${f.linkedItemId}`)
+      }
+    })
+  }
+
+  const result = {}
+
+  for (let year = 1; year <= 5; year++) {
+    const rawItems = Array.isArray(loadedChecklist[year]) ? loadedChecklist[year] : []
+    const yearItems = []
+    const matchedStandardSuffixes = new Set()
+
+    rawItems.forEach((item) => {
+      if (!item || typeof item !== 'object') return
+
+      const stdMatch = STANDARD_DEFAULT_ITEMS.find(
+        (std) =>
+          item.id === `year_${year}_${std.idSuffix}` ||
+          item.id === std.idSuffix ||
+          (typeof item.id === 'string' && item.id.endsWith(`_${std.idSuffix}`)),
+      )
+
+      if (stdMatch) {
+        matchedStandardSuffixes.add(stdMatch.idSuffix)
+        yearItems.push({
+          ...item,
+          id: `year_${year}_${stdMatch.idSuffix}`,
+          title: stdMatch.title,
+          category: stdMatch.category,
+          importance: stdMatch.importance,
+          status: item.status || 'pending',
+          notes: item.notes || '',
+          dateCollected: normalizeDate(item.dateCollected || item.date_collected || ''),
+        })
+      } else {
+        const hasFiles = linkedItemKeys.has(`${year}_${item.id}`)
+        const isModified =
+          !!item.isCustom ||
+          (item.status && item.status !== 'pending') ||
+          (item.notes && String(item.notes).trim() !== '') ||
+          (item.dateCollected && String(item.dateCollected).trim() !== '') ||
+          hasFiles
+
+        if (isModified) {
+          yearItems.push({
+            ...item,
+            id: item.id || generateId('custom'),
+            title: item.title || 'Custom Evidence',
+            category: item.category || 'Custom Evidence',
+            status: item.status || 'pending',
+            notes: item.notes || '',
+            dateCollected: normalizeDate(item.dateCollected || item.date_collected || ''),
+            isCustom: true,
+          })
+        }
+      }
+    })
+
+    // Ensure all 4 standard default items exist for this year
+    STANDARD_DEFAULT_ITEMS.forEach((std) => {
+      if (!matchedStandardSuffixes.has(std.idSuffix)) {
+        yearItems.push({
+          id: `year_${year}_${std.idSuffix}`,
+          title: std.title,
+          category: std.category,
+          importance: std.importance,
+          status: 'pending',
+          notes: '',
+          dateCollected: '',
+        })
+      }
+    })
+
+    result[year] = yearItems
+  }
+
+  return result
 }
 
 /**
@@ -133,7 +224,12 @@ export const useDocumentsStore = defineStore('documents', () => {
     if (savedData && typeof savedData === 'object') {
       if (savedData.lifeInUk) lifeInUk.value = savedData.lifeInUk
       if (savedData.englishTest) englishTest.value = savedData.englishTest
-      if (savedData.residenceChecklist) residenceChecklist.value = savedData.residenceChecklist
+      if (savedData.residenceChecklist) {
+        residenceChecklist.value = sanitizeResidenceChecklist(
+          savedData.residenceChecklist,
+          uploadedFiles.value,
+        )
+      }
       if (Array.isArray(savedData.addressHistory)) {
         const sorted = [...savedData.addressHistory]
         sortAddresses(sorted)
@@ -145,6 +241,10 @@ export const useDocumentsStore = defineStore('documents', () => {
     try {
       const fileMeta = await fileStorage.getAllFilesMeta()
       uploadedFiles.value = fileMeta
+      residenceChecklist.value = sanitizeResidenceChecklist(
+        residenceChecklist.value,
+        uploadedFiles.value,
+      )
       autoPromoteChecklistStatuses()
     } catch (e) {
       console.error('Failed to load file metadata:', e)
@@ -515,14 +615,10 @@ export const useDocumentsStore = defineStore('documents', () => {
     }
 
     if (docObj.residenceChecklist && typeof docObj.residenceChecklist === 'object') {
-      Object.keys(docObj.residenceChecklist).forEach((year) => {
-        if (Array.isArray(docObj.residenceChecklist[year])) {
-          residenceChecklist.value[year] = docObj.residenceChecklist[year].map((item) => ({
-            ...item,
-            dateCollected: normalizeDate(item.dateCollected || item.date_collected || ''),
-          }))
-        }
-      })
+      residenceChecklist.value = sanitizeResidenceChecklist(
+        docObj.residenceChecklist,
+        uploadedFiles.value,
+      )
       importedCount++
     }
 

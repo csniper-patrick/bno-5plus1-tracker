@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { setActivePinia, createPinia } from 'pinia'
 
 import { useAbsentsStore } from '../src/stores/absents.js'
-import { useDocumentsStore } from '../src/stores/documents.js'
+import { useDocumentsStore, sanitizeResidenceChecklist } from '../src/stores/documents.js'
 import { exportFullBackup, importBackup } from '../src/services/backupService.js'
 import { calculateDays, getMaxSegmentTreeReturnDate } from '../src/utils/date.js'
 import * as dbService from '../src/services/dbService.js'
@@ -283,5 +283,36 @@ describe('End-to-End User Flow 2: Document Vault, Address Log & Backup Restores'
     const restoredCustomItem = documentsStore.residenceChecklist[1].find((i) => i.title === 'Tenancy Agreement Copy')
     assert.notStrictEqual(restoredCustomItem, undefined)
     assert.strictEqual(restoredCustomItem.status, 'collected')
+  })
+
+  it('should sanitize loaded residence checklist data by preserving standard items and pruning untouched obsolete items', () => {
+    const legacyChecklist = {
+      1: [
+        { id: 'year_1_council_tax', title: 'Council Tax Bill', status: 'collected' },
+        { id: 'year_1_employer_letter', title: 'Employer Letter', status: 'pending', notes: '' }, // Obsolete & untouched -> should prune
+        { id: 'year_1_gp_nhs_letter', title: 'GP Letter', status: 'collected', notes: 'Saved' }, // Obsolete but modified -> should keep as custom
+      ]
+    }
+
+    const sanitized = sanitizeResidenceChecklist(legacyChecklist, [])
+    const year1 = sanitized[1]
+
+    // Must contain 4 standard default items + 1 preserved modified legacy item (GP Letter) = 5 items total
+    assert.strictEqual(year1.length, 5)
+
+    // Standard items must exist
+    assert.ok(year1.some((i) => i.id === 'year_1_council_tax' && i.status === 'collected'))
+    assert.ok(year1.some((i) => i.id === 'year_1_p60_employment'))
+    assert.ok(year1.some((i) => i.id === 'year_1_housing_proof'))
+    assert.ok(year1.some((i) => i.id === 'year_1_bank_statements'))
+
+    // Untouched obsolete item must be pruned
+    assert.strictEqual(year1.some((i) => i.id.includes('employer_letter')), false)
+
+    // Modified obsolete item must be preserved as custom
+    const preservedGp = year1.find((i) => i.id.includes('gp_nhs_letter'))
+    assert.notStrictEqual(preservedGp, undefined)
+    assert.strictEqual(preservedGp.isCustom, true)
+    assert.strictEqual(preservedGp.notes, 'Saved')
   })
 })

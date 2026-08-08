@@ -902,7 +902,7 @@ export default {
     faq: {
       title: 'Frequently Asked Questions (App Operations)',
       q1: 'How does the 180-day rolling rule calculation work in the tracker?',
-      a1: 'The tracker automatically scans every 365-day rolling interval across your qualifying period. It evaluates day counts continuously using a Segment Tree data structure to ensure no rolling window exceeds 180 absent days and flags any delayed settlement target dates.',
+      a1: 'The tracker automatically scans every 365-day rolling interval across your qualifying period. It evaluates day counts continuously to ensure no rolling window exceeds 180 absent days and flags any delayed settlement target dates.',
       q2: 'How does setting Key Dates automatically synchronize initial UK Arrival records?',
       a2: 'When your UK Arrival Date is later than your BNO Visa Start Date, the application automatically generates and syncs an initial entry absence record for the gap period prior to your arrival, ensuring accurate calculation of initial absent days.',
       q3: 'Where is my tracking data and uploaded document files stored?',

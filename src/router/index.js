@@ -24,6 +24,15 @@ export const routes = [
     component: ReferenceView,
   },
   {
+    path: '/instruction',
+    name: 'instruction',
+    component: () => import('../views/InstructionView.vue'),
+  },
+  {
+    path: '/guide',
+    redirect: '/instruction',
+  },
+  {
     path: '/info',
     redirect: '/reference',
   },

@@ -363,6 +363,25 @@ export default {
             {{ $t('app.nav_reference_sub') }}
           </v-list-item-subtitle>
         </v-list-item>
+
+        <v-list-item
+          to="/instruction"
+          exact
+          color="primary"
+          rounded="lg"
+          class="mb-2"
+          @click="drawer = false"
+        >
+          <template v-slot:prepend>
+            <v-icon icon="mdi-book-open-page-variant" color="primary"></v-icon>
+          </template>
+          <v-list-item-title class="font-weight-bold">
+            {{ $t('app.nav_instruction') }}
+          </v-list-item-title>
+          <v-list-item-subtitle class="text-caption">
+            {{ $t('app.nav_instruction_sub') }}
+          </v-list-item-subtitle>
+        </v-list-item>
       </v-list>
 
       <template v-slot:append>

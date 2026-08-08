@@ -1261,158 +1261,237 @@ export default {
 
 <template>
   <div>
-    <!-- Page Header & Overview -->
-    <v-card elevation="2" class="pa-3 rounded-lg bg-surface mb-6">
-      <v-card-title class="px-0 pt-0 d-flex align-center flex-wrap ga-2">
-        <div class="d-flex align-center">
-          <v-icon icon="mdi-file-document-check-outline" color="primary" class="mr-2"></v-icon>
-          <span class="text-h5 font-weight-bold">{{ $t('document.title') }}</span>
-        </div>
-        <v-chip
-          size="small"
-          color="success"
-          variant="flat"
-          class="font-weight-bold ml-sm-auto"
-          prepend-icon="mdi-shield-check"
-        >
-          {{ $t('app.badge_local_storage') }}
-        </v-chip>
-      </v-card-title>
-      <p class="text-body-2 text-medium-emphasis ma-0">
-        {{ $t('document.subtitle') }}
-      </p>
-
-      <v-alert
-        type="info"
-        variant="tonal"
-        icon="mdi-shield-lock-outline"
-        class="mt-3 text-caption"
-        density="compact"
-      >
-        <i18n-t keypath="app.privacy_note_text" scope="global">
-          <template #code>
-            <code>IndexedDB</code>
-          </template>
-        </i18n-t>
-      </v-alert>
-
-      <!-- Overall Readiness Metric Banner -->
-      <v-divider class="my-4"></v-divider>
-
-      <v-row class="align-center">
-        <v-col cols="12" md="4" class="text-center text-md-left">
-          <div class="text-overline text-medium-emphasis mb-1">
-            {{ $t('document.overall_readiness') }}
-          </div>
-          <div class="d-flex align-center justify-center justify-md-start ga-3">
-            <v-progress-circular
-              :model-value="overallReadinessPercent"
-              size="64"
-              width="7"
-              color="primary"
-            >
-              <span class="font-weight-bold text-caption">{{ overallReadinessPercent }}%</span>
-            </v-progress-circular>
-            <div>
-              <div class="text-h6 font-weight-bold">
-                {{
-                  overallReadinessPercent === 100
-                    ? $t('document.ready_for_app')
-                    : $t('document.in_progress')
-                }}
-              </div>
-              <div class="text-caption text-medium-emphasis">
-                {{
-                  $t('document.items_collected', {
-                    collected: residenceStats.collectedItems,
-                    total: residenceStats.totalItems,
-                  })
-                }}
-              </div>
+    <!-- Page Header, Overview & Qualification Cards -->
+    <v-row class="mb-6">
+      <!-- 1. Document Tracker Title Card -->
+      <v-col cols="12" md="8" lg="12">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
+          <v-card-title class="px-0 pt-0 d-flex align-center flex-wrap ga-2">
+            <div class="d-flex align-center">
+              <v-icon icon="mdi-file-document-check-outline" color="primary" class="mr-2"></v-icon>
+              <span class="text-h5 font-weight-bold">{{ $t('document.title') }}</span>
             </div>
-          </div>
-        </v-col>
+            <v-chip
+              size="small"
+              color="success"
+              variant="flat"
+              class="font-weight-bold ml-sm-auto"
+              prepend-icon="mdi-shield-check"
+            >
+              {{ $t('app.badge_local_storage') }}
+            </v-chip>
+          </v-card-title>
+          <p class="text-body-2 text-medium-emphasis ma-0">
+            {{ $t('document.subtitle') }}
+          </p>
 
-        <v-col cols="12" md="8">
-          <v-row density="compact">
-            <!-- Life in UK Quick Summary -->
-            <v-col cols="12" sm="3">
-              <v-card
-                variant="tonal"
-                :color="getStatusColor(lifeInUk.status)"
-                class="pa-3 rounded-lg"
-              >
-                <div class="d-flex align-center justify-space-between mb-1">
-                  <span class="text-caption font-weight-bold">{{ $t('document.life_in_uk') }}</span>
-                  <v-icon icon="mdi-book-education-outline" size="small"></v-icon>
+          <v-alert
+            type="info"
+            variant="tonal"
+            icon="mdi-shield-lock-outline"
+            class="mt-3 text-caption"
+            density="compact"
+          >
+            <i18n-t keypath="app.privacy_note_text" scope="global">
+              <template #code>
+                <code>IndexedDB</code>
+              </template>
+            </i18n-t>
+          </v-alert>
+
+          <!-- Overall Readiness Metric Banner -->
+          <v-divider class="my-4"></v-divider>
+
+          <v-row class="align-center">
+            <v-col cols="12" md="4" class="text-center text-md-left">
+              <div class="text-overline text-medium-emphasis mb-1">
+                {{ $t('document.overall_readiness') }}
+              </div>
+              <div class="d-flex align-center justify-center justify-md-start ga-3">
+                <v-progress-circular
+                  :model-value="overallReadinessPercent"
+                  size="64"
+                  width="7"
+                  color="primary"
+                >
+                  <span class="font-weight-bold text-caption">{{ overallReadinessPercent }}%</span>
+                </v-progress-circular>
+                <div>
+                  <div class="text-h6 font-weight-bold">
+                    {{
+                      overallReadinessPercent === 100
+                        ? $t('document.ready_for_app')
+                        : $t('document.in_progress')
+                    }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{
+                      $t('document.items_collected', {
+                        collected: residenceStats.collectedItems,
+                        total: residenceStats.totalItems,
+                      })
+                    }}
+                  </div>
                 </div>
-                <div class="text-subtitle-2 font-weight-bold">
-                  {{ getStatusText(lifeInUk.status) }}
-                </div>
-              </v-card>
+              </div>
             </v-col>
 
-            <!-- English B1 Quick Summary -->
-            <v-col cols="12" sm="3">
-              <v-card
-                variant="tonal"
-                :color="getStatusColor(englishTest.status)"
-                class="pa-3 rounded-lg"
-              >
-                <div class="d-flex align-center justify-space-between mb-1">
-                  <span class="text-caption font-weight-bold">English B1</span>
-                  <v-icon icon="mdi-translate" size="small"></v-icon>
-                </div>
-                <div class="text-subtitle-2 font-weight-bold">
-                  {{
-                    englishTest.type === 'exempt'
-                      ? $t('document.type_exempt')
-                      : getStatusText(englishTest.status)
-                  }}
-                </div>
-              </v-card>
-            </v-col>
+            <v-col cols="12" md="8">
+              <v-row density="compact">
+                <!-- Life in UK Quick Summary -->
+                <v-col cols="6" lg="3">
+                  <v-card
+                    variant="tonal"
+                    :color="getStatusColor(lifeInUk.status)"
+                    class="pa-3 rounded-lg"
+                  >
+                    <div class="d-flex align-center justify-space-between mb-1">
+                      <span class="text-caption font-weight-bold">{{ $t('document.life_in_uk') }}</span>
+                      <v-icon icon="mdi-book-education-outline" size="small"></v-icon>
+                    </div>
+                    <div class="text-subtitle-2 font-weight-bold">
+                      {{ getStatusText(lifeInUk.status) }}
+                    </div>
+                  </v-card>
+                </v-col>
 
-            <!-- Residence Proof Quick Summary -->
-            <v-col cols="12" sm="3">
-              <v-card variant="tonal" color="primary" class="pa-3 rounded-lg">
-                <div class="d-flex align-center justify-space-between mb-1">
-                  <span class="text-caption font-weight-bold">{{ $t('document.proof_5yr') }}</span>
-                  <v-icon icon="mdi-folder-check-outline" size="small"></v-icon>
-                </div>
-                <div class="text-subtitle-2 font-weight-bold">
-                  {{ $t('document.percent_done', { percent: residenceStats.overallPercent }) }}
-                </div>
-              </v-card>
-            </v-col>
+                <!-- English B1 Quick Summary -->
+                <v-col cols="6" lg="3">
+                  <v-card
+                    variant="tonal"
+                    :color="getStatusColor(englishTest.status)"
+                    class="pa-3 rounded-lg"
+                  >
+                    <div class="d-flex align-center justify-space-between mb-1">
+                      <span class="text-caption font-weight-bold">English B1</span>
+                      <v-icon icon="mdi-translate" size="small"></v-icon>
+                    </div>
+                    <div class="text-subtitle-2 font-weight-bold">
+                      {{
+                        englishTest.type === 'exempt'
+                          ? $t('document.type_exempt')
+                          : getStatusText(englishTest.status)
+                      }}
+                    </div>
+                  </v-card>
+                </v-col>
 
-            <!-- Address History Quick Summary -->
-            <v-col cols="12" sm="3">
-              <v-card
-                variant="tonal"
-                :color="addressHistory.length > 0 ? 'success' : 'grey'"
-                class="pa-3 rounded-lg"
-              >
-                <div class="d-flex align-center justify-space-between mb-1">
-                  <span class="text-caption font-weight-bold">{{
-                    $t('document.uk_addresses')
-                  }}</span>
-                  <v-icon icon="mdi-home-city-outline" size="small"></v-icon>
-                </div>
-                <div class="text-subtitle-2 font-weight-bold">
-                  {{ $t('document.logged_count', { count: addressHistory.length }) }}
-                </div>
-              </v-card>
+                <!-- Residence Proof Quick Summary -->
+                <v-col cols="6" lg="3">
+                  <v-card variant="tonal" color="primary" class="pa-3 rounded-lg">
+                    <div class="d-flex align-center justify-space-between mb-1">
+                      <span class="text-caption font-weight-bold">{{ $t('document.proof_5yr') }}</span>
+                      <v-icon icon="mdi-folder-check-outline" size="small"></v-icon>
+                    </div>
+                    <div class="text-subtitle-2 font-weight-bold">
+                      {{ $t('document.percent_done', { percent: residenceStats.overallPercent }) }}
+                    </div>
+                  </v-card>
+                </v-col>
+
+                <!-- Address History Quick Summary -->
+                <v-col cols="6" lg="3">
+                  <v-card
+                    variant="tonal"
+                    :color="addressHistory.length > 0 ? 'success' : 'grey'"
+                    class="pa-3 rounded-lg"
+                  >
+                    <div class="d-flex align-center justify-space-between mb-1">
+                      <span class="text-caption font-weight-bold">{{
+                        $t('document.uk_addresses')
+                      }}</span>
+                      <v-icon icon="mdi-home-city-outline" size="small"></v-icon>
+                    </div>
+                    <div class="text-subtitle-2 font-weight-bold">
+                      {{ $t('document.logged_count', { count: addressHistory.length }) }}
+                    </div>
+                  </v-card>
+                </v-col>
+              </v-row>
             </v-col>
           </v-row>
-        </v-col>
-      </v-row>
-    </v-card>
+        </v-card>
+      </v-col>
 
-    <!-- Qualifications & Official Identifiers Section -->
-    <v-row class="mb-6">
-      <!-- Life in the UK Card -->
-      <v-col cols="12" md="4">
+      <!-- 2. National Insurance Card -->
+      <v-col cols="12" md="4" lg="4">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
+          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
+            <v-icon icon="mdi-card-account-details-outline" color="primary"></v-icon>
+            <span class="text-h5 font-weight-bold">{{ $t('document.national_insurance') }}</span>
+            <v-spacer></v-spacer>
+            <v-chip
+              :color="getStatusColor(ninForm.status === 'received' ? 'passed' : ninForm.status === 'applied' ? 'scheduled' : 'not_started')"
+              size="small"
+              variant="flat"
+              class="font-weight-bold"
+            >
+              {{ getNinStatusText(ninForm.status) }}
+            </v-chip>
+          </v-card-title>
+          <v-card-text class="px-0 pb-0">
+            <p class="text-caption text-medium-emphasis mb-4">
+              {{ $t('document.nin_desc') }}
+            </p>
+
+            <div class="mb-4">
+              <label class="text-caption font-weight-bold d-block mb-1">{{
+                $t('document.nin_status')
+              }}</label>
+              <v-btn-toggle
+                v-model="ninForm.status"
+                mandatory
+                color="primary"
+                density="compact"
+                class="w-100"
+                @update:model-value="saveNationalInsurance"
+              >
+                <v-btn value="not_applied" class="flex-grow-1" size="small">{{
+                  $t('document.status_not_applied')
+                }}</v-btn>
+                <v-btn value="applied" class="flex-grow-1" size="small">{{
+                  $t('document.status_applied')
+                }}</v-btn>
+                <v-btn value="received" class="flex-grow-1" color="success" size="small">{{
+                  $t('document.status_received')
+                }}</v-btn>
+              </v-btn-toggle>
+            </div>
+
+            <v-row density="compact">
+              <v-col cols="12">
+                <v-text-field
+                  v-model="ninForm.number"
+                  :label="$t('document.nin_number')"
+                  :placeholder="$t('document.nin_placeholder')"
+                  variant="outlined"
+                  density="compact"
+                  hide-details="auto"
+                  class="mb-3 text-uppercase"
+                  @change="saveNationalInsurance"
+                  @input="ninForm.number = (ninForm.number || '').toUpperCase()"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12">
+                <v-textarea
+                  v-model="ninForm.notes"
+                  :label="$t('document.notes')"
+                  placeholder="Add DWP application reference, HMRC account details..."
+                  variant="outlined"
+                  density="compact"
+                  rows="2"
+                  hide-details="auto"
+                  @change="saveNationalInsurance"
+                ></v-textarea>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- 3. Life in the UK Card -->
+      <v-col cols="12" md="6" lg="4">
         <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
           <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
             <v-icon icon="mdi-book-open-page-variant" color="primary"></v-icon>
@@ -1510,8 +1589,8 @@ export default {
         </v-card>
       </v-col>
 
-      <!-- English Language Requirement Card -->
-      <v-col cols="12" md="4">
+      <!-- 4. English Language Requirement Card -->
+      <v-col cols="12" md="6" lg="4">
         <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
           <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
             <v-icon icon="mdi-translate" color="primary"></v-icon>
@@ -1636,83 +1715,6 @@ export default {
                   rows="2"
                   hide-details="auto"
                   @change="saveEnglishTest"
-                ></v-textarea>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <!-- National Insurance Card -->
-      <v-col cols="12" md="4">
-        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
-          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
-            <v-icon icon="mdi-card-account-details-outline" color="primary"></v-icon>
-            <span class="text-h5 font-weight-bold">{{ $t('document.national_insurance') }}</span>
-            <v-spacer></v-spacer>
-            <v-chip
-              :color="getStatusColor(ninForm.status === 'received' ? 'passed' : ninForm.status === 'applied' ? 'scheduled' : 'not_started')"
-              size="small"
-              variant="flat"
-              class="font-weight-bold"
-            >
-              {{ getNinStatusText(ninForm.status) }}
-            </v-chip>
-          </v-card-title>
-          <v-card-text class="px-0 pb-0">
-            <p class="text-caption text-medium-emphasis mb-4">
-              {{ $t('document.nin_desc') }}
-            </p>
-
-            <div class="mb-4">
-              <label class="text-caption font-weight-bold d-block mb-1">{{
-                $t('document.nin_status')
-              }}</label>
-              <v-btn-toggle
-                v-model="ninForm.status"
-                mandatory
-                color="primary"
-                density="compact"
-                class="w-100"
-                @update:model-value="saveNationalInsurance"
-              >
-                <v-btn value="not_applied" class="flex-grow-1" size="small">{{
-                  $t('document.status_not_applied')
-                }}</v-btn>
-                <v-btn value="applied" class="flex-grow-1" size="small">{{
-                  $t('document.status_applied')
-                }}</v-btn>
-                <v-btn value="received" class="flex-grow-1" color="success" size="small">{{
-                  $t('document.status_received')
-                }}</v-btn>
-              </v-btn-toggle>
-            </div>
-
-            <v-row density="compact">
-              <v-col cols="12">
-                <v-text-field
-                  v-model="ninForm.number"
-                  :label="$t('document.nin_number')"
-                  :placeholder="$t('document.nin_placeholder')"
-                  variant="outlined"
-                  density="compact"
-                  hide-details="auto"
-                  class="mb-3 text-uppercase"
-                  @change="saveNationalInsurance"
-                  @input="ninForm.number = (ninForm.number || '').toUpperCase()"
-                ></v-text-field>
-              </v-col>
-
-              <v-col cols="12">
-                <v-textarea
-                  v-model="ninForm.notes"
-                  :label="$t('document.notes')"
-                  placeholder="Add DWP application reference, HMRC account details..."
-                  variant="outlined"
-                  density="compact"
-                  rows="2"
-                  hide-details="auto"
-                  @change="saveNationalInsurance"
                 ></v-textarea>
               </v-col>
             </v-row>

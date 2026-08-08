@@ -7,14 +7,10 @@ import {
   formatFileSize,
   createFileURL,
   ALLOWED_EXTENSIONS,
+  MAX_FILE_SIZE,
 } from '../services/fileStorageService'
-import PdfViewer from '../components/document/PdfViewer.vue'
-
 export default {
   name: 'DocumentView',
-  components: {
-    PdfViewer,
-  },
 
   data() {
     return {
@@ -106,15 +102,7 @@ export default {
         uploading: false,
       },
 
-      // File Preview Dialog state
-      filePreviewDialog: {
-        show: false,
-        file: null,
-        objectUrl: null,
-        fileData: null,
-        loading: false,
-        isFullscreen: false,
-      },
+
 
       // File Rename Dialog state
       renameDialog: {
@@ -777,27 +765,35 @@ export default {
       return translated !== key ? translated : folderId
     },
 
+    isPdf(mimeType, fileName = '') {
+      if (mimeType === 'application/pdf' || mimeType === 'application/x-pdf') return true
+      if (fileName && fileName.toLowerCase().endsWith('.pdf')) return true
+      return false
+    },
+
     /**
-     * Returns an icon name for a file based on its MIME type.
+     * Returns an icon name for a file based on its MIME type or filename.
      * @param {string} mimeType - File MIME type.
+     * @param {string} [fileName] - File name.
      * @returns {string} MDI icon name.
      */
-    getFileIcon(mimeType) {
+    getFileIcon(mimeType, fileName = '') {
+      if (this.isPdf(mimeType, fileName)) return 'mdi-file-pdf-box'
       if (!mimeType) return 'mdi-file-outline'
-      if (mimeType === 'application/pdf') return 'mdi-file-pdf-box'
       if (mimeType.startsWith('image/')) return 'mdi-file-image-outline'
       if (mimeType === 'text/plain') return 'mdi-file-document-outline'
       return 'mdi-file-outline'
     },
 
     /**
-     * Returns a theme color for a file based on its MIME type.
+     * Returns a theme color for a file based on its MIME type or filename.
      * @param {string} mimeType - File MIME type.
+     * @param {string} [fileName] - File name.
      * @returns {string} Theme color.
      */
-    getFileColor(mimeType) {
+    getFileColor(mimeType, fileName = '') {
+      if (this.isPdf(mimeType, fileName)) return 'error'
       if (!mimeType) return 'grey'
-      if (mimeType === 'application/pdf') return 'error'
       if (mimeType.startsWith('image/')) return 'info'
       if (mimeType === 'text/plain') return 'secondary'
       return 'grey'
@@ -911,56 +907,30 @@ export default {
     },
 
     /**
-     * Opens the file preview dialog.
+     * Opens a stored binary file in a new browser tab/window.
      * @param {Object} fileMeta - File metadata object.
      */
-    async openFilePreview(fileMeta) {
-      this.filePreviewDialog = {
-        show: true,
-        file: fileMeta,
-        objectUrl: null,
-        fileData: null,
-        loading: true,
-        isFullscreen: false,
-      }
-
+    async openFileInNewTab(fileMeta) {
+      if (!fileMeta || !fileMeta.id) return
+      const newTab = window.open('', '_blank')
       try {
         const fullRecord = await this.documentsStore.getFullFileRecord(fileMeta.id)
         if (fullRecord && fullRecord.data) {
-          this.filePreviewDialog.fileData = fullRecord.data
-          this.filePreviewDialog.objectUrl = createFileURL(fullRecord)
+          const url = createFileURL(fullRecord)
+          if (newTab) {
+            newTab.location.href = url
+          } else {
+            window.open(url, '_blank', 'noopener,noreferrer')
+          }
+          setTimeout(() => {
+            URL.revokeObjectURL(url)
+          }, 60000)
+        } else if (newTab) {
+          newTab.close()
         }
       } catch (e) {
-        console.error('Failed to load file for preview:', e)
-      } finally {
-        this.filePreviewDialog.loading = false
-      }
-    },
-
-    /**
-     * Closes the file preview dialog and revokes object URL.
-     */
-    closeFilePreview() {
-      if (this.filePreviewDialog.objectUrl) {
-        URL.revokeObjectURL(this.filePreviewDialog.objectUrl)
-      }
-      this.filePreviewDialog = {
-        show: false,
-        file: null,
-        objectUrl: null,
-        fileData: null,
-        loading: false,
-        isFullscreen: false,
-      }
-    },
-
-    /**
-     * Opens an object URL or link in a new browser tab/window.
-     * @param {string} url - Target URL.
-     */
-    openInNewTab(url) {
-      if (url) {
-        window.open(url, '_blank', 'noopener,noreferrer')
+        if (newTab) newTab.close()
+        console.error('Failed to open file in new tab:', e)
       }
     },
 
@@ -1232,15 +1202,6 @@ export default {
       this.openUploadDialog(folderId, year, item.id)
     },
 
-    /**
-     * Whether a MIME type supports inline preview.
-     * @param {string} mimeType - MIME type.
-     * @returns {boolean}
-     */
-    isPreviewable(mimeType) {
-      if (!mimeType) return false
-      return mimeType.startsWith('image/') || mimeType === 'application/pdf'
-    },
   },
 }
 </script>
@@ -2184,7 +2145,7 @@ export default {
               <div class="d-flex align-center ga-2 flex-wrap">
                 <span
                   class="font-weight-medium text-body-2 cursor-pointer vault-file-name"
-                  @click="isPreviewable(file.mimeType) ? openFilePreview(file) : downloadFile(file)"
+                  @click="openFileInNewTab(file)"
                 >
                   {{ file.name }}
                 </span>
@@ -2246,10 +2207,9 @@ export default {
                 </template>
                 <v-list density="compact" class="rounded-lg elevation-4">
                   <v-list-item
-                    v-if="isPreviewable(file.mimeType)"
-                    prepend-icon="mdi-eye-outline"
-                    :title="$t('document.file_preview')"
-                    @click="openFilePreview(file)"
+                    prepend-icon="mdi-open-in-new"
+                    :title="$t('document.open_new_tab')"
+                    @click="openFileInNewTab(file)"
                   ></v-list-item>
                   <v-list-item
                     prepend-icon="mdi-download"
@@ -2606,132 +2566,7 @@ export default {
       </v-card>
     </v-dialog>
 
-    <!-- File Preview Dialog -->
-    <v-dialog
-      v-model="filePreviewDialog.show"
-      :fullscreen="isMobileBrowser || filePreviewDialog.isFullscreen"
-      :max-width="isMobileBrowser || filePreviewDialog.isFullscreen ? undefined : '1100px'"
-      :width="isMobileBrowser || filePreviewDialog.isFullscreen ? undefined : '92vw'"
-      scrollable
-      transition="dialog-bottom-transition"
-      @update:model-value="
-        (v) => {
-          if (!v) closeFilePreview()
-        }
-      "
-    >
-      <v-card elevation="4" class="rounded-lg d-flex flex-column h-100 overflow-hidden" color="surface">
-        <v-card-title class="d-flex align-center ga-2 pa-3 bg-surface-variant">
-          <v-icon
-            v-if="filePreviewDialog.file"
-            :icon="getFileIcon(filePreviewDialog.file.mimeType)"
-            :color="getFileColor(filePreviewDialog.file.mimeType)"
-          ></v-icon>
-          <span class="font-weight-bold text-h6 text-truncate" style="max-width: 60%">
-            {{ filePreviewDialog.file?.name || $t('document.preview_title') }}
-          </span>
-          <v-spacer></v-spacer>
 
-          <!-- Toggle Fullscreen Button (desktop mode) -->
-          <v-btn
-            v-if="!isMobileBrowser"
-            :icon="filePreviewDialog.isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
-            variant="text"
-            size="small"
-            :title="$t('document.pdf_fullscreen')"
-            @click="filePreviewDialog.isFullscreen = !filePreviewDialog.isFullscreen"
-          ></v-btn>
-
-          <v-btn
-            v-if="filePreviewDialog.objectUrl"
-            icon="mdi-open-in-new"
-            variant="text"
-            size="small"
-            :title="$t('document.open_new_tab')"
-            @click="openInNewTab(filePreviewDialog.objectUrl)"
-          ></v-btn>
-
-          <v-btn
-            v-if="filePreviewDialog.file"
-            icon="mdi-download"
-            variant="text"
-            size="small"
-            :title="$t('document.file_download')"
-            @click="downloadFile(filePreviewDialog.file)"
-          ></v-btn>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="closeFilePreview"></v-btn>
-        </v-card-title>
-        <v-divider></v-divider>
-
-        <v-card-text
-          class="pa-0 flex-grow-1 overflow-hidden"
-          :style="{
-            height: isMobileBrowser || filePreviewDialog.isFullscreen ? 'calc(100vh - 110px)' : '78vh',
-            minHeight: '350px',
-          }"
-        >
-          <div
-            v-if="filePreviewDialog.loading"
-            class="d-flex justify-center align-center h-100"
-            style="min-height: 350px"
-          >
-            <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
-          </div>
-          <template v-else-if="filePreviewDialog.file">
-            <!-- Image Preview -->
-            <div
-              v-if="filePreviewDialog.file.mimeType?.startsWith('image/')"
-              class="d-flex align-center justify-center h-100 pa-4 bg-grey-darken-4 overflow-auto"
-            >
-              <img
-                v-if="filePreviewDialog.objectUrl"
-                :src="filePreviewDialog.objectUrl"
-                :alt="filePreviewDialog.file.name"
-                class="d-block"
-                style="max-width: 100%; max-height: 100%; object-fit: contain"
-              />
-            </div>
-
-            <!-- PDF Preview (using PdfViewer canvas renderer) -->
-            <PdfViewer
-              v-else-if="filePreviewDialog.file.mimeType === 'application/pdf'"
-              :file-data="filePreviewDialog.fileData"
-              :file-url="filePreviewDialog.objectUrl"
-              :file-name="filePreviewDialog.file.name"
-              @download="downloadFile(filePreviewDialog.file)"
-            />
-
-            <!-- Unsupported -->
-            <div v-else class="d-flex flex-column align-center justify-center h-100 py-12 px-4">
-              <v-icon icon="mdi-file-question-outline" size="56" color="grey" class="mb-3"></v-icon>
-              <div class="text-subtitle-1 font-weight-bold text-medium-emphasis">
-                {{ $t('document.preview_unsupported') }}
-              </div>
-              <div class="text-caption text-medium-emphasis mb-4">
-                {{ $t('document.preview_download_instead') }}
-              </div>
-              <v-btn
-                color="primary"
-                prepend-icon="mdi-download"
-                @click="downloadFile(filePreviewDialog.file)"
-              >
-                {{ $t('document.file_download') }}
-              </v-btn>
-            </div>
-          </template>
-        </v-card-text>
-
-        <v-divider></v-divider>
-        <v-card-text
-          v-if="filePreviewDialog.file"
-          class="pa-3 text-caption text-medium-emphasis d-flex ga-4 flex-wrap bg-surface-variant"
-        >
-          <span>{{ formatSize(filePreviewDialog.file.size) }}</span>
-          <span>{{ filePreviewDialog.file.mimeType }}</span>
-          <span>{{ formatUploadDate(filePreviewDialog.file.uploadedAt) }}</span>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
 
     <!-- Rename Dialog -->
     <v-dialog v-model="renameDialog.show" max-width="400px">
@@ -2911,14 +2746,19 @@ export default {
               :prepend-icon="getFileIcon(file.mimeType)"
               :subtitle="formatSize(file.size) + ' · ' + formatUploadDate(file.uploadedAt)"
             >
-              <v-list-item-title class="font-weight-medium">{{ file.name }}</v-list-item-title>
+              <v-list-item-title
+                class="font-weight-medium cursor-pointer vault-file-name"
+                @click="openFileInNewTab(file)"
+              >
+                {{ file.name }}
+              </v-list-item-title>
               <template #append>
                 <v-btn
-                  v-if="isPreviewable(file.mimeType)"
-                  icon="mdi-eye-outline"
+                  icon="mdi-open-in-new"
                   variant="text"
                   size="x-small"
-                  @click="openFilePreview(file)"
+                  :title="$t('document.open_new_tab')"
+                  @click="openFileInNewTab(file)"
                 ></v-btn>
                 <v-btn
                   icon="mdi-download"

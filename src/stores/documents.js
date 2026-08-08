@@ -439,11 +439,19 @@ export const useDocumentsStore = defineStore('documents', () => {
 
     const data = await fileStorage.readFileAsArrayBuffer(browserFile)
     const id = generateId('file')
+    let mimeType = browserFile.type || 'application/octet-stream'
+    if (
+      (!browserFile.type || browserFile.type === 'application/octet-stream') &&
+      browserFile.name.toLowerCase().endsWith('.pdf')
+    ) {
+      mimeType = 'application/pdf'
+    }
+
     const fileRecord = {
       id,
       name: browserFile.name,
       folderId: folderId || 'other',
-      mimeType: browserFile.type || 'application/octet-stream',
+      mimeType,
       size: browserFile.size,
       data,
       uploadedAt: new Date().toISOString(),

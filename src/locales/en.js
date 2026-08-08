@@ -398,6 +398,16 @@ export default {
     preview_download_instead: 'Click Download to view this file.',
     open_new_tab: 'Open in new tab',
     open_pdf_mobile: 'View Full PDF in Mobile Reader',
+    pdf_fullscreen: 'Toggle Fullscreen',
+    pdf_prev_page: 'Previous Page',
+    pdf_next_page: 'Next Page',
+    pdf_zoom_out: 'Zoom Out',
+    pdf_fit_width: 'Fit to Width',
+    pdf_zoom_in: 'Zoom In',
+    pdf_rotate: 'Rotate Right',
+    loading_pdf: 'Loading PDF document...',
+    pdf_render_error: 'Failed to display PDF',
+    file_download: 'Download File',
 
     // Storage usage
     storage_used: 'Storage Used',

@@ -387,6 +387,16 @@ export default {
     preview_download_instead: '請點擊「下載」檢視此檔案。',
     open_new_tab: '在新分頁開啟',
     open_pdf_mobile: '在全螢幕開啟 PDF 文件',
+    pdf_fullscreen: '切換全螢幕',
+    pdf_prev_page: '上一頁',
+    pdf_next_page: '下一頁',
+    pdf_zoom_out: '縮小',
+    pdf_fit_width: '適合頁寬',
+    pdf_zoom_in: '放大',
+    pdf_rotate: '順時針旋轉',
+    loading_pdf: '正在載入 PDF 文件...',
+    pdf_render_error: '無法顯示 PDF 文件',
+    file_download: '下載檔案',
 
     // 儲存空間
     storage_used: '已使用空間',

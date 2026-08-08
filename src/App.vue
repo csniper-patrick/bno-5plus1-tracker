@@ -50,6 +50,12 @@ export default {
     },
   },
 
+  watch: {
+    $route() {
+      this.drawer = false
+    },
+  },
+
   mounted() {
     this.absentsStore.initStore()
     this.documentsStore.initStore()
@@ -314,7 +320,7 @@ export default {
       </v-list-subheader>
 
       <v-list nav class="px-2 py-1">
-        <v-list-item to="/" exact color="primary" rounded="lg" class="mb-2" @click="drawer = false">
+        <v-list-item to="/" exact color="primary" rounded="lg" class="mb-2">
           <template v-slot:prepend>
             <v-icon icon="mdi-airplane-takeoff" color="primary"></v-icon>
           </template>
@@ -332,7 +338,6 @@ export default {
           color="primary"
           rounded="lg"
           class="mb-2"
-          @click="drawer = false"
         >
           <template v-slot:prepend>
             <v-icon icon="mdi-file-document-check-outline" color="primary"></v-icon>
@@ -351,7 +356,6 @@ export default {
           color="primary"
           rounded="lg"
           class="mb-2"
-          @click="drawer = false"
         >
           <template v-slot:prepend>
             <v-icon icon="mdi-bookshelf" color="primary"></v-icon>
@@ -370,7 +374,6 @@ export default {
           color="primary"
           rounded="lg"
           class="mb-2"
-          @click="drawer = false"
         >
           <template v-slot:prepend>
             <v-icon icon="mdi-book-open-page-variant" color="primary"></v-icon>

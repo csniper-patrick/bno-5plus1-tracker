@@ -23,8 +23,10 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
     await expect(navDrawer).toContainText('User Guide');
 
     // Click User Guide link in drawer
-    await navDrawer.locator('a[href*="instruction"]').click();
-    await page.waitForURL('**/instruction');
+    const userGuideLink = navDrawer.locator('a[href*="instruction"]');
+    await expect(userGuideLink).toBeVisible();
+    await userGuideLink.click();
+    await expect(page).toHaveURL(/.*instruction/);
     await expect(page.locator('h1')).toContainText('User Guide & Operation Manual');
   });
 

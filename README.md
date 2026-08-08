@@ -37,9 +37,10 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 - **🪪 BNO Visa Overview Card**
   - Summarizes Visa Start Date, Visa Expiry Date (with Default 5-Year / Custom badges), Earliest ILR Settlement Date, and displays prominent yellow extension warning alerts if visa extension is needed before ILR qualification.
 - **📋 Document & Qualification Tracker & Document Vault (`DocumentView`)**
+  - **National Insurance Number (NI)**: Track your NIN format (e.g., `QQ123456C`), application status, and official HMRC confirmation letters (positioned at top left / upper section for quick access).
   - **Life in the UK Test**: Track status (Not Started / Scheduled / Passed), test date, Unique Reference Number (URN), test center location, and notes.
   - **English Language Requirement (B1)**: Track pathway (B1 SELT Test, UK Degree, Ecctis/ENIC Statement, Exemption), provider, test date, and certificate reference.
-  - **National Insurance Number (NI)**: Track your NIN format (e.g., `QQ123456C`), application status, and official HMRC confirmation letters.
+  - **Adaptive 3-Tier Responsive Card Arrangement**: Layout automatically adapts across viewports (Wide: Title banner above 3 side-by-side cards with NI on left; Medium: Title + NI on top row, Life in UK + B1 English on second row; Mobile: vertically stacked single column).
   - **5-Year Continuous Residence Evidence Checklist**: Year-by-year checklist (Years 1 to 5) covering Council Tax, P60/Tax, Bank Statements, Housing proof, Utility Bills, and custom evidence items.
   - **UK Address History Log**: Log residential addresses lived at during your 5-year qualifying period (Move-in/out dates, postcode, tenure type) required for Home Office SET(O) and Naturalisation AN application forms.
   - **📁 Document Vault**: Drag-and-drop file upload zone supporting PDFs, images (JPG, PNG, WebP, HEIC), and text files up to 10 MB. Organize files into folders (`Year 1-5`, `Life in UK`, `English B1`, `Addresses`, `Other`), open files directly in a new browser tab (`window.open`), edit file notes, rename/move files, and link files directly to specific residence checklist items with paperclip count indicators.

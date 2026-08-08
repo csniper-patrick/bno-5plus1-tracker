@@ -18,6 +18,10 @@ export default {
   },
 
   computed: {
+    isAuto() {
+      return this.viewMode === 'auto'
+    },
+
     effectiveMode() {
       if (this.viewMode === 'auto') {
         return this.$vuetify.display.smAndDown ? 'mobile' : 'desktop'
@@ -31,6 +35,28 @@ export default {
 
     imgPrefix() {
       return this.isMobileView ? '/instructions/narrow_' : '/instructions/'
+    },
+
+    modeToggleValue: {
+      get() {
+        return this.effectiveMode
+      },
+      set(val) {
+        if (val) {
+          this.viewMode = val
+        }
+      }
+    },
+
+    viewportStatusText() {
+      if (this.isAuto) {
+        return this.isMobileView
+          ? this.$t('instruction.viewport.auto_mobile')
+          : this.$t('instruction.viewport.auto_desktop')
+      }
+      return this.isMobileView
+        ? this.$t('instruction.viewport.mobile')
+        : this.$t('instruction.viewport.desktop')
     }
   }
 }
@@ -59,14 +85,11 @@ export default {
         <v-icon icon="mdi-tune-variant" color="primary"></v-icon>
         <span>{{ $t('instruction.viewport.label') }}</span>
         <v-chip size="x-small" :color="isMobileView ? 'secondary' : 'primary'" class="ml-1 font-weight-bold">
-          {{ isMobileView ? $t('instruction.viewport.mobile') : $t('instruction.viewport.desktop') }}
+          {{ viewportStatusText }}
         </v-chip>
       </div>
 
-      <v-btn-toggle v-model="viewMode" mandatory density="compact" color="primary" variant="outlined" class="rounded-lg">
-        <v-btn value="auto" size="small" prepend-icon="mdi-devices">
-          {{ $t('instruction.viewport.auto') }}
-        </v-btn>
+      <v-btn-toggle v-model="modeToggleValue" mandatory density="compact" color="primary" variant="outlined" class="rounded-lg">
         <v-btn value="desktop" size="small" prepend-icon="mdi-monitor">
           {{ $t('instruction.viewport.desktop') }}
         </v-btn>
@@ -76,17 +99,22 @@ export default {
       </v-btn-toggle>
     </v-card>
 
-    <!-- App Overview Card -->
-    <v-row class="mb-6">
-      <v-col cols="12" md="7">
-        <v-card class="h-100 rounded-lg elevation-2 pa-4 bg-surface">
-          <v-card-title class="text-h6 font-weight-bold d-flex align-center ga-2">
-            <v-icon icon="mdi-compass-outline" color="primary"></v-icon>
-            {{ $t('instruction.overview.title') }}
-          </v-card-title>
-          <v-card-text class="text-body-1">
-            <p>{{ $t('instruction.overview.p1') }}</p>
-            <p class="mb-4">{{ $t('instruction.overview.p2') }}</p>
+    <!-- App Overview & Main Interface Card (Merged) -->
+    <v-card class="mb-6 rounded-lg elevation-2 pa-4 bg-surface">
+      <v-card-title class="text-h6 font-weight-bold d-flex align-center justify-space-between flex-wrap ga-2 mb-3 pa-0">
+        <div class="d-flex align-center ga-2">
+          <v-icon icon="mdi-compass-outline" color="primary"></v-icon>
+          <span>{{ $t('instruction.overview.title') }}</span>
+        </div>
+        <v-chip size="x-small" variant="tonal" :color="isMobileView ? 'secondary' : 'primary'">
+          {{ viewportStatusText }}
+        </v-chip>
+      </v-card-title>
+      <v-card-text class="pa-0">
+        <v-row align="start">
+          <v-col cols="12" md="6">
+            <p class="text-body-1 mb-3">{{ $t('instruction.overview.p1') }}</p>
+            <p class="text-body-1 mb-4">{{ $t('instruction.overview.p2') }}</p>
             
             <v-row density="compact">
               <v-col cols="12" sm="6">
@@ -113,40 +141,32 @@ export default {
                 </v-card>
               </v-col>
             </v-row>
-          </v-card-text>
-        </v-card>
-      </v-col>
+          </v-col>
 
-      <v-col cols="12" md="5">
-        <v-card class="h-100 rounded-lg elevation-2 overflow-hidden bg-surface d-flex flex-column">
-          <v-card-title class="text-subtitle-1 font-weight-bold pa-3 pb-0 d-flex align-center justify-space-between">
-            <div>
-              <v-icon icon="mdi-monitor-screenshot" color="primary" class="mr-2"></v-icon>
-              {{ $t('instruction.overview.screenshot_title') }}
-            </div>
-            <v-chip size="x-small" variant="tonal" :color="isMobileView ? 'secondary' : 'primary'">
-              {{ isMobileView ? 'Mobile View' : 'Desktop View' }}
-            </v-chip>
-          </v-card-title>
-          <div class="pa-3 flex-grow-1 d-flex align-center justify-center">
-            <v-img
-              :key="imgPrefix + 'step1_overview.png'"
-              :src="imgPrefix + 'step1_overview.png'"
-              alt="BNO 5+1 Tracker Dashboard"
-              contain
-              class="rounded border shadow-sm w-100"
-              :style="{ maxHeight: isMobileView ? '360px' : '280px' }"
-            >
-              <template v-slot:placeholder>
-                <div class="d-flex align-center justify-center fill-height bg-grey-lighten-4">
-                  <v-progress-circular indeterminate color="primary"></v-progress-circular>
-                </div>
-              </template>
-            </v-img>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
+          <v-col cols="12" md="6">
+            <v-card variant="outlined" class="pa-2 rounded-lg elevation-1 bg-surface d-flex flex-column align-center">
+              <v-img
+                :key="imgPrefix + 'step1_overview.png'"
+                :src="imgPrefix + 'step1_overview.png'"
+                alt="BNO 5+1 Tracker Dashboard"
+                contain
+                class="rounded border shadow-sm w-100"
+                :style="{ maxHeight: isMobileView ? '380px' : '320px' }"
+              >
+                <template v-slot:placeholder>
+                  <div class="d-flex align-center justify-center fill-height bg-grey-lighten-4">
+                    <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                  </div>
+                </template>
+              </v-img>
+              <div class="text-caption text-center text-medium-emphasis mt-2 font-weight-medium">
+                {{ $t('instruction.overview.screenshot_title') }} ({{ viewportStatusText }})
+              </div>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
 
     <!-- Interactive Operation Guide Tabs -->
     <v-card class="mb-6 rounded-lg elevation-2 bg-surface pa-2">
@@ -174,7 +194,7 @@ export default {
       <v-window v-model="activeTab" class="pa-4">
         <!-- Step 1 Window -->
         <v-window-item value="step1">
-          <v-row align="center">
+          <v-row align="start">
             <v-col cols="12" md="6">
               <h3 class="text-h6 font-weight-bold color-primary mb-3">
                 <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white">1</v-avatar>
@@ -229,7 +249,7 @@ export default {
                   :style="{ maxHeight: isMobileView ? '480px' : 'auto' }"
                 ></v-img>
                 <div class="text-caption text-center text-medium-emphasis mt-2">
-                  {{ $t('instruction.step1.caption') }} ({{ isMobileView ? 'Mobile View' : 'Desktop View' }})
+                  {{ $t('instruction.step1.caption') }} ({{ viewportStatusText }})
                 </div>
               </v-card>
             </v-col>
@@ -238,7 +258,7 @@ export default {
 
         <!-- Step 2 Window -->
         <v-window-item value="step2">
-          <v-row align="center">
+          <v-row align="start">
             <v-col cols="12" md="6">
               <h3 class="text-h6 font-weight-bold color-primary mb-3">
                 <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white">2</v-avatar>
@@ -293,7 +313,7 @@ export default {
                   :style="{ maxHeight: isMobileView ? '450px' : 'auto' }"
                 ></v-img>
                 <div class="text-caption text-center text-medium-emphasis mt-1">
-                  {{ $t('instruction.step2.caption1') }} ({{ isMobileView ? 'Mobile View' : 'Desktop View' }})
+                  {{ $t('instruction.step2.caption1') }} ({{ viewportStatusText }})
                 </div>
               </v-card>
 
@@ -307,7 +327,7 @@ export default {
                   :style="{ maxHeight: isMobileView ? '450px' : 'auto' }"
                 ></v-img>
                 <div class="text-caption text-center text-medium-emphasis mt-1">
-                  {{ $t('instruction.step2.caption2') }} ({{ isMobileView ? 'Mobile View' : 'Desktop View' }})
+                  {{ $t('instruction.step2.caption2') }} ({{ viewportStatusText }})
                 </div>
               </v-card>
             </v-col>
@@ -316,7 +336,7 @@ export default {
 
         <!-- Step 3 Window -->
         <v-window-item value="step3">
-          <v-row align="center">
+          <v-row align="start">
             <v-col cols="12" md="6">
               <h3 class="text-h6 font-weight-bold color-primary mb-3">
                 <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white">3</v-avatar>
@@ -371,7 +391,7 @@ export default {
                   :style="{ maxHeight: isMobileView ? '480px' : 'auto' }"
                 ></v-img>
                 <div class="text-caption text-center text-medium-emphasis mt-2">
-                  {{ $t('instruction.step3.caption') }} ({{ isMobileView ? 'Mobile View' : 'Desktop View' }})
+                  {{ $t('instruction.step3.caption') }} ({{ viewportStatusText }})
                 </div>
               </v-card>
             </v-col>
@@ -380,7 +400,7 @@ export default {
 
         <!-- Step 4 Window -->
         <v-window-item value="step4">
-          <v-row align="center">
+          <v-row align="start">
             <v-col cols="12" md="6">
               <h3 class="text-h6 font-weight-bold color-primary mb-3">
                 <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white">4</v-avatar>
@@ -431,7 +451,7 @@ export default {
                   :style="{ maxHeight: isMobileView ? '480px' : 'auto' }"
                 ></v-img>
                 <div class="text-caption text-center text-medium-emphasis mt-2">
-                  {{ $t('instruction.step4.caption') }} ({{ isMobileView ? 'Mobile View' : 'Desktop View' }})
+                  {{ $t('instruction.step4.caption') }} ({{ viewportStatusText }})
                 </div>
               </v-card>
             </v-col>
@@ -440,7 +460,7 @@ export default {
       </v-window>
     </v-card>
 
-    <!-- FAQ Accordion -->
+    <!-- FAQ Accordion (App Operations) -->
     <v-card class="rounded-lg elevation-2 bg-surface pa-4">
       <v-card-title class="text-h6 font-weight-bold d-flex align-center ga-2 mb-2">
         <v-icon icon="mdi-help-circle-outline" color="primary"></v-icon>
@@ -450,7 +470,7 @@ export default {
       <v-expansion-panels v-model="faqOpened" multiple variant="accordion" class="rounded-lg">
         <v-expansion-panel class="border mb-2 rounded-lg">
           <v-expansion-panel-title class="font-weight-bold">
-            <v-icon icon="mdi-clock-alert-outline" color="primary" class="mr-2"></v-icon>
+            <v-icon icon="mdi-calculator-variant" color="primary" class="mr-2"></v-icon>
             {{ $t('instruction.faq.q1') }}
           </v-expansion-panel-title>
           <v-expansion-panel-text class="text-body-2">
@@ -460,7 +480,7 @@ export default {
 
         <v-expansion-panel class="border mb-2 rounded-lg">
           <v-expansion-panel-title class="font-weight-bold">
-            <v-icon icon="mdi-airplane-sync" color="primary" class="mr-2"></v-icon>
+            <v-icon icon="mdi-sync" color="primary" class="mr-2"></v-icon>
             {{ $t('instruction.faq.q2') }}
           </v-expansion-panel-title>
           <v-expansion-panel-text class="text-body-2">
@@ -475,6 +495,26 @@ export default {
           </v-expansion-panel-title>
           <v-expansion-panel-text class="text-body-2">
             {{ $t('instruction.faq.a3') }}
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+
+        <v-expansion-panel class="border mb-2 rounded-lg">
+          <v-expansion-panel-title class="font-weight-bold">
+            <v-icon icon="mdi-zip-box-outline" color="primary" class="mr-2"></v-icon>
+            {{ $t('instruction.faq.q4') }}
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="text-body-2">
+            {{ $t('instruction.faq.a4') }}
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+
+        <v-expansion-panel class="border mb-2 rounded-lg">
+          <v-expansion-panel-title class="font-weight-bold">
+            <v-icon icon="mdi-link-variant" color="primary" class="mr-2"></v-icon>
+            {{ $t('instruction.faq.q5') }}
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="text-body-2">
+            {{ $t('instruction.faq.a5') }}
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>

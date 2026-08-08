@@ -844,7 +844,7 @@ export default {
     },
     overview: {
       title: 'About BNO 5+1 Tracker & Interface Overview',
-      p1: 'The BNO 5+1 Tracker is an offline-first web application designed specifically for Hong Kong BNO visa holders to track continuous residence, total days absent from the UK, and settlement milestone dates.',
+      p1: 'The BNO 5+1 Tracker is an offline-first web application designed specifically for Hong Kong BNO visa holders to track continuous residence, total days absent from the UK, qualifications, address history, National Insurance (NI), and settlement milestone dates.',
       p2: 'All data entered is stored exclusively on your device inside IndexedDB. No personal information or dates are ever sent to external cloud servers.',
       feature1_title: '180-Day Rolling Rule',
       feature1_desc: 'Automatically calculates day counts for any 12-month rolling window.',
@@ -855,7 +855,7 @@ export default {
     tabs: {
       step1: 'Set Key Dates',
       step2: 'Log Absences',
-      step3: 'Checklist & Proofs',
+      step3: 'Checklist & Documents',
       step4: 'Data & Backup',
     },
     step1: {
@@ -880,14 +880,15 @@ export default {
       caption2: 'Absence History & Rolling Day Calculations Table',
     },
     step3: {
-      header: 'Step 3: Track Settlement Documents & Requirements',
-      desc: 'Manage your Life in the UK test, B1 English language proof, and 5-year continuous residence document portfolio.',
-      point1: 'Record Life in the UK test results and pass certificate numbers.',
-      point2: 'Upload or track B1 English language qualification documents.',
-      point3: 'Maintain yearly residence proofs (P60, Council Tax, Bank Statements, Utility Bills, Tenancy agreements).',
-      privacy_note: 'Uploaded document attachments are stored safely inside local browser IndexedDB.',
-      action_btn: 'Open Document Checklist',
-      caption: 'Document Checklist & Residence Evidence Tracker',
+      header: 'Step 3: Track Settlement Documents, NIN & Address History',
+      desc: 'Manage Life in the UK test, B1 English language proof, National Insurance Number (NI), address history log, and 5-year continuous residence document portfolio.',
+      point1: 'Record Life in the UK test results, URNs, and B1 English qualification pathway.',
+      point2: 'Track National Insurance Number (NI), application status, and official HMRC letters.',
+      point3: 'Log full UK address history with move-in/out dates, tenure type, postcodes, and address proof links.',
+      point4: 'Maintain yearly residence proofs (P60, Council Tax, Bank Statements, Utility Bills) and link uploaded Document Vault files directly to checklist items.',
+      privacy_note: 'Uploaded document attachments (PDFs, images, scans) are stored safely inside local browser IndexedDB and can be opened in a new tab or previewed at any time.',
+      action_btn: 'Open Document Checklist & Vault',
+      caption: 'Document Checklist, NIN & Residence Evidence Tracker',
     },
     step4: {
       header: 'Step 4: Backup Data & Access Official Resources',
@@ -910,6 +911,10 @@ export default {
       a4: 'You can export all your application records and binary document attachments into a single ZIP backup package from the right navigation drawer. Importing this package on another browser or device restores your complete tracking state instantly.',
       q5: 'How do I link uploaded document files to checklist items or address entries?',
       a5: 'In the Document Tracker view, you can upload evidence files into the Document Vault and link each file directly to a specific residence checklist year or UK address entry for quick previewing, downloading, and verification.',
+      q6: 'How do I track my National Insurance Number (NI) and address history?',
+      a6: 'Under the Document Checklist view, expand the National Insurance Number (NI) card to record your NIN (e.g. QQ123456C), application status, and official HMRC letters. You can also log your full address history timeline and link proof of address documents directly to each residence address.',
+      q7: 'How can I view or preview uploaded PDF document files in the vault?',
+      a7: 'In the Document Vault, click the view or open button on any uploaded document card to instantly preview or view the PDF/image file directly in your browser without transmitting any data outside your device.',
     },
   },
 }

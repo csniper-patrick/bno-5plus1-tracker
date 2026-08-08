@@ -39,9 +39,12 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 - **📋 Document & Qualification Tracker & Document Vault (`DocumentView`)**
   - **Life in the UK Test**: Track status (Not Started / Scheduled / Passed), test date, Unique Reference Number (URN), test center location, and notes.
   - **English Language Requirement (B1)**: Track pathway (B1 SELT Test, UK Degree, Ecctis/ENIC Statement, Exemption), provider, test date, and certificate reference.
+  - **National Insurance Number (NI)**: Track your NIN format (e.g., `QQ123456C`), application status, and official HMRC confirmation letters.
   - **5-Year Continuous Residence Evidence Checklist**: Year-by-year checklist (Years 1 to 5) covering Council Tax, P60/Tax, Bank Statements, Housing proof, Utility Bills, and custom evidence items.
   - **UK Address History Log**: Log residential addresses lived at during your 5-year qualifying period (Move-in/out dates, postcode, tenure type) required for Home Office SET(O) and Naturalisation AN application forms.
   - **📁 Document Vault**: Drag-and-drop file upload zone supporting PDFs, images (JPG, PNG, WebP, HEIC), and text files up to 10 MB. Organize files into folders (`Year 1-5`, `Life in UK`, `English B1`, `Addresses`, `Other`), open files directly in a new browser tab (`window.open`), edit file notes, rename/move files, and link files directly to specific residence checklist items with paperclip count indicators.
+- **📖 User Guide & Operation Manual (`InstructionView`)**
+  - Interactive step-by-step tutorial with visual screen demonstrations, viewport mode switching (Desktop / Mobile), key dates configuration guidance, rolling 180-day rules explanation, document vault workflow, and an offline privacy & operation FAQ.
 - **🔗 Reference & Official Guidance Page (`ReferenceView`)**
   - **Curated Official & NGO Resources**: Quick reference page presenting 30 curated official UK Home Office publications, statutory immigration rules (Appendix HK), HMRC tax residence guides, digital share codes, higher education rules, and verified non-commercial registered charities/NGOs in structured cards with search and category filtering.
   - **Category & Search Filters**: Instantly filter official resources by category (BNO Settlement, Policy & Guidance, Qualifications & Tests, Citizenship) or text search.

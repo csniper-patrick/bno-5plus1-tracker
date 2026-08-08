@@ -144,14 +144,14 @@ export default {
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-card variant="outlined" class="pa-2 rounded-lg elevation-1 bg-surface d-flex flex-column align-center">
+            <v-card variant="outlined" class="pa-2 rounded-lg elevation-1">
               <v-img
                 :key="imgPrefix + 'step1_overview.png'"
                 :src="imgPrefix + 'step1_overview.png'"
                 alt="BNO 5+1 Tracker Dashboard"
                 contain
-                class="rounded border shadow-sm w-100"
-                :style="{ maxHeight: isMobileView ? '380px' : '320px' }"
+                class="rounded"
+                :style="{ maxHeight: isMobileView ? '480px' : 'auto' }"
               >
                 <template v-slot:placeholder>
                   <div class="d-flex align-center justify-center fill-height bg-grey-lighten-4">
@@ -159,7 +159,7 @@ export default {
                   </div>
                 </template>
               </v-img>
-              <div class="text-caption text-center text-medium-emphasis mt-2 font-weight-medium">
+              <div class="text-caption text-center text-medium-emphasis mt-2">
                 {{ $t('instruction.overview.screenshot_title') }} ({{ viewportStatusText }})
               </div>
             </v-card>
@@ -369,6 +369,14 @@ export default {
                     {{ $t('instruction.step3.point3') }}
                   </v-list-item-title>
                 </v-list-item>
+                <v-list-item class="px-0">
+                  <template v-slot:prepend>
+                    <v-icon icon="mdi-check-circle-outline" color="success" class="mr-3"></v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-medium text-wrap">
+                    {{ $t('instruction.step3.point4') }}
+                  </v-list-item-title>
+                </v-list-item>
               </v-list>
 
               <v-alert type="success" variant="tonal" icon="mdi-lock-outline" class="mb-4 text-caption">
@@ -517,14 +525,31 @@ export default {
             {{ $t('instruction.faq.a5') }}
           </v-expansion-panel-text>
         </v-expansion-panel>
+
+        <v-expansion-panel class="border mb-2 rounded-lg">
+          <v-expansion-panel-title class="font-weight-bold">
+            <v-icon icon="mdi-card-account-details-outline" color="primary" class="mr-2"></v-icon>
+            {{ $t('instruction.faq.q6') }}
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="text-body-2">
+            {{ $t('instruction.faq.a6') }}
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+
+        <v-expansion-panel class="border mb-2 rounded-lg">
+          <v-expansion-panel-title class="font-weight-bold">
+            <v-icon icon="mdi-file-eye-outline" color="primary" class="mr-2"></v-icon>
+            {{ $t('instruction.faq.q7') }}
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="text-body-2">
+            {{ $t('instruction.faq.a7') }}
+          </v-expansion-panel-text>
+        </v-expansion-panel>
       </v-expansion-panels>
     </v-card>
   </div>
 </template>
 
 <style scoped>
-.instruction-view {
-  max-width: 1400px;
-  margin: 0 auto;
-}
+/* Clean scoped styling matching application view container layout */
 </style>

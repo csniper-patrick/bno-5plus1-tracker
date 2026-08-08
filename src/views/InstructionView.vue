@@ -132,11 +132,35 @@ export default {
               <v-col cols="12" sm="6">
                 <v-card variant="outlined" color="primary" class="pa-3 rounded-lg h-100">
                   <div class="d-flex align-center ga-2 font-weight-bold mb-1">
-                    <v-icon icon="mdi-shield-check" color="primary"></v-icon>
+                    <v-icon icon="mdi-flag-checkered" color="primary"></v-icon>
                     {{ $t('instruction.overview.feature2_title') }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
                     {{ $t('instruction.overview.feature2_desc') }}
+                  </div>
+                </v-card>
+              </v-col>
+
+              <v-col cols="12" sm="6">
+                <v-card variant="outlined" color="primary" class="pa-3 rounded-lg h-100">
+                  <div class="d-flex align-center ga-2 font-weight-bold mb-1">
+                    <v-icon icon="mdi-calendar-clock" color="primary"></v-icon>
+                    {{ $t('instruction.overview.feature3_title') }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ $t('instruction.overview.feature3_desc') }}
+                  </div>
+                </v-card>
+              </v-col>
+
+              <v-col cols="12" sm="6">
+                <v-card variant="outlined" color="primary" class="pa-3 rounded-lg h-100">
+                  <div class="d-flex align-center ga-2 font-weight-bold mb-1">
+                    <v-icon icon="mdi-shield-check" color="primary"></v-icon>
+                    {{ $t('instruction.overview.feature4_title') }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ $t('instruction.overview.feature4_desc') }}
                   </div>
                 </v-card>
               </v-col>
@@ -476,75 +500,91 @@ export default {
       </v-card-title>
       
       <v-expansion-panels v-model="faqOpened" multiple variant="accordion" class="rounded-lg">
-        <v-expansion-panel class="border mb-2 rounded-lg">
-          <v-expansion-panel-title class="font-weight-bold">
-            <v-icon icon="mdi-calculator-variant" color="primary" class="mr-2"></v-icon>
-            {{ $t('instruction.faq.q1') }}
-          </v-expansion-panel-title>
-          <v-expansion-panel-text class="text-body-2">
-            {{ $t('instruction.faq.a1') }}
-          </v-expansion-panel-text>
-        </v-expansion-panel>
+        <v-row align="start" density="compact">
+          <v-col cols="12" md="6">
+            <v-expansion-panel class="border mb-2 rounded-lg">
+              <v-expansion-panel-title class="font-weight-bold">
+                <v-icon icon="mdi-calculator-variant" color="primary" class="mr-2"></v-icon>
+                {{ $t('instruction.faq.q1') }}
+              </v-expansion-panel-title>
+              <v-expansion-panel-text class="text-body-2">
+                {{ $t('instruction.faq.a1') }}
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-col>
 
-        <v-expansion-panel class="border mb-2 rounded-lg">
-          <v-expansion-panel-title class="font-weight-bold">
-            <v-icon icon="mdi-sync" color="primary" class="mr-2"></v-icon>
-            {{ $t('instruction.faq.q2') }}
-          </v-expansion-panel-title>
-          <v-expansion-panel-text class="text-body-2">
-            {{ $t('instruction.faq.a2') }}
-          </v-expansion-panel-text>
-        </v-expansion-panel>
+          <v-col cols="12" md="6">
+            <v-expansion-panel class="border mb-2 rounded-lg">
+              <v-expansion-panel-title class="font-weight-bold">
+                <v-icon icon="mdi-sync" color="primary" class="mr-2"></v-icon>
+                {{ $t('instruction.faq.q2') }}
+              </v-expansion-panel-title>
+              <v-expansion-panel-text class="text-body-2">
+                {{ $t('instruction.faq.a2') }}
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-col>
 
-        <v-expansion-panel class="border mb-2 rounded-lg">
-          <v-expansion-panel-title class="font-weight-bold">
-            <v-icon icon="mdi-database-lock" color="primary" class="mr-2"></v-icon>
-            {{ $t('instruction.faq.q3') }}
-          </v-expansion-panel-title>
-          <v-expansion-panel-text class="text-body-2">
-            {{ $t('instruction.faq.a3') }}
-          </v-expansion-panel-text>
-        </v-expansion-panel>
+          <v-col cols="12" md="6">
+            <v-expansion-panel class="border mb-2 rounded-lg">
+              <v-expansion-panel-title class="font-weight-bold">
+                <v-icon icon="mdi-database-lock" color="primary" class="mr-2"></v-icon>
+                {{ $t('instruction.faq.q3') }}
+              </v-expansion-panel-title>
+              <v-expansion-panel-text class="text-body-2">
+                {{ $t('instruction.faq.a3') }}
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-col>
 
-        <v-expansion-panel class="border mb-2 rounded-lg">
-          <v-expansion-panel-title class="font-weight-bold">
-            <v-icon icon="mdi-zip-box-outline" color="primary" class="mr-2"></v-icon>
-            {{ $t('instruction.faq.q4') }}
-          </v-expansion-panel-title>
-          <v-expansion-panel-text class="text-body-2">
-            {{ $t('instruction.faq.a4') }}
-          </v-expansion-panel-text>
-        </v-expansion-panel>
+          <v-col cols="12" md="6">
+            <v-expansion-panel class="border mb-2 rounded-lg">
+              <v-expansion-panel-title class="font-weight-bold">
+                <v-icon icon="mdi-zip-box-outline" color="primary" class="mr-2"></v-icon>
+                {{ $t('instruction.faq.q4') }}
+              </v-expansion-panel-title>
+              <v-expansion-panel-text class="text-body-2">
+                {{ $t('instruction.faq.a4') }}
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-col>
 
-        <v-expansion-panel class="border mb-2 rounded-lg">
-          <v-expansion-panel-title class="font-weight-bold">
-            <v-icon icon="mdi-link-variant" color="primary" class="mr-2"></v-icon>
-            {{ $t('instruction.faq.q5') }}
-          </v-expansion-panel-title>
-          <v-expansion-panel-text class="text-body-2">
-            {{ $t('instruction.faq.a5') }}
-          </v-expansion-panel-text>
-        </v-expansion-panel>
+          <v-col cols="12" md="6">
+            <v-expansion-panel class="border mb-2 rounded-lg">
+              <v-expansion-panel-title class="font-weight-bold">
+                <v-icon icon="mdi-link-variant" color="primary" class="mr-2"></v-icon>
+                {{ $t('instruction.faq.q5') }}
+              </v-expansion-panel-title>
+              <v-expansion-panel-text class="text-body-2">
+                {{ $t('instruction.faq.a5') }}
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-col>
 
-        <v-expansion-panel class="border mb-2 rounded-lg">
-          <v-expansion-panel-title class="font-weight-bold">
-            <v-icon icon="mdi-card-account-details-outline" color="primary" class="mr-2"></v-icon>
-            {{ $t('instruction.faq.q6') }}
-          </v-expansion-panel-title>
-          <v-expansion-panel-text class="text-body-2">
-            {{ $t('instruction.faq.a6') }}
-          </v-expansion-panel-text>
-        </v-expansion-panel>
+          <v-col cols="12" md="6">
+            <v-expansion-panel class="border mb-2 rounded-lg">
+              <v-expansion-panel-title class="font-weight-bold">
+                <v-icon icon="mdi-card-account-details-outline" color="primary" class="mr-2"></v-icon>
+                {{ $t('instruction.faq.q6') }}
+              </v-expansion-panel-title>
+              <v-expansion-panel-text class="text-body-2">
+                {{ $t('instruction.faq.a6') }}
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-col>
 
-        <v-expansion-panel class="border mb-2 rounded-lg">
-          <v-expansion-panel-title class="font-weight-bold">
-            <v-icon icon="mdi-file-eye-outline" color="primary" class="mr-2"></v-icon>
-            {{ $t('instruction.faq.q7') }}
-          </v-expansion-panel-title>
-          <v-expansion-panel-text class="text-body-2">
-            {{ $t('instruction.faq.a7') }}
-          </v-expansion-panel-text>
-        </v-expansion-panel>
+          <v-col cols="12" md="6">
+            <v-expansion-panel class="border mb-2 rounded-lg">
+              <v-expansion-panel-title class="font-weight-bold">
+                <v-icon icon="mdi-file-eye-outline" color="primary" class="mr-2"></v-icon>
+                {{ $t('instruction.faq.q7') }}
+              </v-expansion-panel-title>
+              <v-expansion-panel-text class="text-body-2">
+                {{ $t('instruction.faq.a7') }}
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-col>
+        </v-row>
       </v-expansion-panels>
     </v-card>
   </div>

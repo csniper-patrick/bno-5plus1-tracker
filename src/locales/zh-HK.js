@@ -385,6 +385,8 @@ export default {
     preview_title: '檔案預覽',
     preview_unsupported: '此檔案格式暫不支援預覽。',
     preview_download_instead: '請點擊「下載」檢視此檔案。',
+    open_new_tab: '在新分頁開啟',
+    open_pdf_mobile: '在全螢幕開啟 PDF 文件',
 
     // 儲存空間
     storage_used: '已使用空間',

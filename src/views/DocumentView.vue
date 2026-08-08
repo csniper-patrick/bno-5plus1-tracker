@@ -7,9 +7,7 @@ import {
   formatFileSize,
   createFileURL,
   ALLOWED_EXTENSIONS,
-  MAX_FILE_SIZE,
 } from '../services/fileStorageService'
-
 export default {
   name: 'DocumentView',
 
@@ -108,7 +106,9 @@ export default {
         show: false,
         file: null,
         objectUrl: null,
+        fileData: null,
         loading: false,
+        isFullscreen: false,
       },
 
       // File Rename Dialog state
@@ -906,12 +906,15 @@ export default {
         show: true,
         file: fileMeta,
         objectUrl: null,
+        fileData: null,
         loading: true,
+        isFullscreen: false,
       }
 
       try {
         const fullRecord = await this.documentsStore.getFullFileRecord(fileMeta.id)
         if (fullRecord && fullRecord.data) {
+          this.filePreviewDialog.fileData = fullRecord.data
           this.filePreviewDialog.objectUrl = createFileURL(fullRecord)
         }
       } catch (e) {
@@ -932,7 +935,19 @@ export default {
         show: false,
         file: null,
         objectUrl: null,
+        fileData: null,
         loading: false,
+        isFullscreen: false,
+      }
+    },
+
+    /**
+     * Opens an object URL or link in a new browser tab/window.
+     * @param {string} url - Target URL.
+     */
+    openInNewTab(url) {
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer')
       }
     },
 
@@ -2581,24 +2596,35 @@ export default {
     <!-- File Preview Dialog -->
     <v-dialog
       v-model="filePreviewDialog.show"
-      max-width="800px"
+      max-width="1100px"
+      width="92vw"
       @update:model-value="
         (v) => {
           if (!v) closeFilePreview()
         }
       "
     >
-      <v-card elevation="2" class="rounded-lg" color="surface">
+      <v-card elevation="4" class="rounded-lg" color="surface">
         <v-card-title class="d-flex align-center ga-2 pa-3">
           <v-icon
             v-if="filePreviewDialog.file"
             :icon="getFileIcon(filePreviewDialog.file.mimeType)"
             :color="getFileColor(filePreviewDialog.file.mimeType)"
           ></v-icon>
-          <span class="font-weight-bold text-h6 text-truncate">
+          <span class="font-weight-bold text-h6 text-truncate" style="max-width: 65%">
             {{ filePreviewDialog.file?.name || $t('document.preview_title') }}
           </span>
           <v-spacer></v-spacer>
+
+          <v-btn
+            v-if="filePreviewDialog.objectUrl"
+            icon="mdi-open-in-new"
+            variant="text"
+            size="small"
+            :title="$t('document.open_new_tab')"
+            @click="openInNewTab(filePreviewDialog.objectUrl)"
+          ></v-btn>
+
           <v-btn
             v-if="filePreviewDialog.file"
             icon="mdi-download"
@@ -2610,13 +2636,17 @@ export default {
           <v-btn icon="mdi-close" variant="text" size="small" @click="closeFilePreview"></v-btn>
         </v-card-title>
         <v-divider></v-divider>
-        <v-card-text class="pa-0" style="min-height: 300px; max-height: 70vh; overflow: auto">
+
+        <v-card-text
+          class="pa-0"
+          style="min-height: 320px; max-height: 80vh; overflow: auto"
+        >
           <div
             v-if="filePreviewDialog.loading"
             class="d-flex justify-center align-center"
-            style="min-height: 300px"
+            style="min-height: 320px"
           >
-            <v-progress-circular indeterminate color="primary"></v-progress-circular>
+            <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
           </div>
           <template v-else-if="filePreviewDialog.objectUrl && filePreviewDialog.file">
             <!-- Image Preview -->
@@ -2624,30 +2654,66 @@ export default {
               v-if="filePreviewDialog.file.mimeType?.startsWith('image/')"
               :src="filePreviewDialog.objectUrl"
               :alt="filePreviewDialog.file.name"
-              class="d-block mx-auto"
-              style="max-width: 100%; max-height: 65vh; object-fit: contain"
+              class="d-block mx-auto pa-2"
+              style="max-width: 100%; max-height: 75vh; object-fit: contain"
             />
+
             <!-- PDF Preview -->
-            <iframe
+            <div
               v-else-if="filePreviewDialog.file.mimeType === 'application/pdf'"
-              :src="filePreviewDialog.objectUrl"
-              style="width: 100%; height: 65vh; border: none"
-            ></iframe>
+              class="d-flex flex-column h-100"
+            >
+              <!-- Mobile Notice & Open Direct Button -->
+              <div
+                v-if="$vuetify.display.mobile"
+                class="pa-4 bg-primary-lighten-5 d-flex flex-column align-center ga-2 text-center border-b"
+              >
+                <v-icon icon="mdi-file-pdf-box" size="36" color="primary"></v-icon>
+                <div class="text-caption font-weight-medium text-truncate" style="max-width: 90%">
+                  {{ filePreviewDialog.file.name }}
+                </div>
+                <v-btn
+                  color="primary"
+                  prepend-icon="mdi-open-in-new"
+                  variant="elevated"
+                  size="small"
+                  @click="openInNewTab(filePreviewDialog.objectUrl)"
+                >
+                  {{ $t('document.open_pdf_mobile') }}
+                </v-btn>
+              </div>
+
+              <!-- Desktop & Embedded PDF Iframe -->
+              <iframe
+                :src="filePreviewDialog.objectUrl"
+                style="width: 100%; height: 75vh; border: none; min-height: 350px"
+              ></iframe>
+            </div>
+
             <!-- Unsupported -->
-            <div v-else class="text-center py-8">
-              <v-icon icon="mdi-file-question-outline" size="48" color="grey" class="mb-3"></v-icon>
-              <div class="text-body-2 text-medium-emphasis">
+            <div v-else class="text-center py-10 px-4">
+              <v-icon icon="mdi-file-question-outline" size="56" color="grey" class="mb-3"></v-icon>
+              <div class="text-subtitle-1 font-weight-bold text-medium-emphasis">
                 {{ $t('document.preview_unsupported') }}
               </div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-caption text-medium-emphasis mb-4">
                 {{ $t('document.preview_download_instead') }}
               </div>
+              <v-btn
+                color="primary"
+                prepend-icon="mdi-download"
+                @click="downloadFile(filePreviewDialog.file)"
+              >
+                {{ $t('document.file_download') }}
+              </v-btn>
             </div>
           </template>
         </v-card-text>
+
+        <v-divider></v-divider>
         <v-card-text
           v-if="filePreviewDialog.file"
-          class="pa-3 text-caption text-medium-emphasis d-flex ga-4 flex-wrap"
+          class="pa-3 text-caption text-medium-emphasis d-flex ga-4 flex-wrap bg-surface-variant"
         >
           <span>{{ formatSize(filePreviewDialog.file.size) }}</span>
           <span>{{ filePreviewDialog.file.mimeType }}</span>

@@ -1,5 +1,12 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { describe, it, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
+
+if (typeof globalThis.window === 'undefined') {
+  globalThis.window = globalThis
+}
+import 'fake-indexeddb/auto'
 import { setActivePinia, createPinia } from 'pinia'
 
 import { useAbsentsStore } from '../src/stores/absents.js'
@@ -314,5 +321,35 @@ describe('End-to-End User Flow 2: Document Vault, Address Log & Backup Restores'
     assert.notStrictEqual(preservedGp, undefined)
     assert.strictEqual(preservedGp.isCustom, true)
     assert.strictEqual(preservedGp.notes, 'Saved')
+  })
+
+  it('should store, retrieve, and process PDF binary file data (eagle-2.pdf test material)', async () => {
+    const pdfPath = path.join(process.cwd(), 'eagle-2.pdf')
+    assert.strictEqual(fs.existsSync(pdfPath), true, 'eagle-2.pdf must exist in project root')
+
+    const fileBuffer = fs.readFileSync(pdfPath)
+    const arrayBuffer = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength)
+
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const documentsStore = useDocumentsStore()
+    await documentsStore.initStore()
+
+    const mockFileObj = {
+      name: 'eagle-2.pdf',
+      type: 'application/pdf',
+      size: fileBuffer.length,
+      arrayBuffer: async () => arrayBuffer,
+    }
+
+    const savedRecord = await documentsStore.uploadFile(mockFileObj, 'year_1')
+    assert.ok(savedRecord.id)
+    assert.strictEqual(savedRecord.mimeType, 'application/pdf')
+    assert.strictEqual(savedRecord.name, 'eagle-2.pdf')
+
+    const fullRecord = await documentsStore.getFullFileRecord(savedRecord.id)
+    assert.notStrictEqual(fullRecord, null)
+    assert.ok(fullRecord.data instanceof ArrayBuffer || fullRecord.data instanceof Uint8Array)
+    assert.strictEqual(fullRecord.data.byteLength, fileBuffer.length)
   })
 })

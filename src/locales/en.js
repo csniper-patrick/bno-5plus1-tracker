@@ -396,6 +396,8 @@ export default {
     preview_title: 'File Preview',
     preview_unsupported: 'Preview not available for this file type.',
     preview_download_instead: 'Click Download to view this file.',
+    open_new_tab: 'Open in new tab',
+    open_pdf_mobile: 'View Full PDF in Mobile Reader',
 
     // Storage usage
     storage_used: 'Storage Used',

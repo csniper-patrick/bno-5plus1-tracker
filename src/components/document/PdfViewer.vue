@@ -156,12 +156,6 @@
 </template>
 
 <script>
-import * as pdfjsLib from 'pdfjs-dist'
-import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url'
-
-// Configure worker src synchronously at module level
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
-
 export default {
   name: 'PdfViewer',
   props: {
@@ -228,11 +222,17 @@ export default {
   },
   methods: {
     async loadPdf() {
+      if (typeof window === 'undefined') return
+
       this.loading = true
       this.error = null
       this.destroyPdf()
 
       try {
+        const pdfjsLib = await import('pdfjs-dist')
+        const pdfWorkerModule = await import('pdfjs-dist/build/pdf.worker.mjs?url')
+        pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerModule.default
+
         let loadingTask = null
         if (this.fileData) {
           const dataArray = this.fileData instanceof Uint8Array

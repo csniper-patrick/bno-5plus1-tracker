@@ -48,6 +48,7 @@ export function exportFullBackup(absentsStore, documentsStore) {
     documents: {
       lifeInUk: documentsStore.lifeInUk,
       englishTest: documentsStore.englishTest,
+      nationalInsurance: documentsStore.nationalInsurance,
       residenceChecklist: documentsStore.residenceChecklist,
       addressHistory: documentsStore.addressHistory,
     },
@@ -83,6 +84,9 @@ export function exportFullBackup(absentsStore, documentsStore) {
             } else if (docKey === 'englishTest') {
               docPair.key.commentBefore =
                 ' English B1 Language Requirement (type: b1_selt | uk_degree | enic_statement | exempt)'
+            } else if (docKey === 'nationalInsurance') {
+              docPair.key.commentBefore =
+                ' National Insurance (NI) Record & Application Status (status: not_applied | applied | received)'
             } else if (docKey === 'residenceChecklist') {
               docPair.key.commentBefore =
                 ' 5-Year Continuous Residence Evidence Checklist (Years 1 to 5, importance: essential | recommended | supporting)'

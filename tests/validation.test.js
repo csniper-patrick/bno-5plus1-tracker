@@ -49,6 +49,7 @@ describe('Data Validation & Schema Enforcement Unit Tests', () => {
         documents: {
           lifeInUk: { status: 'passed', testDate: '2024-05-10', urn: 'LITUK-123456' },
           englishTest: { type: 'b1_selt', status: 'passed', provider: 'Trinity', referenceNo: 'REF-123' },
+          nationalInsurance: { number: 'QQ 12 34 56 A', status: 'received' },
           addressHistory: [
             {
               addressLine1: '10 Downing Street',

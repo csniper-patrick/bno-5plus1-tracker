@@ -6,6 +6,7 @@ import { parseDateUTC } from '../utils/date.js'
 
 const ALLOWED_HOUSING_STATUSES = ['rented', 'owned', 'with_family', 'other']
 const ALLOWED_QUAL_STATUSES = ['not_started', 'scheduled', 'passed']
+const ALLOWED_NIN_STATUSES = ['not_applied', 'applied', 'received']
 const ALLOWED_ENGLISH_TYPES = ['b1_selt', 'uk_degree', 'enic_statement', 'exempt']
 const ALLOWED_IMPORTANCE = ['essential', 'recommended', 'supporting']
 const ALLOWED_CHECKLIST_STATUSES = ['pending', 'collected', 'not_applicable']
@@ -145,6 +146,13 @@ export function validateBackupData(data) {
     }
     if (testDate && !isValidDateStr(testDate)) {
       errors.push(`documents.englishTest: Invalid "testDate" ("${testDate}"). Expected format YYYY-MM-DD.`)
+    }
+  }
+
+  if (docObj.nationalInsurance && typeof docObj.nationalInsurance === 'object') {
+    const { status } = docObj.nationalInsurance
+    if (status && !ALLOWED_NIN_STATUSES.includes(status)) {
+      warnings.push(`documents.nationalInsurance: Unknown status "${status}". Resetting to default.`)
     }
   }
 

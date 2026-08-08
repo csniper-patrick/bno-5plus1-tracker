@@ -18,6 +18,7 @@ const DEFAULT_FOLDERS = [
   { id: 'life_in_uk', label: 'Life in UK', icon: 'mdi-book-education-outline' },
   { id: 'english_b1', label: 'English B1', icon: 'mdi-translate' },
   { id: 'addresses', label: 'Addresses', icon: 'mdi-home-city-outline' },
+  { id: 'nhs', label: 'NHS', icon: 'mdi-hospital-building' },
   { id: 'other', label: 'Other', icon: 'mdi-folder-outline' },
 ]
 
@@ -205,6 +206,13 @@ export const useDocumentsStore = defineStore('documents', () => {
     notes: '',
   })
 
+  /** National Insurance (NIN/NINO) Record State */
+  const nationalInsurance = ref({
+    number: '',
+    status: 'not_applied', // 'not_applied' | 'applied' | 'received'
+    notes: '',
+  })
+
   /** 5-Year Continuous Residence Evidence Checklist State */
   const residenceChecklist = ref(getDefaultResidenceChecklist())
 
@@ -224,6 +232,7 @@ export const useDocumentsStore = defineStore('documents', () => {
     if (savedData && typeof savedData === 'object') {
       if (savedData.lifeInUk) lifeInUk.value = savedData.lifeInUk
       if (savedData.englishTest) englishTest.value = savedData.englishTest
+      if (savedData.nationalInsurance) nationalInsurance.value = savedData.nationalInsurance
       if (savedData.residenceChecklist) {
         residenceChecklist.value = sanitizeResidenceChecklist(
           savedData.residenceChecklist,
@@ -260,6 +269,7 @@ export const useDocumentsStore = defineStore('documents', () => {
     const payload = {
       lifeInUk: lifeInUk.value,
       englishTest: englishTest.value,
+      nationalInsurance: nationalInsurance.value,
       residenceChecklist: residenceChecklist.value,
       addressHistory: addressHistory.value,
     }
@@ -273,6 +283,14 @@ export const useDocumentsStore = defineStore('documents', () => {
 
   function updateEnglishTest(payload) {
     englishTest.value = { ...englishTest.value, ...payload }
+    saveToStorage()
+  }
+
+  function updateNationalInsurance(payload) {
+    nationalInsurance.value = { ...nationalInsurance.value, ...payload }
+    if (payload && payload.number) {
+      nationalInsurance.value.number = String(payload.number).toUpperCase()
+    }
     saveToStorage()
   }
 
@@ -622,6 +640,15 @@ export const useDocumentsStore = defineStore('documents', () => {
       importedCount++
     }
 
+    if (docObj.nationalInsurance && typeof docObj.nationalInsurance === 'object') {
+      nationalInsurance.value = {
+        ...nationalInsurance.value,
+        ...docObj.nationalInsurance,
+        number: docObj.nationalInsurance.number ? String(docObj.nationalInsurance.number).toUpperCase() : '',
+      }
+      importedCount++
+    }
+
     if (docObj.residenceChecklist && typeof docObj.residenceChecklist === 'object') {
       residenceChecklist.value = sanitizeResidenceChecklist(
         docObj.residenceChecklist,
@@ -689,6 +716,11 @@ export const useDocumentsStore = defineStore('documents', () => {
       status: 'not_started',
       referenceNo: '',
       testDate: '',
+      notes: '',
+    }
+    nationalInsurance.value = {
+      number: '',
+      status: 'not_applied',
       notes: '',
     }
     residenceChecklist.value = getDefaultResidenceChecklist()
@@ -787,6 +819,7 @@ export const useDocumentsStore = defineStore('documents', () => {
 
   watch(lifeInUk, () => saveToStorage(), { deep: true })
   watch(englishTest, () => saveToStorage(), { deep: true })
+  watch(nationalInsurance, () => saveToStorage(), { deep: true })
   watch(residenceChecklist, () => saveToStorage(), { deep: true })
   watch(addressHistory, () => saveToStorage(), { deep: true })
 
@@ -795,12 +828,14 @@ export const useDocumentsStore = defineStore('documents', () => {
     initStore,
     lifeInUk,
     englishTest,
+    nationalInsurance,
     residenceChecklist,
     addressHistory,
     uploadedFiles,
     folders,
     updateLifeInUk,
     updateEnglishTest,
+    updateNationalInsurance,
     updateDocumentItem,
     addCustomDocumentItem,
     deleteDocumentItem,

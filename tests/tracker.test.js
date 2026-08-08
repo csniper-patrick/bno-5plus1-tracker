@@ -778,6 +778,37 @@ describe('Document Store Helper Operations', () => {
     await docStore.deleteAddress(addr.id)
     assert.strictEqual(docStore.getFilesForAddress(addr.id).length, 0)
   })
+
+  it('should manage National Insurance number state and NHS vault folder', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const docStore = useDocumentsStore()
+    await docStore.initStore()
+
+    // Verify NHS folder exists in store folders
+    const nhsFolder = docStore.folders.find((f) => f.id === 'nhs')
+    assert.notStrictEqual(nhsFolder, undefined)
+    assert.strictEqual(nhsFolder.label, 'NHS')
+
+    // Initial state
+    assert.strictEqual(docStore.nationalInsurance.status, 'not_applied')
+    assert.strictEqual(docStore.nationalInsurance.number, '')
+
+    // Update National Insurance details
+    docStore.updateNationalInsurance({
+      number: 'qq 12 34 56 a',
+      status: 'received',
+      notes: 'HMRC confirmation letter received',
+    })
+
+    assert.strictEqual(docStore.nationalInsurance.number, 'QQ 12 34 56 A')
+    assert.strictEqual(docStore.nationalInsurance.status, 'received')
+
+    // Reset store
+    docStore.resetAll()
+    assert.strictEqual(docStore.nationalInsurance.number, '')
+    assert.strictEqual(docStore.nationalInsurance.status, 'not_applied')
+  })
 })
 
 describe('Backup Service Parsing & Error Handling', () => {

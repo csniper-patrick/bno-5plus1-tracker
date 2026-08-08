@@ -36,6 +36,12 @@ export default {
         notes: '',
       },
 
+      ninForm: {
+        number: '',
+        status: 'not_applied',
+        notes: '',
+      },
+
       // Custom document dialog state
       customDocDialog: {
         show: false,
@@ -164,6 +170,10 @@ export default {
       return this.documentsStore.englishTest
     },
 
+    nationalInsurance() {
+      return this.documentsStore.nationalInsurance
+    },
+
     residenceChecklist() {
       return this.documentsStore.residenceChecklist
     },
@@ -190,6 +200,7 @@ export default {
         this.$t('document.cat_medical_government'),
         this.$t('document.cat_education_employment'),
         this.$t('document.cat_medical_insurance'),
+        this.$t('document.cat_nhs'),
         this.$t('document.cat_custom'),
       ]
     },
@@ -337,6 +348,27 @@ export default {
     },
   },
 
+  watch: {
+    lifeInUk: {
+      handler(val) {
+        if (val) this.lifeForm = { ...val }
+      },
+      deep: true,
+    },
+    englishTest: {
+      handler(val) {
+        if (val) this.englishForm = { ...val }
+      },
+      deep: true,
+    },
+    nationalInsurance: {
+      handler(val) {
+        if (val) this.ninForm = { ...val }
+      },
+      deep: true,
+    },
+  },
+
   mounted() {
     this.syncFormsFromStore()
   },
@@ -348,6 +380,7 @@ export default {
     syncFormsFromStore() {
       this.lifeForm = { ...this.documentsStore.lifeInUk }
       this.englishForm = { ...this.documentsStore.englishTest }
+      this.ninForm = { ...this.documentsStore.nationalInsurance }
     },
 
     /**
@@ -377,6 +410,23 @@ export default {
     saveEnglishTest() {
       this.documentsStore.updateEnglishTest(this.englishForm)
       this.showSnackbar(this.$t('document.english_saved'), 'success')
+    },
+
+    saveNationalInsurance() {
+      this.documentsStore.updateNationalInsurance(this.ninForm)
+      this.showSnackbar(this.$t('document.nin_saved'), 'success')
+    },
+
+    getNinStatusText(status) {
+      switch (status) {
+        case 'received':
+          return this.$t('document.status_received')
+        case 'applied':
+          return this.$t('document.status_applied')
+        case 'not_applied':
+        default:
+          return this.$t('document.status_not_applied')
+      }
     },
 
     /**
@@ -661,6 +711,9 @@ export default {
           return this.$t('document.cat_utilities')
         case 'Medical & Government':
           return this.$t('document.cat_medical_government')
+        case 'NHS':
+        case 'cat_nhs':
+          return this.$t('document.cat_nhs')
         // Legacy categories from pre-audit data
         case 'Official Housing':
           return this.$t('document.cat_official_government')
@@ -1356,10 +1409,10 @@ export default {
       </v-row>
     </v-card>
 
-    <!-- Qualifications Section -->
+    <!-- Qualifications & Official Identifiers Section -->
     <v-row class="mb-6">
       <!-- Life in the UK Card -->
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="4">
         <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
           <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
             <v-icon icon="mdi-book-open-page-variant" color="primary"></v-icon>
@@ -1458,7 +1511,7 @@ export default {
       </v-col>
 
       <!-- English Language Requirement Card -->
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="4">
         <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
           <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
             <v-icon icon="mdi-translate" color="primary"></v-icon>
@@ -1583,6 +1636,83 @@ export default {
                   rows="2"
                   hide-details="auto"
                   @change="saveEnglishTest"
+                ></v-textarea>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- National Insurance Card -->
+      <v-col cols="12" md="4">
+        <v-card elevation="2" class="pa-3 rounded-lg bg-surface h-100">
+          <v-card-title class="px-0 pt-0 d-flex align-center ga-2">
+            <v-icon icon="mdi-card-account-details-outline" color="primary"></v-icon>
+            <span class="text-h5 font-weight-bold">{{ $t('document.national_insurance') }}</span>
+            <v-spacer></v-spacer>
+            <v-chip
+              :color="getStatusColor(ninForm.status === 'received' ? 'passed' : ninForm.status === 'applied' ? 'scheduled' : 'not_started')"
+              size="small"
+              variant="flat"
+              class="font-weight-bold"
+            >
+              {{ getNinStatusText(ninForm.status) }}
+            </v-chip>
+          </v-card-title>
+          <v-card-text class="px-0 pb-0">
+            <p class="text-caption text-medium-emphasis mb-4">
+              {{ $t('document.nin_desc') }}
+            </p>
+
+            <div class="mb-4">
+              <label class="text-caption font-weight-bold d-block mb-1">{{
+                $t('document.nin_status')
+              }}</label>
+              <v-btn-toggle
+                v-model="ninForm.status"
+                mandatory
+                color="primary"
+                density="compact"
+                class="w-100"
+                @update:model-value="saveNationalInsurance"
+              >
+                <v-btn value="not_applied" class="flex-grow-1" size="small">{{
+                  $t('document.status_not_applied')
+                }}</v-btn>
+                <v-btn value="applied" class="flex-grow-1" size="small">{{
+                  $t('document.status_applied')
+                }}</v-btn>
+                <v-btn value="received" class="flex-grow-1" color="success" size="small">{{
+                  $t('document.status_received')
+                }}</v-btn>
+              </v-btn-toggle>
+            </div>
+
+            <v-row density="compact">
+              <v-col cols="12">
+                <v-text-field
+                  v-model="ninForm.number"
+                  :label="$t('document.nin_number')"
+                  :placeholder="$t('document.nin_placeholder')"
+                  variant="outlined"
+                  density="compact"
+                  hide-details="auto"
+                  class="mb-3 text-uppercase"
+                  @change="saveNationalInsurance"
+                  @input="ninForm.number = (ninForm.number || '').toUpperCase()"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12">
+                <v-textarea
+                  v-model="ninForm.notes"
+                  :label="$t('document.notes')"
+                  placeholder="Add DWP application reference, HMRC account details..."
+                  variant="outlined"
+                  density="compact"
+                  rows="2"
+                  hide-details="auto"
+                  @change="saveNationalInsurance"
                 ></v-textarea>
               </v-col>
             </v-row>

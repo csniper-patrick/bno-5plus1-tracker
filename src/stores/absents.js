@@ -1165,14 +1165,17 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /** Exports key dates and absence records to a YAML string. */
-  function exportYAML() {
-    return exportAbsencesBackup({
-      absences: absences.value,
-      visaStartDate: visaStartDate.value,
-      visaExpiryDate: visaExpiryDate.value,
-      ukArrivalDate: ukArrivalDate.value,
-      ilrApprovedDate: ilrApprovedDate.value,
-    })
+  function exportYAML(profileNameOrStore = '') {
+    return exportAbsencesBackup(
+      {
+        absences: absences.value,
+        visaStartDate: visaStartDate.value,
+        visaExpiryDate: visaExpiryDate.value,
+        ukArrivalDate: ukArrivalDate.value,
+        ilrApprovedDate: ilrApprovedDate.value,
+      },
+      profileNameOrStore,
+    )
   }
 
   /** Imports absence records and visa/arrival dates from a YAML string or pre-parsed object. */

@@ -26,8 +26,25 @@ function mapAbsenceRecord(item) {
   return record
 }
 
-export function exportFullBackup(absentsStore, documentsStore) {
-  const userAbsences = absentsStore.absences
+function resolveProfileName(profileNameOrStore, absentsStore) {
+  if (typeof profileNameOrStore === 'string') {
+    return profileNameOrStore
+  }
+  if (profileNameOrStore && profileNameOrStore.activeProfile && profileNameOrStore.activeProfile.name) {
+    return profileNameOrStore.activeProfile.name
+  }
+  if (profileNameOrStore && typeof profileNameOrStore.name === 'string') {
+    return profileNameOrStore.name
+  }
+  if (absentsStore && absentsStore.profileName) {
+    return absentsStore.profileName
+  }
+  return ''
+}
+
+export function exportFullBackup(absentsStore, documentsStore, profileNameOrStore = '') {
+  const profileName = resolveProfileName(profileNameOrStore, absentsStore)
+  const userAbsences = (absentsStore.absences || [])
     .filter((item) => !item.isAutoArrival && item.id !== 'auto_uk_arrival_record')
     .map(mapAbsenceRecord)
 
@@ -37,9 +54,14 @@ export function exportFullBackup(absentsStore, documentsStore) {
     ' Date format for all dates: YYYY-MM-DD\n' +
     ' Keep this file safe as a backup for your ILR & Naturalisation applications.'
 
-  const rootMap = doc.createNode({
+  const rootData = {
     version: '1.0',
     exportedAt: new Date().toISOString(),
+  }
+  if (profileName) {
+    rootData.profile_name = profileName
+  }
+  Object.assign(rootData, {
     visa_start_date: absentsStore.visaStartDate || '',
     visa_expiry_date: absentsStore.visaExpiryDate || '',
     uk_arrival_date: absentsStore.ukArrivalDate || '',
@@ -54,6 +76,8 @@ export function exportFullBackup(absentsStore, documentsStore) {
     },
   })
 
+  const rootMap = doc.createNode(rootData)
+
   if (rootMap && rootMap.items) {
     rootMap.items.forEach((pair, idx) => {
       const k = pair.key && pair.key.value !== undefined ? pair.key.value : pair.key
@@ -61,6 +85,8 @@ export function exportFullBackup(absentsStore, documentsStore) {
         pair.key.commentBefore = ' Backup Schema Version'
       } else if (k === 'exportedAt') {
         pair.key.commentBefore = ' ISO Timestamp when backup was generated'
+      } else if (k === 'profile_name') {
+        pair.key.commentBefore = ' Profile Name'
       } else if (k === 'visa_start_date') {
         pair.key.commentBefore = ' BNO Visa Start Date (YYYY-MM-DD)'
       } else if (k === 'visa_expiry_date') {
@@ -114,10 +140,12 @@ export function exportFullBackup(absentsStore, documentsStore) {
  * Generates an absence-only YAML backup string.
  *
  * @param {Object} absentsStore - Pinia absents store instance.
+ * @param {string|Object} [profileNameOrStore=''] - Active profile name or profile store.
  * @returns {string} Formatted YAML string.
  */
-export function exportAbsencesBackup(absentsStore) {
-  const userAbsences = absentsStore.absences
+export function exportAbsencesBackup(absentsStore, profileNameOrStore = '') {
+  const profileName = resolveProfileName(profileNameOrStore, absentsStore)
+  const userAbsences = (absentsStore.absences || [])
     .filter((item) => !item.isAutoArrival && item.id !== 'auto_uk_arrival_record')
     .map(mapAbsenceRecord)
 
@@ -125,7 +153,11 @@ export function exportAbsencesBackup(absentsStore) {
   doc.commentBefore =
     ' BNO 5+1 Absence Tracker - Data Export\n Format for all date fields: YYYY-MM-DD'
 
-  const contentMap = doc.createNode({
+  const contentData = {}
+  if (profileName) {
+    contentData.profile_name = profileName
+  }
+  Object.assign(contentData, {
     visa_start_date: absentsStore.visaStartDate || '',
     visa_expiry_date: absentsStore.visaExpiryDate || '',
     uk_arrival_date: absentsStore.ukArrivalDate || '',
@@ -133,10 +165,14 @@ export function exportAbsencesBackup(absentsStore) {
     absences: userAbsences,
   })
 
+  const contentMap = doc.createNode(contentData)
+
   if (contentMap && contentMap.items) {
     contentMap.items.forEach((pair, idx) => {
       const k = pair.key && pair.key.value !== undefined ? pair.key.value : pair.key
-      if (k === 'visa_start_date') {
+      if (k === 'profile_name') {
+        pair.key.commentBefore = ' Profile Name'
+      } else if (k === 'visa_start_date') {
         pair.key.commentBefore = ' BNO Visa Start Date (YYYY-MM-DD)'
       } else if (k === 'visa_expiry_date') {
         pair.key.commentBefore = ' BNO Visa Expiry Date, if applicable (YYYY-MM-DD)'

@@ -14,13 +14,14 @@ import { generateId } from '../utils/id.js'
  *
  * @param {Object} absentsStore - Pinia absents store instance.
  * @param {Object} documentsStore - Pinia documents store instance.
+ * @param {string} [profileName=''] - Active profile name.
  * @returns {Promise<{ blob: Blob, fileCount: number }>}
  */
-export async function exportZipBackup(absentsStore, documentsStore) {
+export async function exportZipBackup(absentsStore, documentsStore, profileName = '') {
   const zip = new JSZip()
 
   // 1. Generate full YAML backup string and add to root of zip
-  const yamlContent = exportFullBackup(absentsStore, documentsStore)
+  const yamlContent = exportFullBackup(absentsStore, documentsStore, profileName)
   zip.file('backup.yaml', yamlContent)
 
   // 2. Fetch all document files with binary data from IndexedDB

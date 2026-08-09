@@ -201,6 +201,32 @@ describe('Backup Service', () => {
     assert.strictEqual(parsed.absences.length, 1)
     assert.strictEqual(parsed.absences[0].dest, 'Japan')
   })
+
+  it('should include profile_name in exported YAML backup when profile name is provided', () => {
+    const fakeAbsentsStore = {
+      absences: [{ id: '1', startDate: '2023-05-10', endDate: '2023-05-20', dest: 'Japan' }],
+      visaStartDate: '2022-01-01',
+      ukArrivalDate: '2022-01-10',
+    }
+
+    const yamlStr = exportAbsencesBackup(fakeAbsentsStore, 'Alice Smith')
+    assert.ok(yamlStr.includes('profile_name: Alice Smith'))
+    const parsed = parseYAML(yamlStr)
+    assert.strictEqual(parsed.profile_name, 'Alice Smith')
+
+    const fakeDocsStore = {
+      lifeInUk: { status: 'passed' },
+      englishTest: { status: 'passed' },
+      nationalInsurance: { status: 'received' },
+      residenceChecklist: {},
+      addressHistory: [],
+    }
+
+    const fullYamlStr = exportFullBackup(fakeAbsentsStore, fakeDocsStore, 'Bob Tan')
+    assert.ok(fullYamlStr.includes('profile_name: Bob Tan'))
+    const parsedFull = parseYAML(fullYamlStr)
+    assert.strictEqual(parsedFull.profile_name, 'Bob Tan')
+  })
 })
 
 describe('Absents Store Reactivity', () => {

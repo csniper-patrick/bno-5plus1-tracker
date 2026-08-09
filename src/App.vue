@@ -123,7 +123,11 @@ export default {
      */
     async exportAllData() {
       try {
-        const { blob, fileCount } = await exportZipBackup(this.absentsStore, this.documentsStore)
+        const { blob, fileCount } = await exportZipBackup(
+          this.absentsStore,
+          this.documentsStore,
+          this.profilesStore.activeProfile && this.profilesStore.activeProfile.name,
+        )
 
         const rawProfileName = (this.profilesStore.activeProfile && this.profilesStore.activeProfile.name) || ''
         const safeProfileName = rawProfileName.trim().replace(/[^a-zA-Z0-9_\-\u4e00-\u9fa5]/g, '_').replace(/_+/g, '_')
@@ -399,6 +403,12 @@ export default {
               <v-list-item-title class="font-weight-bold text-caption">
                 {{ $t('app.export_data') }}
               </v-list-item-title>
+              <v-list-item-subtitle
+                v-if="profilesStore.activeProfile && profilesStore.activeProfile.name"
+                class="text-caption text-medium-emphasis text-truncate"
+              >
+                {{ profilesStore.activeProfile.name }}
+              </v-list-item-subtitle>
             </v-list-item>
 
             <v-list-item rounded="lg" class="mb-1" @click="triggerImport">

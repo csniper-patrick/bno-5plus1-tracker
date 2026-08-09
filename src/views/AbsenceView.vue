@@ -1,6 +1,7 @@
 <script>
 import { mapStores } from 'pinia'
 import { useAbsentsStore } from '../stores/absents'
+import { useProfilesStore } from '../stores/profiles'
 import { normalizeDate, calculateDays, getMaxSegmentTreeReturnDate } from '../utils/date'
 
 /**
@@ -85,8 +86,8 @@ export default {
   },
 
   computed: {
-    // Generates this.absentsStore mapping to Pinia store
-    ...mapStores(useAbsentsStore),
+    // Generates this.absentsStore and this.profilesStore mapping to Pinia store
+    ...mapStores(useAbsentsStore, useProfilesStore),
 
     /**
      * Returns stored absences list sorted according to tableSortBy and tableSortOrder.
@@ -662,12 +663,18 @@ export default {
      */
     exportYamlFile() {
       try {
-        const yamlContent = this.absentsStore.exportYAML()
+        const rawProfileName =
+          (this.profilesStore && this.profilesStore.activeProfile && this.profilesStore.activeProfile.name) || ''
+        const yamlContent = this.absentsStore.exportYAML(rawProfileName)
+        const safeProfileName = rawProfileName.trim().replace(/[^a-zA-Z0-9_\-\u4e00-\u9fa5]/g, '_').replace(/_+/g, '_')
+        const profileSuffix = safeProfileName ? `${safeProfileName}_` : ''
+        const dateStr = new Date().toISOString().split('T')[0]
+
         const blob = new Blob([yamlContent], { type: 'text/yaml;charset=utf-8;' })
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
-        link.setAttribute('download', 'bno-absences-data.yaml')
+        link.setAttribute('download', `bno-absences-data_${profileSuffix}${dateStr}.yaml`)
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)

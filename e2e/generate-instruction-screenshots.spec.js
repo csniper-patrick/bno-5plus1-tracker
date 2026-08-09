@@ -262,6 +262,21 @@ test.describe('Generate InstructionView Screenshots', () => {
       path: path.join(outputDir, 'step5_reference.png'),
       fullPage: false
     })
+
+    // 7. step5_profiles.png
+    await page.goto('/')
+    await page.waitForTimeout(400)
+    await page.click('button[title="Navigation Menu"]')
+    await page.waitForTimeout(500)
+    const chevron = page.locator('button[title="Switch Profile"]')
+    if (await chevron.isVisible()) {
+      await chevron.click()
+      await page.waitForTimeout(500)
+    }
+    await page.screenshot({
+      path: path.join(outputDir, 'step5_profiles.png'),
+      fullPage: false
+    })
   })
 
   // ---------------------------------------------------------------------------
@@ -332,6 +347,21 @@ test.describe('Generate InstructionView Screenshots', () => {
     await page.waitForTimeout(600)
     await page.screenshot({
       path: path.join(outputDir, 'narrow_step5_reference.png'),
+      fullPage: false
+    })
+
+    // 7. narrow_step5_profiles.png
+    await page.goto('/')
+    await page.waitForTimeout(400)
+    await page.click('button[title="Navigation Menu"]')
+    await page.waitForTimeout(500)
+    const mobileChevron = page.locator('button[title="Switch Profile"]')
+    if (await mobileChevron.isVisible()) {
+      await mobileChevron.click()
+      await page.waitForTimeout(500)
+    }
+    await page.screenshot({
+      path: path.join(outputDir, 'narrow_step5_profiles.png'),
       fullPage: false
     })
   })

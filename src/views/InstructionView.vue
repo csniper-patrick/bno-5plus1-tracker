@@ -211,6 +211,10 @@ export default {
           <v-icon icon="mdi-shield-lock-outline" class="mr-2"></v-icon>
           4. {{ $t('instruction.tabs.step4') }}
         </v-tab>
+        <v-tab value="step5" class="font-weight-bold">
+          <v-icon icon="mdi-account-group" class="mr-2"></v-icon>
+          5. {{ $t('instruction.tabs.step5') }}
+        </v-tab>
       </v-tabs>
 
       <v-divider></v-divider>
@@ -484,6 +488,74 @@ export default {
                 ></v-img>
                 <div class="text-caption text-center text-medium-emphasis mt-2">
                   {{ $t('instruction.step4.caption') }} ({{ viewportStatusText }})
+                </div>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-window-item>
+
+        <!-- Step 5 Window -->
+        <v-window-item value="step5">
+          <v-row align="start">
+            <v-col cols="12" md="6">
+              <h3 class="text-h6 font-weight-bold color-primary mb-3">
+                <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white">5</v-avatar>
+                {{ $t('instruction.step5.header') }}
+              </h3>
+              <p class="text-body-1 mb-4">{{ $t('instruction.step5.desc') }}</p>
+
+              <v-list density="compact" class="bg-transparent mb-4">
+                <v-list-item class="px-0">
+                  <template v-slot:prepend>
+                    <v-icon icon="mdi-check-circle-outline" color="success" class="mr-3"></v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-medium text-wrap">
+                    {{ $t('instruction.step5.point1') }}
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item class="px-0">
+                  <template v-slot:prepend>
+                    <v-icon icon="mdi-check-circle-outline" color="success" class="mr-3"></v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-medium text-wrap">
+                    {{ $t('instruction.step5.point2') }}
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item class="px-0">
+                  <template v-slot:prepend>
+                    <v-icon icon="mdi-check-circle-outline" color="success" class="mr-3"></v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-medium text-wrap">
+                    {{ $t('instruction.step5.point3') }}
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item class="px-0">
+                  <template v-slot:prepend>
+                    <v-icon icon="mdi-check-circle-outline" color="success" class="mr-3"></v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-medium text-wrap">
+                    {{ $t('instruction.step5.point4') }}
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+
+              <v-alert type="info" variant="tonal" icon="mdi-account-group" class="mb-4 text-caption">
+                {{ $t('profiles.section_title') }}: {{ $t('instruction.step5.desc') }}
+              </v-alert>
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <v-card variant="outlined" class="pa-2 rounded-lg elevation-1">
+                <v-img
+                  :key="imgPrefix + 'step5_profiles.png'"
+                  :src="imgPrefix + 'step5_profiles.png'"
+                  alt="Multi-Profile Management"
+                  contain
+                  class="rounded"
+                  :style="{ maxHeight: isMobileView ? '480px' : 'auto' }"
+                ></v-img>
+                <div class="text-caption text-center text-medium-emphasis mt-2">
+                  {{ $t('instruction.step5.caption') }} ({{ viewportStatusText }})
                 </div>
               </v-card>
             </v-col>

@@ -861,6 +861,7 @@ export default {
       step2: 'Log Absences',
       step3: 'Checklist & Documents',
       step4: 'Data & Backup',
+      step5: 'Multi-Profile',
     },
     step1: {
       header: 'Step 1: Set Up Key Visa & Arrival Dates',
@@ -902,6 +903,16 @@ export default {
       point3: 'Consult official GOV.UK guidance links directly from the Reference view.',
       action_btn1: 'View Reference & Policy Guidance',
       caption: 'Curated Official GOV.UK Policy Guidance & Reference Links',
+    },
+    step5: {
+      header: 'Step 5: Manage Multi-Applicant Profiles',
+      desc: 'Track residency milestones and document checklists for your entire family (Main Applicant, Spouse, Dependents) with complete data isolation.',
+      point1: 'Access the Profile Section directly at the top of the Right Navigation Drawer.',
+      point2: 'Expand the profile switcher to instantly switch between active applicant profiles.',
+      point3: 'Click "+ Add Profile" to create new family member profiles with custom names and avatar colors.',
+      point4: 'Duplicate or delete existing profiles while protecting active data from accidental loss.',
+      action_btn: 'Open Profile Drawer Section',
+      caption: 'Multi-Profile Switcher & Profile Management Demonstration',
     },
     faq: {
       title: 'Frequently Asked Questions (App Operations)',

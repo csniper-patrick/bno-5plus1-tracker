@@ -3,12 +3,19 @@ import { test, expect } from '@playwright/test';
 test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.evaluate(() => {
-      localStorage.clear();
-      localStorage.setItem('bno_tracker_locale', 'en');
+    await page.addInitScript(() => {
+      try {
+        Object.defineProperty(navigator, 'language', {
+          get: () => 'en-US',
+          configurable: true,
+        });
+        Object.defineProperty(navigator, 'languages', {
+          get: () => ['en-US', 'en'],
+          configurable: true,
+        });
+        window.localStorage.setItem('bno_tracker_locale', 'en');
+      } catch (e) {}
     });
-    await page.reload();
   });
 
   test('1. App Shell, Navigation & Drawer Links', async ({ page }) => {
@@ -139,6 +146,14 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
   test('7. Language Switcher & Theme Toggle', async ({ page }) => {
     await page.goto('/');
 
+    // Ensure initial locale is English
+    await page.evaluate(() => {
+      localStorage.setItem('bno_tracker_locale', 'en');
+      if (window.__i18n__) {
+        window.__i18n__.global.locale.value = 'en';
+      }
+    });
+
     // Toggle Language to Traditional Chinese (HK)
     const langBtn = page.locator('header button:has(.mdi-translate)').first();
     await langBtn.click();
@@ -151,9 +166,13 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
     await langBtn.click();
     await page.waitForTimeout(400);
 
-    // Explicitly reset locale in localStorage back to English
+    // Verify header restored to English & explicitly reset locale
+    await expect(page.locator('header')).toContainText('BNO 5+1 Tracker');
     await page.evaluate(() => {
       localStorage.setItem('bno_tracker_locale', 'en');
+      if (window.__i18n__) {
+        window.__i18n__.global.locale.value = 'en';
+      }
     });
 
     // Toggle Theme (Light <-> Dark)

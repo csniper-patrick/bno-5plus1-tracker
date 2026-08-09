@@ -14,6 +14,7 @@ export default defineConfig({
   reporter: [['html', { open: 'never' }], ['list']],
   use: {
     baseURL: 'http://localhost:5173',
+    locale: 'en-US',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -22,11 +23,11 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices['Desktop Chrome'], locale: 'en-US', launchOptions: { args: ['--lang=en-US'] } },
     },
     {
       name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
+      use: { ...devices['Pixel 5'], locale: 'en-US', launchOptions: { args: ['--lang=en-US'] } },
     },
     ...(process.env.ALL_BROWSERS
       ? [

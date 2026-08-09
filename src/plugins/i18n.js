@@ -35,4 +35,8 @@ const i18n = createI18n({
   },
 })
 
+if (typeof window !== 'undefined') {
+  window.__i18n__ = i18n
+}
+
 export default i18n

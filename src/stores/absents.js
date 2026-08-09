@@ -379,6 +379,18 @@ export const useAbsentsStore = defineStore('absents', () => {
     return formatDateUTC(vEnd)
   })
 
+  /**
+   * Checks if effective visa expiry date has passed relative to current UTC date.
+   */
+  const isVisaExpired = computed(() => {
+    if (!effectiveVisaExpiryDate.value) return false
+    const now = new Date()
+    const todayStr = formatDateUTC(
+      new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())),
+    )
+    return effectiveVisaExpiryDate.value < todayStr
+  })
+
   const sortedAbsences = computed(() => sortAbsencesArray([...absences.value]))
 
   /**
@@ -1281,6 +1293,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     visaExpiryDate,
     isVisaExpiryDateSet,
     effectiveVisaExpiryDate,
+    isVisaExpired,
     setVisaExpiryDate,
     ukArrivalDate,
     isArrivalDateSet,

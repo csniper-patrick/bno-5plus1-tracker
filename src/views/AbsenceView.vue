@@ -901,21 +901,32 @@ export default {
               </div>
 
               <v-chip
-                :color="absentsStore.isVisaExtensionNeeded ? 'warning' : 'success'"
+                :color="
+                  absentsStore.isVisaExpired && !absentsStore.ilrApprovedDate
+                    ? 'warning'
+                    : absentsStore.isVisaExtensionNeeded
+                      ? 'warning'
+                      : 'success'
+                "
                 size="small"
                 variant="tonal"
                 class="font-weight-bold"
               >
                 <v-icon
                   :icon="
-                    absentsStore.isVisaExtensionNeeded ? 'mdi-alert-circle' : 'mdi-check-circle'
+                    (absentsStore.isVisaExpired && !absentsStore.ilrApprovedDate) ||
+                    absentsStore.isVisaExtensionNeeded
+                      ? 'mdi-alert-circle'
+                      : 'mdi-check-circle'
                   "
                   start
                 ></v-icon>
                 {{
-                  absentsStore.isVisaExtensionNeeded
-                    ? $t('absence.visa_extension_required')
-                    : $t('absence.visa_cover_intact')
+                  absentsStore.isVisaExpired && !absentsStore.ilrApprovedDate
+                    ? $t('absence.visa_expired')
+                    : absentsStore.isVisaExtensionNeeded
+                      ? $t('absence.visa_extension_required')
+                      : $t('absence.visa_cover_intact')
                 }}
               </v-chip>
             </v-card-title>
@@ -942,7 +953,12 @@ export default {
                 <v-col cols="12" sm="6">
                   <v-card
                     variant="tonal"
-                    :color="absentsStore.isVisaExtensionNeeded ? 'warning' : 'info'"
+                    :color="
+                      (absentsStore.isVisaExpired && !absentsStore.ilrApprovedDate) ||
+                      absentsStore.isVisaExtensionNeeded
+                        ? 'warning'
+                        : 'info'
+                    "
                     class="pa-3 rounded-lg h-100"
                   >
                     <div class="d-flex align-center justify-space-between mb-1">
@@ -950,7 +966,12 @@ export default {
                         <v-icon
                           icon="mdi-calendar-clock"
                           size="small"
-                          :color="absentsStore.isVisaExtensionNeeded ? 'warning' : 'info'"
+                          :color="
+                            (absentsStore.isVisaExpired && !absentsStore.ilrApprovedDate) ||
+                            absentsStore.isVisaExtensionNeeded
+                              ? 'warning'
+                              : 'info'
+                          "
                         ></v-icon>
                         <span class="text-caption text-medium-emphasis">{{
                           $t('absence.visa_expiry')
@@ -1016,7 +1037,26 @@ export default {
 
               <!-- Warning/Success Status Alert -->
               <v-alert
-                v-if="absentsStore.isVisaExtensionNeeded"
+                v-if="absentsStore.isVisaExpired && !absentsStore.ilrApprovedDate"
+                type="warning"
+                variant="tonal"
+                icon="mdi-alert-outline"
+                class="mt-3 text-caption"
+                density="compact"
+              >
+                <div class="font-weight-bold text-subtitle-2 mb-1">
+                  {{ $t('absence.visa_expired_title') }}
+                </div>
+                <div>
+                  <i18n-t keypath="absence.visa_expired_body" scope="global">
+                    <template #expiry>
+                      <strong>{{ formatDateWithCountdown(absentsStore.effectiveVisaExpiryDate) }}</strong>
+                    </template>
+                  </i18n-t>
+                </div>
+              </v-alert>
+              <v-alert
+                v-else-if="absentsStore.isVisaExtensionNeeded"
                 type="warning"
                 variant="tonal"
                 icon="mdi-alert-outline"

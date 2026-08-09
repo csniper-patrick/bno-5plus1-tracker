@@ -399,6 +399,24 @@ absences:
     assert.strictEqual(store.isVisaExtensionNeeded, false)
   })
 
+  it('should correctly evaluate isVisaExpired and warning condition when ILR approved date is not set', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    // Set visa start date in past with custom visa expiry date in the past
+    store.setVisaStartDate('2020-01-01')
+    store.setVisaExpiryDate('2022-01-01')
+
+    assert.strictEqual(store.isVisaExpired, true)
+    assert.strictEqual(store.isIlrApprovedDateSet, false)
+
+    // When ILR approved date is set, isIlrApprovedDateSet is true
+    store.setIlrApprovedDate('2021-12-15')
+    assert.strictEqual(store.isIlrApprovedDateSet, true)
+    assert.strictEqual(store.isVisaExpired, true)
+  })
+
   it('should shift ILR qualifying period and chain Naturalisation when rolling 180-day rule is violated', () => {
     localStorage.clear()
     setActivePinia(createPinia())

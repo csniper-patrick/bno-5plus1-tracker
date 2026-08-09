@@ -140,9 +140,13 @@ export default {
     save_dates: 'Save Dates',
     visa_overview: 'BNO Visa Overview',
     visa_extension_required: 'Visa Extension Required',
+    visa_expired: 'Visa Expired',
     visa_cover_intact: 'Visa Cover Intact',
     default_5yr: 'Default 5-Yr',
     custom_expiry: 'Custom Expiry',
+    visa_expired_title: 'Visa Has Expired',
+    visa_expired_body:
+      'Your current BNO visa expired on {expiry} and no ILR approval date has been entered. Please extend your visa or update your ILR approval date.',
     visa_extension_needed_title: 'Visa Extension Needed to Complete ILR',
     visa_extension_needed_body:
       'Your current visa expires on {expiry}, which is before your earliest ILR settlement date {target}. You must extend your BNO visa (e.g. by 30 months) to complete your 5-year continuous residence for ILR.',

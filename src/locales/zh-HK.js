@@ -137,9 +137,13 @@ export default {
     save_dates: '儲存日期',
     visa_overview: 'BNO 簽證總覽',
     visa_extension_required: '需要續領簽證',
+    visa_expired: '簽證已到期',
     visa_cover_intact: '簽證涵蓋完整',
     default_5yr: '預設 5 年',
     custom_expiry: '自訂到期日',
+    visa_expired_title: '簽證已經到期',
+    visa_expired_body:
+      '您現時的 BNO 簽證已於 {expiry} 到期，且未有紀錄永居 (ILR) 批准日期。請續領簽證或更新永居批准日期。',
     visa_extension_needed_title: '需要續領簽證以完成永居 (ILR)',
     visa_extension_needed_body:
       '您現時的簽證將於 {expiry} 到期，早於您最早的永居定居日期 {target}。您必須續領 BNO 簽證 (例如 30 個月) 以完成 5 年連續居住要求。',

@@ -351,6 +351,24 @@ export default {
           ],
         },
         {
+          id: 'nhs-ghic',
+          title: 'NHS UK Global Health Insurance Card (GHIC) Application',
+          category: 'Living & Rights',
+          url: 'https://www.nhs.uk/using-the-nhs/healthcare-abroad/apply-for-a-free-uk-global-health-insurance-card-ghic/',
+          icon: 'mdi-card-account-details-outline',
+          color: 'teal-darken-1',
+          badge: 'Healthcare Abroad',
+          isOfficial: true,
+          description:
+            'Official NHS portal to apply for or renew a free UK Global Health Insurance Card (GHIC), providing access to state-provided healthcare during temporary visits to EU countries.',
+          highlights: [
+            'Free official application managed by NHS Business Services Authority (NHSBSA)',
+            'Covers medically necessary state-provided healthcare during temporary stays in EU countries',
+            'UK residents (including BNO visa holders resident in the UK) can apply online for free',
+            'Does not replace travel insurance; valid until card expiry date (usually 5 years)',
+          ],
+        },
+        {
           id: 'home-fee-status-guidance',
           title: 'Higher Education Home Fee Status & Student Support Guidance',
           category: 'Living & Rights',

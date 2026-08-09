@@ -231,6 +231,8 @@ Below are key official UK Government (GOV.UK), UK Parliament, and verified non-c
   Official UKVI digital portal for accessing eVisa records and updating linked passport details for travel.
 - **[Register to Vote in the UK (Electoral Roll)](https://www.gov.uk/register-to-vote)**  
   Official voter registration portal (BNO citizens are Commonwealth citizens eligible to vote; registration builds UK credit history).
+- **[NHS UK Global Health Insurance Card (GHIC) Application](https://www.nhs.uk/using-the-nhs/healthcare-abroad/apply-for-a-free-uk-global-health-insurance-card-ghic/)**  
+  Official NHS portal to apply for or renew a free UK GHIC card for accessing state-provided healthcare during temporary visits to EU countries.
 - **[Life in the UK Test Official Booking Portal](https://www.gov.uk/life-in-the-uk-test)**  
   Official booking portal, test center locator, ID guidelines, and fee information for the mandatory Life in the UK test.
 - **[Prove Your Knowledge of English (B1 Level)](https://www.gov.uk/english-language)**  

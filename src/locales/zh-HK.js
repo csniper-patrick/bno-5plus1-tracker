@@ -672,6 +672,19 @@ export default {
           '經網上直接向地方議會 (Local Council) 完成登記',
         ],
       },
+      nhs_ghic: {
+        title: 'NHS 英國全球健康保險卡 (GHIC) 官方申請網站',
+        category: '生活與權利',
+        badge: '境外醫療保障',
+        description:
+          'NHS 官方網站，供英國居民 (包括在英居住之 BNO 簽證持有人) 免費申請或續領 UK GHIC 卡，以便在歐盟國家短期旅遊期間享受公營醫療保障。',
+        highlights: [
+          '由 NHS Business Services Authority (NHSBSA) 提供之 100% 免費官方申請平台',
+          '保障在歐盟國家暫住期間所需之必要公營醫療及急診服務',
+          '所有合法英國居民 (包括 BNO 簽證持有人) 均可於線上免費申請',
+          '不可取代旅遊保險；有效期通常為 5 年',
+        ],
+      },
       home_fee_status_guidance: {
         title: '高等教育本地生學費 (Home Fee Status) 及資助指引',
         category: '生活與權利',

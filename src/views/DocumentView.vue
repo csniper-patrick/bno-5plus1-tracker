@@ -109,8 +109,6 @@ export default {
         uploading: false,
       },
 
-
-
       // File Rename Dialog state
       renameDialog: {
         show: false,
@@ -429,7 +427,12 @@ export default {
     saveNationalInsurance() {
       const formatted = formatNin(this.ninForm.number)
       this.ninForm.number = formatted
-      if (formatted.trim().length > 0 && (!this.ninForm.status || this.ninForm.status === 'not_applied' || this.ninForm.status === 'applied')) {
+      if (
+        formatted.trim().length > 0 &&
+        (!this.ninForm.status ||
+          this.ninForm.status === 'not_applied' ||
+          this.ninForm.status === 'applied')
+      ) {
         this.ninForm.status = 'received'
       }
       this.documentsStore.updateNationalInsurance(this.ninForm)
@@ -1273,7 +1276,6 @@ export default {
       const folderId = `year_${year}`
       this.openUploadDialog(folderId, year, item.id)
     },
-
   },
 }
 </script>
@@ -1365,7 +1367,9 @@ export default {
                     class="pa-3 rounded-lg"
                   >
                     <div class="d-flex align-center justify-space-between mb-1">
-                      <span class="text-caption font-weight-bold">{{ $t('document.life_in_uk') }}</span>
+                      <span class="text-caption font-weight-bold">{{
+                        $t('document.life_in_uk')
+                      }}</span>
                       <v-icon icon="mdi-book-education-outline" size="small"></v-icon>
                     </div>
                     <div class="text-subtitle-2 font-weight-bold">
@@ -1399,7 +1403,9 @@ export default {
                 <v-col cols="6" lg="3">
                   <v-card variant="tonal" color="primary" class="pa-3 rounded-lg">
                     <div class="d-flex align-center justify-space-between mb-1">
-                      <span class="text-caption font-weight-bold">{{ $t('document.proof_5yr') }}</span>
+                      <span class="text-caption font-weight-bold">{{
+                        $t('document.proof_5yr')
+                      }}</span>
                       <v-icon icon="mdi-folder-check-outline" size="small"></v-icon>
                     </div>
                     <div class="text-subtitle-2 font-weight-bold">
@@ -1440,7 +1446,15 @@ export default {
             <span class="text-h5 font-weight-bold">{{ $t('document.national_insurance') }}</span>
             <v-spacer></v-spacer>
             <v-chip
-              :color="getStatusColor(ninForm.status === 'received' ? 'passed' : ninForm.status === 'applied' ? 'scheduled' : 'not_started')"
+              :color="
+                getStatusColor(
+                  ninForm.status === 'received'
+                    ? 'passed'
+                    : ninForm.status === 'applied'
+                      ? 'scheduled'
+                      : 'not_started',
+                )
+              "
               size="small"
               variant="flat"
               class="font-weight-bold"
@@ -1816,7 +1830,8 @@ export default {
                   <td>
                     <div class="d-flex align-center ga-2 flex-wrap">
                       <span class="font-weight-medium text-body-2">
-                        {{ item.addressLine1 }}{{ item.addressLine2 ? `, ${item.addressLine2}` : '' }}
+                        {{ item.addressLine1
+                        }}{{ item.addressLine2 ? `, ${item.addressLine2}` : '' }}
                       </span>
                       <v-chip
                         v-if="getAttachedAddressFileCount(item.id) > 0"
@@ -2716,8 +2731,6 @@ export default {
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-
 
     <!-- Rename Dialog -->
     <v-dialog v-model="renameDialog.show" max-width="400px">

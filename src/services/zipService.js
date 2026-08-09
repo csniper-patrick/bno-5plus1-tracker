@@ -116,7 +116,9 @@ export async function importZipBackup(zipBlob, absentsStore, documentsStore) {
       if (Array.isArray(manifest)) {
         const manifestValidation = validateZipManifest(manifest)
         if (!manifestValidation.isValid) {
-          throw new Error('ZIP manifest validation error:\n- ' + manifestValidation.errors.join('\n- '))
+          throw new Error(
+            'ZIP manifest validation error:\n- ' + manifestValidation.errors.join('\n- '),
+          )
         }
         for (const entry of manifest) {
           const zipPath = entry.zipPath ? `files/${entry.zipPath}` : null

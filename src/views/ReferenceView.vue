@@ -292,7 +292,7 @@ export default {
           badge: 'Work Permission',
           isOfficial: true,
           description:
-            'Official GOV.UK portal for generating secure digital share codes for UK employers to verify BNO visa holders\' unrestricted right to work.',
+            "Official GOV.UK portal for generating secure digital share codes for UK employers to verify BNO visa holders' unrestricted right to work.",
           highlights: [
             'Instantly generate a 9-character share code for UK employers to check work permissions',
             'Explains BNO visa work permissions (employed, self-employed, setting up a business)',
@@ -483,7 +483,7 @@ export default {
           description:
             'UK-based non-governmental organization (NGO) advocating for the rights of Hongkongers, pension MPF withdrawal, and university home fee status.',
           highlights: [
-            'Independent advocacy NGO protecting BNO status holders\' rights and MPF pension withdrawal advocacy',
+            "Independent advocacy NGO protecting BNO status holders' rights and MPF pension withdrawal advocacy",
             'Publishes policy briefings on BNO visa pathways, settlement extensions, and student fee status',
             'Works directly with UK Parliamentarians and civil society to support Hong Kong community integration',
           ],
@@ -498,7 +498,7 @@ export default {
           badge: 'Advice Charity',
           isOfficial: false,
           description:
-            'UK\'s largest independent advice charity offering free, impartial guidance on tenancy rights, employment contracts, debt advice, and public funds access (NRPF).',
+            "UK's largest independent advice charity offering free, impartial guidance on tenancy rights, employment contracts, debt advice, and public funds access (NRPF).",
           highlights: [
             'Free, confidential, and independent legal/rights advisory service across England, Scotland & Wales',
             'Provides impartial guidance on tenant rights, employment contracts, council tax, and benefits',

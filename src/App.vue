@@ -94,9 +94,7 @@ export default {
      * Toggles current active theme between Union Jack dark and light palettes.
      */
     toggleTheme() {
-      this.$vuetify.theme.global.name = this.$vuetify.theme.global.current.dark
-        ? 'light'
-        : 'dark'
+      this.$vuetify.theme.global.name = this.$vuetify.theme.global.current.dark ? 'light' : 'dark'
     },
 
     /**
@@ -129,8 +127,12 @@ export default {
           this.profilesStore.activeProfile && this.profilesStore.activeProfile.name,
         )
 
-        const rawProfileName = (this.profilesStore.activeProfile && this.profilesStore.activeProfile.name) || ''
-        const safeProfileName = rawProfileName.trim().replace(/[^a-zA-Z0-9_\-\u4e00-\u9fa5]/g, '_').replace(/_+/g, '_')
+        const rawProfileName =
+          (this.profilesStore.activeProfile && this.profilesStore.activeProfile.name) || ''
+        const safeProfileName = rawProfileName
+          .trim()
+          .replace(/[^a-zA-Z0-9_\-\u4e00-\u9fa5]/g, '_')
+          .replace(/_+/g, '_')
         const profileSuffix = safeProfileName ? `${safeProfileName}_` : ''
         const dateStr = new Date().toISOString().split('T')[0]
 
@@ -334,13 +336,7 @@ export default {
           </v-list-item-subtitle>
         </v-list-item>
 
-        <v-list-item
-          to="/documents"
-          exact
-          color="primary"
-          rounded="lg"
-          class="mb-2"
-        >
+        <v-list-item to="/documents" exact color="primary" rounded="lg" class="mb-2">
           <template v-slot:prepend>
             <v-icon icon="mdi-file-document-check-outline" color="primary"></v-icon>
           </template>
@@ -352,13 +348,7 @@ export default {
           </v-list-item-subtitle>
         </v-list-item>
 
-        <v-list-item
-          to="/reference"
-          exact
-          color="primary"
-          rounded="lg"
-          class="mb-2"
-        >
+        <v-list-item to="/reference" exact color="primary" rounded="lg" class="mb-2">
           <template v-slot:prepend>
             <v-icon icon="mdi-bookshelf" color="primary"></v-icon>
           </template>
@@ -370,13 +360,7 @@ export default {
           </v-list-item-subtitle>
         </v-list-item>
 
-        <v-list-item
-          to="/instruction"
-          exact
-          color="primary"
-          rounded="lg"
-          class="mb-2"
-        >
+        <v-list-item to="/instruction" exact color="primary" rounded="lg" class="mb-2">
           <template v-slot:prepend>
             <v-icon icon="mdi-book-open-page-variant" color="primary"></v-icon>
           </template>

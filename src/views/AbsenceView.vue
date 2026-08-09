@@ -664,9 +664,15 @@ export default {
     exportYamlFile() {
       try {
         const rawProfileName =
-          (this.profilesStore && this.profilesStore.activeProfile && this.profilesStore.activeProfile.name) || ''
+          (this.profilesStore &&
+            this.profilesStore.activeProfile &&
+            this.profilesStore.activeProfile.name) ||
+          ''
         const yamlContent = this.absentsStore.exportYAML(rawProfileName)
-        const safeProfileName = rawProfileName.trim().replace(/[^a-zA-Z0-9_\-\u4e00-\u9fa5]/g, '_').replace(/_+/g, '_')
+        const safeProfileName = rawProfileName
+          .trim()
+          .replace(/[^a-zA-Z0-9_\-\u4e00-\u9fa5]/g, '_')
+          .replace(/_+/g, '_')
         const profileSuffix = safeProfileName ? `${safeProfileName}_` : ''
         const dateStr = new Date().toISOString().split('T')[0]
 

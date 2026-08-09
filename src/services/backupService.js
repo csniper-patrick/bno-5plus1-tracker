@@ -30,7 +30,11 @@ function resolveProfileName(profileNameOrStore, absentsStore) {
   if (typeof profileNameOrStore === 'string') {
     return profileNameOrStore
   }
-  if (profileNameOrStore && profileNameOrStore.activeProfile && profileNameOrStore.activeProfile.name) {
+  if (
+    profileNameOrStore &&
+    profileNameOrStore.activeProfile &&
+    profileNameOrStore.activeProfile.name
+  ) {
     return profileNameOrStore.activeProfile.name
   }
   if (profileNameOrStore && typeof profileNameOrStore.name === 'string') {

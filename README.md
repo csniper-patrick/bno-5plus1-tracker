@@ -123,6 +123,7 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 | `npm run test:unit` | Runs Node native unit test suite (`tests/*.test.js`). |
 | `npm run test:e2e` | Runs Playwright end-to-end browser tests. |
 | `npm run test:e2e:ui` | Runs Playwright test inspector in interactive UI mode. |
+| `npm run capture:screenshots` | Runs Playwright screen capture script to generate desktop and mobile instruction guide screenshots (`public/instructions/`). |
 | `npm run format` | Runs Prettier to format all source code files in `src/`. |
 
 ---
@@ -182,6 +183,17 @@ bno-5plus1-tracker/
 - **[locales/](file:///Users/csniper/Projects/bno-5plus1-tracker/src/locales)**: Internationalization translation dictionaries (`en.js` & `zh-HK.js`) providing full English and Traditional Chinese (HK) translations for all application views, forms, dialogs, badges, and official link cards.
 - **[useAbsentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/absents.js)**: Pinia store handling absence records, visa/arrival/ILR dates, auto-arrival record sync, and $O(1)$ sliding-window rolling calculation getters (`max12MonthAbsenceInfo`, `naturalizationQualifyingPeriod`).
 - **[useDocumentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/documents.js)**: Pinia store managing Life in the UK test details, English B1 qualification, 5-year continuous residence checklist, UK address history log, and uploaded file metadata state.
+
+### 🔄 Development & Maintenance Routines
+
+- **Instruction Page & Responsive Screen Capture Procedure ([InstructionView.vue](file:///Users/csniper/Projects/bno-5plus1-tracker/src/views/InstructionView.vue))**:
+  - Run `npm run capture:screenshots` to execute the automated Playwright script ([generate-instruction-screenshots.spec.js](file:///Users/csniper/Projects/bno-5plus1-tracker/e2e/generate-instruction-screenshots.spec.js)).
+  - Automatically seeds realistic key dates, multi-stop absence records, qualification details, and address log.
+  - Captures 7 desktop screenshots (`1280x800` -> `public/instructions/step*.png`) and 7 matching mobile screenshots (`390x844` -> `public/instructions/narrow_step*.png`).
+  - `InstructionView.vue` dynamically switches between desktop and mobile screenshot sets (`imgPrefix`) using Vuetify's `$vuetify.display.smAndDown` breakpoint while offering manual `Desktop View` / `Mobile View` toggle overrides.
+- **Automatic Documentation Maintenance Routine**:
+  - Automatically triggered upon completing tasks that introduce architectural updates, store schema changes, new UI features, package dependency updates, or workflow/script edits.
+  - Synchronizes feature descriptions, rules tables, script options, directory tree diagrams, module explanations, and developer guidelines across [README.md](file:///Users/csniper/Projects/bno-5plus1-tracker/README.md) and [.antigravity.md](file:///Users/csniper/Projects/bno-5plus1-tracker/.antigravity.md).
 
 ---
 

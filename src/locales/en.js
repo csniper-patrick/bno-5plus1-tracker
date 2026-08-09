@@ -640,7 +640,7 @@ export default {
         category: 'Living & Rights',
         badge: 'Work Permission',
         description:
-          'Official GOV.UK portal for generating secure digital share codes for UK employers to verify BNO visa holders\' unrestricted right to work.',
+          "Official GOV.UK portal for generating secure digital share codes for UK employers to verify BNO visa holders' unrestricted right to work.",
         highlights: [
           'Instantly generate a 9-character share code for UK employers to check work permissions',
           'Explains BNO visa work permissions (employed, self-employed, setting up a business)',
@@ -776,7 +776,7 @@ export default {
         description:
           'UK-based non-governmental organization (NGO) advocating for the rights of Hongkongers, pension MPF withdrawal, and university home fee status.',
         highlights: [
-          'Independent advocacy NGO protecting BNO status holders\' rights and MPF pension withdrawal advocacy',
+          "Independent advocacy NGO protecting BNO status holders' rights and MPF pension withdrawal advocacy",
           'Publishes policy briefings on BNO visa pathways, settlement extensions, and student fee status',
           'Works directly with UK Parliamentarians and civil society to support Hong Kong community integration',
         ],
@@ -786,7 +786,7 @@ export default {
         category: 'Living & Rights',
         badge: 'Advice Charity',
         description:
-          'UK\'s largest independent advice charity offering free, impartial guidance on tenancy rights, employment contracts, debt advice, and public funds access (NRPF).',
+          "UK's largest independent advice charity offering free, impartial guidance on tenancy rights, employment contracts, debt advice, and public funds access (NRPF).",
         highlights: [
           'Free, confidential, and independent legal/rights advisory service across England, Scotland & Wales',
           'Provides impartial guidance on tenant rights, employment contracts, council tax, and benefits',
@@ -833,7 +833,8 @@ export default {
   },
   instruction: {
     title: 'User Guide & Operation Manual',
-    subtitle: 'Step-by-step instructions with visual screen demonstrations for UK BNO 5+1 settlement tracking.',
+    subtitle:
+      'Step-by-step instructions with visual screen demonstrations for UK BNO 5+1 settlement tracking.',
     viewport: {
       label: 'Screenshot Mode:',
       auto: 'Auto (Responsive)',
@@ -868,7 +869,8 @@ export default {
       desc: 'Accurately establishing your initial BNO Visa Start Date and UK Arrival Date is essential for calculating your 5-year ILR eligibility and 6-year Citizenship milestones.',
       point1: 'Click "Set Key Dates" in the Absence Tracker panel.',
       point2: 'Input your BNO Visa Start Date (grant date) and actual UK Arrival Date.',
-      point3: 'The tracker automatically computes your earliest ILR application date (28 days before the 5-year anniversary).',
+      point3:
+        'The tracker automatically computes your earliest ILR application date (28 days before the 5-year anniversary).',
       note: 'Tip: You can apply for ILR up to 28 days before completing your 5 years of continuous residence in the UK.',
       action_btn: 'Go to Set Key Dates',
       caption: 'Key Dates Configuration Modal Demonstration',
@@ -876,10 +878,13 @@ export default {
     step2: {
       header: 'Step 2: Log Travel Absences & Monitor Rules',
       desc: 'Keep an accurate record of every trip outside the UK to ensure compliance with Home Office continuous residence requirements.',
-      point1: 'Fill in your Departure Date, Destination, and Return Date in the Add Absence Record form.',
-      point2: 'Only full calendar days spent entirely outside the UK count towards absence limits. Departure and Return days do not count.',
+      point1:
+        'Fill in your Departure Date, Destination, and Return Date in the Add Absence Record form.',
+      point2:
+        'Only full calendar days spent entirely outside the UK count towards absence limits. Departure and Return days do not count.',
       point3: 'Supports multi-leg travel itineraries (e.g. UK -> Hong Kong -> Japan -> UK).',
-      warning: 'Rule Alert: You must not exceed 180 days of absence in ANY 12-month rolling period during your 5-year qualifying period for ILR.',
+      warning:
+        'Rule Alert: You must not exceed 180 days of absence in ANY 12-month rolling period during your 5-year qualifying period for ILR.',
       action_btn: 'Add an Absence Record',
       caption1: 'Adding an Absence Record Form',
       caption2: 'Absence History & Rolling Day Calculations Table',
@@ -887,18 +892,24 @@ export default {
     step3: {
       header: 'Step 3: Track Settlement Documents, NIN & Address History',
       desc: 'Manage National Insurance Number (NI), Life in the UK test, B1 English language proof, address history log, and 5-year continuous residence document portfolio with an adaptive multi-tier layout.',
-      point1: 'Overview & National Insurance (NI) Card: Check overall settlement readiness progress circular gauge and manage National Insurance Number (NI) status & details on the top row.',
-      point2: 'Qualifications Tracker: Record Life in the UK test results, URNs, test center locations, and B1 English qualification pathway details.',
-      point3: 'Log full UK address history with move-in/out dates, tenure type, postcodes, and address proof links.',
-      point4: 'Maintain yearly residence proofs (P60, Council Tax, Bank Statements, Utility Bills) and link uploaded Document Vault files directly to checklist items.',
-      privacy_note: 'Uploaded document attachments (PDFs, images, scans) are stored safely inside local browser IndexedDB and can be opened in a new tab or previewed at any time.',
+      point1:
+        'Overview & National Insurance (NI) Card: Check overall settlement readiness progress circular gauge and manage National Insurance Number (NI) status & details on the top row.',
+      point2:
+        'Qualifications Tracker: Record Life in the UK test results, URNs, test center locations, and B1 English qualification pathway details.',
+      point3:
+        'Log full UK address history with move-in/out dates, tenure type, postcodes, and address proof links.',
+      point4:
+        'Maintain yearly residence proofs (P60, Council Tax, Bank Statements, Utility Bills) and link uploaded Document Vault files directly to checklist items.',
+      privacy_note:
+        'Uploaded document attachments (PDFs, images, scans) are stored safely inside local browser IndexedDB and can be opened in a new tab or previewed at any time.',
       action_btn: 'Open Document Checklist & Vault',
       caption: 'Document Checklist, NIN & Residence Evidence Tracker',
     },
     step4: {
       header: 'Step 4: Backup Data & Access Official Resources',
       desc: 'Safeguard your tracking records with ZIP/YAML backups and access official GOV.UK policy documentation.',
-      point1: 'Export full data backups including uploaded file attachments to a ZIP file via the navigation drawer.',
+      point1:
+        'Export full data backups including uploaded file attachments to a ZIP file via the navigation drawer.',
       point2: 'Import backup files easily when switching devices or browsers.',
       point3: 'Consult official GOV.UK guidance links directly from the Reference view.',
       action_btn1: 'View Reference & Policy Guidance',
@@ -909,8 +920,10 @@ export default {
       desc: 'Track residency milestones and document checklists for your entire family (Main Applicant, Spouse, Dependents) with complete data isolation.',
       point1: 'Access the Profile Section directly at the top of the Right Navigation Drawer.',
       point2: 'Expand the profile switcher to instantly switch between active applicant profiles.',
-      point3: 'Click "+ Add Profile" to create new family member profiles with custom names and avatar colors.',
-      point4: 'Duplicate or delete existing profiles while protecting active data from accidental loss.',
+      point3:
+        'Click "+ Add Profile" to create new family member profiles with custom names and avatar colors.',
+      point4:
+        'Duplicate or delete existing profiles while protecting active data from accidental loss.',
       action_btn: 'Open Profile Drawer Section',
       caption: 'Multi-Profile Switcher & Profile Management Demonstration',
     },
@@ -921,7 +934,7 @@ export default {
       q2: 'How does setting Key Dates automatically synchronize initial UK Arrival records?',
       a2: 'When your UK Arrival Date is later than your BNO Visa Start Date, the application automatically generates and syncs an initial entry absence record for the gap period prior to your arrival, ensuring accurate calculation of initial absent days.',
       q3: 'Where is my tracking data and uploaded document files stored?',
-      a3: 'All key dates, travel absence records, address history logs, and uploaded document attachments are stored 100% locally in your browser\'s IndexedDB. No personal information or files are ever sent to external cloud servers.',
+      a3: "All key dates, travel absence records, address history logs, and uploaded document attachments are stored 100% locally in your browser's IndexedDB. No personal information or files are ever sent to external cloud servers.",
       q4: 'How do data export, ZIP backups, and device migration work?',
       a4: 'You can export all your application records and binary document attachments into a single ZIP backup package from the right navigation drawer. Importing this package on another browser or device restores your complete tracking state instantly.',
       q5: 'How do I link uploaded document files to checklist items or address entries?',
@@ -947,7 +960,8 @@ export default {
     profile_name_placeholder: 'e.g. Main Applicant, Spouse, Child 1',
     avatar_color: 'Avatar Color',
     delete_confirm_title: 'Delete Profile?',
-    delete_confirm_body: 'Are you sure you want to delete profile "{name}"? All associated absence records, dates, and document checklists for this profile will be permanently deleted.',
+    delete_confirm_body:
+      'Are you sure you want to delete profile "{name}"? All associated absence records, dates, and document checklists for this profile will be permanently deleted.',
     cannot_delete_last: 'You cannot delete the only profile. At least one profile must exist.',
     created_success: 'Profile "{name}" created!',
     switched_success: 'Switched to profile "{name}"',

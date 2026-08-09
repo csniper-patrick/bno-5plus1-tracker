@@ -2,6 +2,15 @@ import { test, expect } from '@playwright/test';
 
 test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
 
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      localStorage.clear();
+      localStorage.setItem('bno_tracker_locale', 'en');
+    });
+    await page.reload();
+  });
+
   test('1. App Shell, Navigation & Drawer Links', async ({ page }) => {
     await page.goto('/');
     
@@ -142,6 +151,11 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
     await langBtn.click();
     await page.waitForTimeout(400);
 
+    // Explicitly reset locale in localStorage back to English
+    await page.evaluate(() => {
+      localStorage.setItem('bno_tracker_locale', 'en');
+    });
+
     // Toggle Theme (Light <-> Dark)
     const themeBtn = page.locator('header button:has(.mdi-weather-sunny), header button:has(.mdi-weather-night)').first();
     if (await themeBtn.isVisible()) {
@@ -151,3 +165,4 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
   });
 
 });
+

@@ -167,7 +167,9 @@ export default {
               class="cursor-pointer mr-3 shadow-sm text-white font-weight-bold"
               title="Change Profile Color"
             >
-              <span class="text-subtitle-1">{{ (activeProfile.name || 'P').charAt(0).toUpperCase() }}</span>
+              <span class="text-subtitle-1">{{
+                (activeProfile.name || 'P').charAt(0).toUpperCase()
+              }}</span>
             </v-avatar>
           </template>
           <v-card width="200" class="pa-2">
@@ -256,7 +258,11 @@ export default {
         </div>
 
         <!-- List of Other Profiles (Active profile excluded) -->
-        <v-list v-if="otherProfiles.length > 0" density="compact" class="bg-surface rounded-lg border-secondary-lighten pa-1 mb-2">
+        <v-list
+          v-if="otherProfiles.length > 0"
+          density="compact"
+          class="bg-surface rounded-lg border-secondary-lighten pa-1 mb-2"
+        >
           <v-list-item
             v-for="profile in otherProfiles"
             :key="profile.id"
@@ -338,7 +344,9 @@ export default {
 
             <!-- Color Palette Selection -->
             <div class="d-flex align-center mb-2">
-              <span class="text-caption font-weight-bold mr-1">{{ $t('profiles.avatar_color') }}:</span>
+              <span class="text-caption font-weight-bold mr-1"
+                >{{ $t('profiles.avatar_color') }}:</span
+              >
               <div class="d-flex gap-1 flex-wrap">
                 <v-avatar
                   v-for="color in PROFILE_COLOR_OPTIONS"

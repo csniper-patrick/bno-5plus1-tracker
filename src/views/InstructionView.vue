@@ -13,7 +13,7 @@ export default {
     return {
       activeTab: 'step1',
       viewMode: 'auto', // 'auto' | 'desktop' | 'mobile'
-      faqOpened: null
+      faqOpened: null,
     }
   },
 
@@ -45,7 +45,7 @@ export default {
         if (val) {
           this.viewMode = val
         }
-      }
+      },
     },
 
     viewportStatusText() {
@@ -57,8 +57,8 @@ export default {
       return this.isMobileView
         ? this.$t('instruction.viewport.mobile')
         : this.$t('instruction.viewport.desktop')
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -71,7 +71,10 @@ export default {
           <v-icon icon="mdi-book-open-page-variant" size="x-large"></v-icon>
           <div>
             <h1 class="text-h4 font-weight-bold mb-1">{{ $t('instruction.title') }}</h1>
-            <p class="text-subtitle-1 text-medium-emphasis mb-0" style="color: rgba(255,255,255,0.85) !important;">
+            <p
+              class="text-subtitle-1 text-medium-emphasis mb-0"
+              style="color: rgba(255, 255, 255, 0.85) !important"
+            >
               {{ $t('instruction.subtitle') }}
             </p>
           </div>
@@ -80,16 +83,29 @@ export default {
     </v-card>
 
     <!-- Viewport Screenshot Control Bar -->
-    <v-card class="mb-6 rounded-lg elevation-1 bg-surface pa-3 border d-flex align-center flex-wrap ga-3 justify-space-between">
+    <v-card
+      class="mb-6 rounded-lg elevation-1 bg-surface pa-3 border d-flex align-center flex-wrap ga-3 justify-space-between"
+    >
       <div class="d-flex align-center ga-2 text-subtitle-2 font-weight-bold">
         <v-icon icon="mdi-tune-variant" color="primary"></v-icon>
         <span>{{ $t('instruction.viewport.label') }}</span>
-        <v-chip size="x-small" :color="isMobileView ? 'secondary' : 'primary'" class="ml-1 font-weight-bold">
+        <v-chip
+          size="x-small"
+          :color="isMobileView ? 'secondary' : 'primary'"
+          class="ml-1 font-weight-bold"
+        >
           {{ viewportStatusText }}
         </v-chip>
       </div>
 
-      <v-btn-toggle v-model="modeToggleValue" mandatory density="compact" color="primary" variant="outlined" class="rounded-lg">
+      <v-btn-toggle
+        v-model="modeToggleValue"
+        mandatory
+        density="compact"
+        color="primary"
+        variant="outlined"
+        class="rounded-lg"
+      >
         <v-btn value="desktop" size="small" prepend-icon="mdi-monitor">
           {{ $t('instruction.viewport.desktop') }}
         </v-btn>
@@ -101,7 +117,9 @@ export default {
 
     <!-- App Overview & Main Interface Card (Merged) -->
     <v-card class="mb-6 rounded-lg elevation-2 pa-4 bg-surface">
-      <v-card-title class="text-h6 font-weight-bold d-flex align-center justify-space-between flex-wrap ga-2 mb-3 pa-0">
+      <v-card-title
+        class="text-h6 font-weight-bold d-flex align-center justify-space-between flex-wrap ga-2 mb-3 pa-0"
+      >
         <div class="d-flex align-center ga-2">
           <v-icon icon="mdi-compass-outline" color="primary"></v-icon>
           <span>{{ $t('instruction.overview.title') }}</span>
@@ -115,7 +133,7 @@ export default {
           <v-col cols="12" md="6">
             <p class="text-body-1 mb-3">{{ $t('instruction.overview.p1') }}</p>
             <p class="text-body-1 mb-4">{{ $t('instruction.overview.p2') }}</p>
-            
+
             <v-row density="compact">
               <v-col cols="12" sm="6">
                 <v-card variant="outlined" color="primary" class="pa-3 rounded-lg h-100">
@@ -225,11 +243,13 @@ export default {
           <v-row align="start">
             <v-col cols="12" md="6">
               <h3 class="text-h6 font-weight-bold color-primary mb-3">
-                <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white">1</v-avatar>
+                <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white"
+                  >1</v-avatar
+                >
                 {{ $t('instruction.step1.header') }}
               </h3>
               <p class="text-body-1 mb-4">{{ $t('instruction.step1.desc') }}</p>
-              
+
               <v-list density="compact" class="bg-transparent mb-4">
                 <v-list-item class="px-0">
                   <template v-slot:prepend>
@@ -257,7 +277,12 @@ export default {
                 </v-list-item>
               </v-list>
 
-              <v-alert type="info" variant="tonal" icon="mdi-information-outline" class="mb-4 text-caption">
+              <v-alert
+                type="info"
+                variant="tonal"
+                icon="mdi-information-outline"
+                class="mb-4 text-caption"
+              >
                 {{ $t('instruction.step1.note') }}
               </v-alert>
 
@@ -289,7 +314,9 @@ export default {
           <v-row align="start">
             <v-col cols="12" md="6">
               <h3 class="text-h6 font-weight-bold color-primary mb-3">
-                <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white">2</v-avatar>
+                <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white"
+                  >2</v-avatar
+                >
                 {{ $t('instruction.step2.header') }}
               </h3>
               <p class="text-body-1 mb-4">{{ $t('instruction.step2.desc') }}</p>
@@ -321,7 +348,12 @@ export default {
                 </v-list-item>
               </v-list>
 
-              <v-alert type="warning" variant="tonal" icon="mdi-alert-circle-outline" class="mb-4 text-caption">
+              <v-alert
+                type="warning"
+                variant="tonal"
+                icon="mdi-alert-circle-outline"
+                class="mb-4 text-caption"
+              >
                 {{ $t('instruction.step2.warning') }}
               </v-alert>
 
@@ -367,7 +399,9 @@ export default {
           <v-row align="start">
             <v-col cols="12" md="6">
               <h3 class="text-h6 font-weight-bold color-primary mb-3">
-                <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white">3</v-avatar>
+                <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white"
+                  >3</v-avatar
+                >
                 {{ $t('instruction.step3.header') }}
               </h3>
               <p class="text-body-1 mb-4">{{ $t('instruction.step3.desc') }}</p>
@@ -407,11 +441,21 @@ export default {
                 </v-list-item>
               </v-list>
 
-              <v-alert type="success" variant="tonal" icon="mdi-lock-outline" class="mb-4 text-caption">
+              <v-alert
+                type="success"
+                variant="tonal"
+                icon="mdi-lock-outline"
+                class="mb-4 text-caption"
+              >
                 {{ $t('instruction.step3.privacy_note') }}
               </v-alert>
 
-              <v-btn color="primary" to="/documents" variant="flat" prepend-icon="mdi-file-document-edit-outline">
+              <v-btn
+                color="primary"
+                to="/documents"
+                variant="flat"
+                prepend-icon="mdi-file-document-edit-outline"
+              >
                 {{ $t('instruction.step3.action_btn') }}
               </v-btn>
             </v-col>
@@ -439,7 +483,9 @@ export default {
           <v-row align="start">
             <v-col cols="12" md="6">
               <h3 class="text-h6 font-weight-bold color-primary mb-3">
-                <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white">4</v-avatar>
+                <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white"
+                  >4</v-avatar
+                >
                 {{ $t('instruction.step4.header') }}
               </h3>
               <p class="text-body-1 mb-4">{{ $t('instruction.step4.desc') }}</p>
@@ -471,7 +517,13 @@ export default {
                 </v-list-item>
               </v-list>
 
-              <v-btn color="primary" to="/reference" variant="flat" prepend-icon="mdi-bookshelf" class="mr-3 mb-2">
+              <v-btn
+                color="primary"
+                to="/reference"
+                variant="flat"
+                prepend-icon="mdi-bookshelf"
+                class="mr-3 mb-2"
+              >
                 {{ $t('instruction.step4.action_btn1') }}
               </v-btn>
             </v-col>
@@ -499,7 +551,9 @@ export default {
           <v-row align="start">
             <v-col cols="12" md="6">
               <h3 class="text-h6 font-weight-bold color-primary mb-3">
-                <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white">5</v-avatar>
+                <v-avatar color="primary" size="28" class="text-subtitle-2 mr-2 text-white"
+                  >5</v-avatar
+                >
                 {{ $t('instruction.step5.header') }}
               </h3>
               <p class="text-body-1 mb-4">{{ $t('instruction.step5.desc') }}</p>
@@ -539,7 +593,12 @@ export default {
                 </v-list-item>
               </v-list>
 
-              <v-alert type="info" variant="tonal" icon="mdi-account-group" class="mb-4 text-caption">
+              <v-alert
+                type="info"
+                variant="tonal"
+                icon="mdi-account-group"
+                class="mb-4 text-caption"
+              >
                 {{ $t('profiles.section_title') }}: {{ $t('instruction.step5.desc') }}
               </v-alert>
             </v-col>
@@ -570,7 +629,7 @@ export default {
         <v-icon icon="mdi-help-circle-outline" color="primary"></v-icon>
         {{ $t('instruction.faq.title') }}
       </v-card-title>
-      
+
       <v-expansion-panels v-model="faqOpened" variant="accordion" class="rounded-lg">
         <v-row align="start" density="compact">
           <v-col cols="12" md="6">
@@ -636,7 +695,11 @@ export default {
           <v-col cols="12" md="6">
             <v-expansion-panel class="border mb-2 rounded-lg">
               <v-expansion-panel-title class="font-weight-bold">
-                <v-icon icon="mdi-card-account-details-outline" color="primary" class="mr-2"></v-icon>
+                <v-icon
+                  icon="mdi-card-account-details-outline"
+                  color="primary"
+                  class="mr-2"
+                ></v-icon>
                 {{ $t('instruction.faq.q6') }}
               </v-expansion-panel-title>
               <v-expansion-panel-text class="text-body-2">

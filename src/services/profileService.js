@@ -27,8 +27,8 @@ export const ACTIVE_DATA_KEYS = [
 ]
 
 /**
-  * Color options for profile avatars
-  */
+ * Color options for profile avatars
+ */
 export const PROFILE_COLOR_OPTIONS = [
   '#1976D2', // Blue
   '#E91E63', // Pink / Magenta
@@ -84,8 +84,8 @@ export async function restoreActivePayload(payload) {
  */
 export async function initProfiles() {
   let activeId = await dbService.getItem(ACTIVE_PROFILE_KEY)
-  let metaList = await dbService.getItem(PROFILES_META_KEY) || []
-  let profilesData = await dbService.getItem(PROFILES_DATA_KEY) || {}
+  let metaList = (await dbService.getItem(PROFILES_META_KEY)) || []
+  let profilesData = (await dbService.getItem(PROFILES_DATA_KEY)) || {}
 
   // Migrate existing single profile data into default profile if meta is empty
   if (!Array.isArray(metaList) || metaList.length === 0) {
@@ -98,7 +98,7 @@ export async function initProfiles() {
       updatedAt: new Date().toISOString(),
     }
     metaList = [defaultMeta]
-    
+
     // Save initial profile metadata and active profile ID
     await dbService.setItem(ACTIVE_PROFILE_KEY, activeId)
     await dbService.setItem(PROFILES_META_KEY, metaList)
@@ -166,7 +166,8 @@ export async function switchProfile(targetProfileId) {
  */
 export async function createProfile(name, avatarColor) {
   const metaList = (await dbService.getItem(PROFILES_META_KEY)) || []
-  const chosenColor = avatarColor || PROFILE_COLOR_OPTIONS[metaList.length % PROFILE_COLOR_OPTIONS.length]
+  const chosenColor =
+    avatarColor || PROFILE_COLOR_OPTIONS[metaList.length % PROFILE_COLOR_OPTIONS.length]
   const newId = `profile_${Date.now()}_${generateId(4)}`
 
   const newMeta = {

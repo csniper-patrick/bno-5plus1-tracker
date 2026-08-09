@@ -90,7 +90,9 @@ export function validateBackupData(data) {
       if (!sDate) {
         errors.push(`absences[${idx}]: Missing required "startDate".`)
       } else if (!isValidDateStr(sDate)) {
-        errors.push(`absences[${idx}]: Invalid "startDate" ("${sDate}"). Expected format YYYY-MM-DD.`)
+        errors.push(
+          `absences[${idx}]: Invalid "startDate" ("${sDate}"). Expected format YYYY-MM-DD.`,
+        )
       }
 
       if (!eDate) {
@@ -132,7 +134,9 @@ export function validateBackupData(data) {
       warnings.push(`documents.lifeInUk: Unknown status "${status}". Resetting to default.`)
     }
     if (testDate && !isValidDateStr(testDate)) {
-      errors.push(`documents.lifeInUk: Invalid "testDate" ("${testDate}"). Expected format YYYY-MM-DD.`)
+      errors.push(
+        `documents.lifeInUk: Invalid "testDate" ("${testDate}"). Expected format YYYY-MM-DD.`,
+      )
     }
   }
 
@@ -145,14 +149,18 @@ export function validateBackupData(data) {
       warnings.push(`documents.englishTest: Unknown status "${status}". Resetting to default.`)
     }
     if (testDate && !isValidDateStr(testDate)) {
-      errors.push(`documents.englishTest: Invalid "testDate" ("${testDate}"). Expected format YYYY-MM-DD.`)
+      errors.push(
+        `documents.englishTest: Invalid "testDate" ("${testDate}"). Expected format YYYY-MM-DD.`,
+      )
     }
   }
 
   if (docObj.nationalInsurance && typeof docObj.nationalInsurance === 'object') {
     const { status } = docObj.nationalInsurance
     if (status && !ALLOWED_NIN_STATUSES.includes(status)) {
-      warnings.push(`documents.nationalInsurance: Unknown status "${status}". Resetting to default.`)
+      warnings.push(
+        `documents.nationalInsurance: Unknown status "${status}". Resetting to default.`,
+      )
     }
   }
 
@@ -175,11 +183,15 @@ export function validateBackupData(data) {
       if (!sDate) {
         errors.push(`addressHistory[${idx}]: Missing required "startDate".`)
       } else if (!isValidDateStr(sDate)) {
-        errors.push(`addressHistory[${idx}]: Invalid "startDate" ("${sDate}"). Expected format YYYY-MM-DD.`)
+        errors.push(
+          `addressHistory[${idx}]: Invalid "startDate" ("${sDate}"). Expected format YYYY-MM-DD.`,
+        )
       }
 
       if (eDate && !isValidDateStr(eDate)) {
-        errors.push(`addressHistory[${idx}]: Invalid "endDate" ("${eDate}"). Expected format YYYY-MM-DD.`)
+        errors.push(
+          `addressHistory[${idx}]: Invalid "endDate" ("${eDate}"). Expected format YYYY-MM-DD.`,
+        )
       }
 
       if (sDate && eDate && isValidDateStr(sDate) && isValidDateStr(eDate)) {

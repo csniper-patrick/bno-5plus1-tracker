@@ -236,7 +236,10 @@ export const useDocumentsStore = defineStore('documents', () => {
       if (savedData.nationalInsurance) {
         const nin = { ...savedData.nationalInsurance }
         nin.number = formatNin(nin.number)
-        if (nin.number.trim().length > 0 && (!nin.status || nin.status === 'not_applied' || nin.status === 'applied')) {
+        if (
+          nin.number.trim().length > 0 &&
+          (!nin.status || nin.status === 'not_applied' || nin.status === 'applied')
+        ) {
           nin.status = 'received'
         }
         nationalInsurance.value = nin
@@ -254,7 +257,14 @@ export const useDocumentsStore = defineStore('documents', () => {
       }
     } else {
       lifeInUk.value = { status: 'not_started', testDate: '', urn: '', testCenter: '', notes: '' }
-      englishTest.value = { type: 'b1_selt', provider: 'Trinity College London', status: 'not_started', referenceNo: '', testDate: '', notes: '' }
+      englishTest.value = {
+        type: 'b1_selt',
+        provider: 'Trinity College London',
+        status: 'not_started',
+        referenceNo: '',
+        testDate: '',
+        notes: '',
+      }
       nationalInsurance.value = { number: '', status: 'not_applied', notes: '' }
       residenceChecklist.value = getDefaultResidenceChecklist()
       addressHistory.value = []
@@ -310,10 +320,18 @@ export const useDocumentsStore = defineStore('documents', () => {
         (!payload.status || payload.status === 'not_applied' || payload.status === 'applied')
       ) {
         updated.status = 'received'
-      } else if (formatted.trim().length === 0 && payload.status === undefined && updated.status === 'received') {
+      } else if (
+        formatted.trim().length === 0 &&
+        payload.status === undefined &&
+        updated.status === 'received'
+      ) {
         updated.status = 'not_applied'
       }
-    } else if (updated.number && updated.number.trim().length > 0 && (!payload || !payload.status)) {
+    } else if (
+      updated.number &&
+      updated.number.trim().length > 0 &&
+      (!payload || !payload.status)
+    ) {
       updated.status = 'received'
     }
     nationalInsurance.value = updated
@@ -669,7 +687,10 @@ export const useDocumentsStore = defineStore('documents', () => {
     if (docObj.nationalInsurance && typeof docObj.nationalInsurance === 'object') {
       const formattedNum = formatNin(docObj.nationalInsurance.number)
       let ninStatus = docObj.nationalInsurance.status || nationalInsurance.value.status
-      if (formattedNum.trim().length > 0 && (!ninStatus || ninStatus === 'not_applied' || ninStatus === 'applied')) {
+      if (
+        formattedNum.trim().length > 0 &&
+        (!ninStatus || ninStatus === 'not_applied' || ninStatus === 'applied')
+      ) {
         ninStatus = 'received'
       }
       nationalInsurance.value = {

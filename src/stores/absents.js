@@ -94,11 +94,13 @@ export const useAbsentsStore = defineStore('absents', () => {
       const sorted = [...loadedAbsences]
       sortAbsencesArray(sorted)
       absences.value = sorted
+    } else {
+      absences.value = []
     }
-    if (typeof loadedVisaStart === 'string') visaStartDate.value = loadedVisaStart
-    if (typeof loadedVisaExpiry === 'string') visaExpiryDate.value = loadedVisaExpiry
-    if (typeof loadedArrival === 'string') ukArrivalDate.value = loadedArrival
-    if (typeof loadedIlrApproved === 'string') ilrApprovedDate.value = loadedIlrApproved
+    visaStartDate.value = typeof loadedVisaStart === 'string' ? loadedVisaStart : ''
+    visaExpiryDate.value = typeof loadedVisaExpiry === 'string' ? loadedVisaExpiry : ''
+    ukArrivalDate.value = typeof loadedArrival === 'string' ? loadedArrival : ''
+    ilrApprovedDate.value = typeof loadedIlrApproved === 'string' ? loadedIlrApproved : ''
 
     syncArrivalRecord()
     rebuildSegmentTree()

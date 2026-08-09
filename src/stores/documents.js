@@ -252,6 +252,12 @@ export const useDocumentsStore = defineStore('documents', () => {
         sortAddresses(sorted)
         addressHistory.value = sorted
       }
+    } else {
+      lifeInUk.value = { status: 'not_started', testDate: '', urn: '', testCenter: '', notes: '' }
+      englishTest.value = { type: 'b1_selt', provider: 'Trinity College London', status: 'not_started', referenceNo: '', testDate: '', notes: '' }
+      nationalInsurance.value = { number: '', status: 'not_applied', notes: '' }
+      residenceChecklist.value = getDefaultResidenceChecklist()
+      addressHistory.value = []
     }
 
     // Load file metadata from IndexedDB (blobs loaded on-demand)

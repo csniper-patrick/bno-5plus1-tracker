@@ -9,9 +9,11 @@ import { mapStores } from 'pinia'
 import { RouterView } from 'vue-router'
 import { useAbsentsStore } from './stores/absents'
 import { useDocumentsStore } from './stores/documents'
+import { useProfilesStore } from './stores/profiles'
 import { importBackup } from './services/backupService'
 import { exportZipBackup, importZipBackup } from './services/zipService'
 import ReloadPrompt from './components/ReloadPrompt.vue'
+import ProfileDrawerSection from './components/ProfileDrawerSection.vue'
 
 export default {
   name: 'App',
@@ -19,12 +21,14 @@ export default {
   components: {
     RouterView,
     ReloadPrompt,
+    ProfileDrawerSection,
   },
 
   data() {
     return {
       drawer: false,
       clearAllDialog: false,
+      profileManagementDialog: false,
       snackbar: {
         show: false,
         text: '',
@@ -35,7 +39,7 @@ export default {
   },
 
   computed: {
-    ...mapStores(useAbsentsStore, useDocumentsStore),
+    ...mapStores(useAbsentsStore, useDocumentsStore, useProfilesStore),
 
     smAndUp() {
       return this.$vuetify.display.smAndUp
@@ -56,7 +60,8 @@ export default {
     },
   },
 
-  mounted() {
+  async mounted() {
+    await this.profilesStore.initStore()
     this.absentsStore.initStore()
     this.documentsStore.initStore()
 
@@ -120,10 +125,15 @@ export default {
       try {
         const { blob, fileCount } = await exportZipBackup(this.absentsStore, this.documentsStore)
 
+        const rawProfileName = (this.profilesStore.activeProfile && this.profilesStore.activeProfile.name) || ''
+        const safeProfileName = rawProfileName.trim().replace(/[^a-zA-Z0-9_\-\u4e00-\u9fa5]/g, '_').replace(/_+/g, '_')
+        const profileSuffix = safeProfileName ? `${safeProfileName}_` : ''
+        const dateStr = new Date().toISOString().split('T')[0]
+
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
-        link.download = `bno-5plus1-tracker-backup_${new Date().toISOString().split('T')[0]}.zip`
+        link.download = `bno-5plus1-tracker-backup_${profileSuffix}${dateStr}.zip`
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -297,20 +307,8 @@ export default {
       color="surface"
       elevation="4"
     >
-      <v-list-item class="py-4 px-4 border-bottom">
-        <template v-slot:prepend>
-          <v-icon icon="mdi-passport" color="primary" size="large"></v-icon>
-        </template>
-        <v-list-item-title class="font-weight-bold text-subtitle-1">
-          {{ $t('app.drawer_title') }}
-        </v-list-item-title>
-        <v-list-item-subtitle class="text-caption">
-          {{ $t('app.drawer_subtitle') }}
-        </v-list-item-subtitle>
-        <template v-slot:append>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="drawer = false"></v-btn>
-        </template>
-      </v-list-item>
+      <!-- Top Section: Applicant Profiles (Switching, Editing, Management) -->
+      <ProfileDrawerSection @show-snackbar="showSnackbar" />
 
       <v-divider></v-divider>
 

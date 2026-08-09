@@ -147,6 +147,104 @@ export async function removeItem(key) {
 }
 
 /**
+ * Gets multiple items from IndexedDB by array of keys.
+ *
+ * @param {Array<string>} keys
+ * @returns {Promise<Object>} Object mapping key -> stored value.
+ */
+export async function getItems(keys) {
+  const result = {}
+  if (!isIndexedDBAvailable()) {
+    for (const key of keys) {
+      result[key] = memoryFallback.has(key) ? memoryFallback.get(key) : null
+    }
+    return result
+  }
+  try {
+    const db = await getDB()
+    if (!db) {
+      for (const key of keys) {
+        result[key] = memoryFallback.has(key) ? memoryFallback.get(key) : null
+      }
+      return result
+    }
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly')
+      const store = tx.objectStore(STORE_NAME)
+      let pending = keys.length
+      if (pending === 0) return resolve(result)
+
+      keys.forEach((key) => {
+        const req = store.get(key)
+        req.onsuccess = () => {
+          result[key] = req.result ? req.result.value : null
+          pending--
+          if (pending === 0) resolve(result)
+        }
+        req.onerror = () => reject(req.error)
+      })
+    })
+  } catch (e) {
+    console.error('dbService.getItems error:', e)
+    for (const key of keys) {
+      result[key] = memoryFallback.has(key) ? memoryFallback.get(key) : null
+    }
+    return result
+  }
+}
+
+/**
+ * Sets multiple items in IndexedDB in a single transaction.
+ *
+ * @param {Object} itemsMap - Object with key-value pairs to store.
+ * @returns {Promise<void>}
+ */
+export async function setItems(itemsMap) {
+  if (!itemsMap || typeof itemsMap !== 'object') return
+  const keys = Object.keys(itemsMap)
+  if (keys.length === 0) return
+
+  if (!isIndexedDBAvailable()) {
+    for (const key of keys) {
+      memoryFallback.set(key, itemsMap[key])
+    }
+    return
+  }
+  try {
+    const db = await getDB()
+    if (!db) {
+      for (const key of keys) {
+        memoryFallback.set(key, itemsMap[key])
+      }
+      return
+    }
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite')
+      const store = tx.objectStore(STORE_NAME)
+      keys.forEach((key) => {
+        let value = itemsMap[key]
+        let cloneableValue = value
+        if (value !== undefined && value !== null && typeof value === 'object') {
+          try {
+            cloneableValue = JSON.parse(JSON.stringify(value))
+          } catch {
+            cloneableValue = value
+          }
+        }
+        store.put({ key, value: cloneableValue })
+      })
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => reject(tx.error)
+    })
+  } catch (e) {
+    console.error('dbService.setItems error:', e)
+    for (const key of keys) {
+      memoryFallback.set(key, itemsMap[key])
+    }
+  }
+}
+
+/**
  * Clears all data from IndexedDB object store and memory fallback.
  *
  * @returns {Promise<void>}

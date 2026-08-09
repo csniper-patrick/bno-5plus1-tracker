@@ -230,16 +230,6 @@ export default {
       return this.documentsStore.fileCountByFolder
     },
 
-    /** Sort field options for dropdown */
-    sortOptions() {
-      return [
-        { title: this.$t('document.sort_name'), value: 'name' },
-        { title: this.$t('document.sort_folder'), value: 'folder' },
-        { title: this.$t('document.sort_size'), value: 'size' },
-        { title: this.$t('document.sort_uploaded_at'), value: 'uploadedAt' },
-      ]
-    },
-
     /** Files filtered by currently active vault folder */
     filteredFiles() {
       if (this.vaultActiveFolder === 'all') {
@@ -2136,10 +2126,10 @@ export default {
         {{ $t('document.vault_desc') }}
       </p>
 
-      <!-- Folder Tabs & Sort Controls Toolbar -->
+      <!-- Folder Tabs Toolbar -->
       <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
-        <v-chip-group v-model="vaultActiveFolder" mandatory selected-class="text-primary">
-          <v-chip value="all" variant="tonal" size="small" filter>
+        <v-chip-group v-model="vaultActiveFolder" mandatory column selected-class="text-primary">
+          <v-chip value="all" variant="tonal" size="small" filter class="my-1">
             {{ $t('document.folder_all') }}
             <template v-if="uploadedFiles.length > 0">
               <span class="ml-1 text-caption">({{ uploadedFiles.length }})</span>
@@ -2153,42 +2143,14 @@ export default {
             variant="tonal"
             size="small"
             filter
+            class="my-1"
           >
-            {{ $t(`document.folder_${folder.id}`) }}
+            <span class="text-truncate" style="max-width: 160px">{{ $t(`document.folder_${folder.id}`) }}</span>
             <template v-if="fileCountByFolder[folder.id] > 0">
               <span class="ml-1 text-caption">({{ fileCountByFolder[folder.id] }})</span>
             </template>
           </v-chip>
         </v-chip-group>
-
-        <!-- Sort Column Dropdown & Order Toggle -->
-        <div class="d-flex align-center ga-2 flex-wrap ml-auto" v-if="uploadedFiles.length > 0">
-          <v-select
-            v-model="vaultSortBy"
-            :items="sortOptions"
-            :label="$t('document.sort_by')"
-            density="compact"
-            variant="outlined"
-            hide-details
-            style="min-width: 140px; max-width: 170px"
-          ></v-select>
-          <v-btn
-            variant="tonal"
-            density="compact"
-            color="primary"
-            class="px-2"
-            style="height: 40px"
-            :title="vaultSortOrder === 'asc' ? $t('document.sort_asc') : $t('document.sort_desc')"
-            @click="toggleSortOrder"
-          >
-            <v-icon
-              :icon="vaultSortOrder === 'asc' ? 'mdi-sort-ascending' : 'mdi-sort-descending'"
-            ></v-icon>
-            <span class="ml-1 text-caption font-weight-medium d-none d-sm-inline">
-              {{ vaultSortOrder === 'asc' ? $t('document.sort_asc') : $t('document.sort_desc') }}
-            </span>
-          </v-btn>
-        </div>
       </div>
 
       <!-- Empty State -->
@@ -2233,9 +2195,10 @@ export default {
       >
         <thead>
           <tr>
-            <th class="text-left font-weight-bold" style="width: 50px"></th>
+            <th class="text-left font-weight-bold" style="width: 40px; min-width: 40px"></th>
             <th
-              class="text-left font-weight-bold cursor-pointer user-select-none"
+              class="text-left font-weight-bold cursor-pointer user-select-none text-no-wrap"
+              style="min-width: 200px"
               @click="sortByHeader('name')"
             >
               <div class="d-flex align-center ga-1">
@@ -2249,8 +2212,8 @@ export default {
               </div>
             </th>
             <th
-              class="text-left font-weight-bold d-none d-sm-table-cell cursor-pointer user-select-none"
-              style="width: 140px"
+              class="text-left font-weight-bold cursor-pointer user-select-none text-no-wrap"
+              style="min-width: 150px"
               @click="sortByHeader('folder')"
             >
               <div class="d-flex align-center ga-1">
@@ -2264,8 +2227,8 @@ export default {
               </div>
             </th>
             <th
-              class="text-left font-weight-bold d-none d-md-table-cell cursor-pointer user-select-none"
-              style="width: 120px"
+              class="text-left font-weight-bold cursor-pointer user-select-none text-no-wrap"
+              style="min-width: 130px"
               @click="sortByHeader('size')"
             >
               <div class="d-flex align-center ga-1">
@@ -2279,8 +2242,8 @@ export default {
               </div>
             </th>
             <th
-              class="text-left font-weight-bold d-none d-md-table-cell cursor-pointer user-select-none"
-              style="width: 140px"
+              class="text-left font-weight-bold cursor-pointer user-select-none text-no-wrap"
+              style="min-width: 160px"
               @click="sortByHeader('uploadedAt')"
             >
               <div class="d-flex align-center ga-1">
@@ -2293,7 +2256,7 @@ export default {
                 ></v-icon>
               </div>
             </th>
-            <th class="text-right font-weight-bold" style="width: 50px">
+            <th class="text-right font-weight-bold text-no-wrap" style="width: 50px; min-width: 50px">
               {{ $t('absence.table_actions') }}
             </th>
           </tr>
@@ -2343,25 +2306,26 @@ export default {
                 {{ file.notes }}
               </div>
             </td>
-            <td class="d-none d-sm-table-cell">
+            <td class="text-no-wrap">
               <v-chip
                 size="x-small"
                 variant="tonal"
                 color="primary"
+                :title="getFolderLabel(file.folderId)"
                 :prepend-icon="
                   folders.find((f) => f.id === file.folderId)?.icon || 'mdi-folder-outline'
                 "
               >
-                {{ getFolderLabel(file.folderId) }}
+                <span>{{ getFolderLabel(file.folderId) }}</span>
               </v-chip>
             </td>
-            <td class="d-none d-md-table-cell text-caption text-medium-emphasis">
+            <td class="text-caption text-medium-emphasis text-no-wrap">
               {{ formatSize(file.size) }}
             </td>
-            <td class="d-none d-md-table-cell text-caption text-medium-emphasis">
+            <td class="text-caption text-medium-emphasis text-no-wrap">
               {{ formatUploadDate(file.uploadedAt) }}
             </td>
-            <td class="text-right">
+            <td class="text-right text-no-wrap">
               <v-menu location="bottom end">
                 <template #activator="{ props }">
                   <v-btn
@@ -2991,6 +2955,11 @@ export default {
 .vault-table :deep(.v-table__wrapper) {
   max-height: 420px;
   overflow-y: auto;
+  overflow-x: auto;
+}
+
+.vault-table :deep(table) {
+  min-width: 680px;
 }
 
 .vault-table :deep(th) {

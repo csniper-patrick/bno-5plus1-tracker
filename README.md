@@ -35,7 +35,7 @@ An unofficial, 3rd-party web application designed for **British National (Overse
   - Checks **Final 12-Month Limit** (maximum **90 days** absent in the final year post-ILR).
   - Enforces physical presence requirement: Automatically checks if the applicant was present in the UK 5 years prior to application, advancing the window start date if it falls on an absent day.
 - **🪪 BNO Visa Overview Card**
-  - Summarizes Visa Start Date, Visa Expiry Date (with Default 5-Year / Custom badges), Earliest ILR Settlement Date, and displays prominent yellow extension warning alerts if visa extension is needed before ILR qualification.
+  - Summarizes Visa Start Date, Visa Expiry Date (with Default 5-Year / Custom badges and dynamic countdowns when in the future), Earliest ILR Settlement Date, and displays prominent yellow extension warning alerts if visa extension is needed before ILR qualification.
 - **📋 Document & Qualification Tracker & Document Vault (`DocumentView`)**
   - **National Insurance Number (NI)**: Track your NIN format in standard UK space-delimited format (e.g., `QQ 12 34 56 A`), application status (auto-promoted to "Received" upon entering an NI number), and official HMRC confirmation letters.
   - **Life in the UK Test**: Track status (Not Started / Scheduled / Passed), test date, Unique Reference Number (URN), test center location, and notes.
@@ -57,7 +57,7 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 - **⚡ High-Performance Segment Tree Engine (`AbsenceSegmentTree`)**
   - Utilizes a custom $O(\log N)$ **Segment Tree** data structure over a 10-year day-by-day array to deliver lightning-fast custom date range queries, $O(1)$ point queries (`queryPoint`), and real-time sliding window calculations.
 - **📊 Settlement & Naturalisation Timeline**
-  - Calculates your exact **Earliest ILR Settlement Date**, **Earliest ILR Application Date** (28 days prior), and **Target Naturalisation Date**.
+  - Calculates your exact **Earliest ILR Settlement Date**, **Earliest ILR Application Date** (28 days prior), and **Target Naturalisation Date**, displaying dynamic countdowns in brackets (e.g., `2 yrs to go`, `3 mos to go`, `12 days to go`) for future dates.
 - **🎨 Modern Responsive Vuetify 3 UI**
   - Features Union Jack Dark/Light theme toggling, 3-dots vertical action menus for table rows, context-aware form controls, status chips, and intuitive 2-line Key Dates modal forms.
 - **💾 Local Device Storage & Data Privacy (IndexedDB Schema v2)**

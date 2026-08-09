@@ -2,7 +2,7 @@
 import { mapStores } from 'pinia'
 import { useAbsentsStore } from '../stores/absents'
 import { useProfilesStore } from '../stores/profiles'
-import { normalizeDate, calculateDays, getMaxSegmentTreeReturnDate } from '../utils/date'
+import { normalizeDate, calculateDays, getMaxSegmentTreeReturnDate, formatCountdown } from '../utils/date'
 
 /**
  * AbsenceView Component
@@ -307,7 +307,7 @@ export default {
      * @returns {string}
      */
     earliestIlrApplicationDate() {
-      return this.formatDate(this.absentsStore.earliestIlrApplicationDate)
+      return this.formatDateWithCountdown(this.absentsStore.earliestIlrApplicationDate)
     },
 
     /**
@@ -749,6 +749,20 @@ export default {
     },
 
     /**
+     * Formats a date string or Date object with countdown in brackets if date is in the future.
+     * @param {string|Date} dateInput - Date string or Date object.
+     * @returns {string} Formatted date string with optional countdown e.g. "2028-10-15 (2 yrs to go)".
+     */
+    formatDateWithCountdown(dateInput) {
+      const baseDateStr = this.formatDate(dateInput)
+      if (!dateInput || baseDateStr === '-') return baseDateStr
+
+      const locale = this.$i18n && this.$i18n.locale === 'zh-HK' ? 'zh-HK' : 'en-GB'
+      const countdown = formatCountdown(dateInput, locale)
+      return countdown ? `${baseDateStr} (${countdown})` : baseDateStr
+    },
+
+    /**
      * Gets today's date in local system time as a 'YYYY-MM-DD' string.
      * @returns {string}
      */
@@ -956,7 +970,7 @@ export default {
                       </v-chip>
                     </div>
                     <div class="text-subtitle-1 font-weight-bold">
-                      {{ formatDate(absentsStore.effectiveVisaExpiryDate) }}
+                      {{ formatDateWithCountdown(absentsStore.effectiveVisaExpiryDate) }}
                     </div>
                   </v-card>
                 </v-col>
@@ -1015,7 +1029,7 @@ export default {
                 <div>
                   <i18n-t keypath="absence.visa_extension_needed_body" scope="global">
                     <template #expiry>
-                      <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong>
+                      <strong>{{ formatDateWithCountdown(absentsStore.effectiveVisaExpiryDate) }}</strong>
                     </template>
                     <template #target>
                       <strong>{{ formatDate(absentsStore.settlementTargetDate) }}</strong>
@@ -1033,7 +1047,7 @@ export default {
               >
                 <i18n-t keypath="absence.visa_cover_verified_body" scope="global">
                   <template #expiry>
-                    <strong>{{ formatDate(absentsStore.effectiveVisaExpiryDate) }}</strong>
+                    <strong>{{ formatDateWithCountdown(absentsStore.effectiveVisaExpiryDate) }}</strong>
                   </template>
                   <template #target>
                     {{ formatDate(absentsStore.settlementTargetDate) }}
@@ -1363,7 +1377,7 @@ export default {
                     <strong>{{ $t('absence.earliest_delayed_app_date') }}</strong>
                   </span>
                   <strong class="text-subtitle-2 font-weight-bold">
-                    {{ formatDate(absentsStore.naturalizationTargetDate) }}
+                    {{ formatDateWithCountdown(absentsStore.naturalizationTargetDate) }}
                   </strong>
                 </div>
               </v-alert>
@@ -1381,7 +1395,7 @@ export default {
                     <strong>{{ $t('absence.earliest_application_date') }}</strong>
                   </span>
                   <strong class="text-subtitle-2 text-primary font-weight-bold">
-                    {{ formatDate(absentsStore.naturalizationTargetDate) }}
+                    {{ formatDateWithCountdown(absentsStore.naturalizationTargetDate) }}
                   </strong>
                 </div>
                 <div class="mt-1 opacity-90 text-caption">

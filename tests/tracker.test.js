@@ -9,6 +9,8 @@ import {
   calculateDays,
   getMaxSegmentTreeReturnDate,
   formatDisplayDate,
+  getCountdownParts,
+  formatCountdown,
 } from '../src/utils/date.js'
 import { AbsenceSegmentTree } from '../src/utils/segmentTree.js'
 import { generateId } from '../src/utils/id.js'
@@ -55,6 +57,56 @@ describe('Date Utilities', () => {
 
   it('should format display date string', () => {
     assert.strictEqual(formatDisplayDate('2024-01-15'), '15 Jan 2024')
+  })
+
+  it('should calculate getCountdownParts correctly', () => {
+    // Past target date -> null
+    assert.strictEqual(getCountdownParts('2024-01-01', '2026-08-09'), null)
+    // Same day -> null
+    assert.strictEqual(getCountdownParts('2026-08-09', '2026-08-09'), null)
+    // Future date (years, months, days)
+    assert.deepStrictEqual(getCountdownParts('2028-10-15', '2026-08-09'), {
+      years: 2,
+      months: 2,
+      days: 6,
+    })
+    // Future date (months only)
+    assert.deepStrictEqual(getCountdownParts('2026-11-20', '2026-08-09'), {
+      years: 0,
+      months: 3,
+      days: 11,
+    })
+    // Future date (days only)
+    assert.deepStrictEqual(getCountdownParts('2026-08-15', '2026-08-09'), {
+      years: 0,
+      months: 0,
+      days: 6,
+    })
+  })
+
+  it('should formatCountdown showing only the most significant unit', () => {
+    const fromDate = '2026-08-09'
+
+    // Past / today -> empty string
+    assert.strictEqual(formatCountdown('2024-01-01', 'en-GB', fromDate), '')
+    assert.strictEqual(formatCountdown('2026-08-09', 'en-GB', fromDate), '')
+
+    // Years > 0 (English)
+    assert.strictEqual(formatCountdown('2028-10-15', 'en-GB', fromDate), '2 yrs to go')
+    assert.strictEqual(formatCountdown('2027-08-09', 'en-GB', fromDate), '1 yr to go')
+
+    // Years === 0, Months > 0 (English)
+    assert.strictEqual(formatCountdown('2026-11-20', 'en-GB', fromDate), '3 mos to go')
+    assert.strictEqual(formatCountdown('2026-09-15', 'en-GB', fromDate), '1 mo to go')
+
+    // Years === 0, Months === 0, Days > 0 (English)
+    assert.strictEqual(formatCountdown('2026-08-15', 'en-GB', fromDate), '6 days to go')
+    assert.strictEqual(formatCountdown('2026-08-10', 'en-GB', fromDate), '1 day to go')
+
+    // Traditional Chinese (zh-HK)
+    assert.strictEqual(formatCountdown('2028-10-15', 'zh-HK', fromDate), '剩餘 2 年')
+    assert.strictEqual(formatCountdown('2026-11-20', 'zh-HK', fromDate), '剩餘 3 個月')
+    assert.strictEqual(formatCountdown('2026-08-15', 'zh-HK', fromDate), '剩餘 6 日')
   })
 })
 

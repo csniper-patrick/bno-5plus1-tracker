@@ -141,3 +141,99 @@ export function formatDisplayDate(dateStr, locale = 'en-GB') {
     timeZone: 'UTC',
   })
 }
+
+/**
+ * Calculates countdown breakdown (years, months, days) from reference date (defaults to today) to a target date.
+ * Standardizes calculation in UTC to avoid local timezone offsets.
+ * Returns null if target date is invalid, null, or not in the future (<= start date).
+ *
+ * @param {string|Date} targetDateInput - Target date in YYYY-MM-DD format or Date object.
+ * @param {string|Date} [fromDateInput=null] - Reference start date (defaults to current date at UTC midnight).
+ * @returns {{years: number, months: number, days: number}|null}
+ */
+export function getCountdownParts(targetDateInput, fromDateInput = null) {
+  if (!targetDateInput) return null
+  const target = parseDateUTC(targetDateInput)
+  if (!target) return null
+
+  let start
+  if (fromDateInput) {
+    start = parseDateUTC(fromDateInput)
+  } else {
+    const now = new Date()
+    start = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+  }
+
+  if (!start || target <= start) {
+    return null
+  }
+
+  let years = target.getUTCFullYear() - start.getUTCFullYear()
+  let months = target.getUTCMonth() - start.getUTCMonth()
+  let days = target.getUTCDate() - start.getUTCDate()
+
+  if (days < 0) {
+    months -= 1
+    // Get number of days in the month preceding target's current UTC month
+    const prevMonthLastDay = new Date(
+      Date.UTC(target.getUTCFullYear(), target.getUTCMonth(), 0),
+    ).getUTCDate()
+    days += prevMonthLastDay
+  }
+
+  if (months < 0) {
+    years -= 1
+    months += 12
+  }
+
+  if (years === 0 && months === 0 && days === 0) {
+    return null
+  }
+
+  return { years, months, days }
+}
+
+/**
+ * Formats a target date countdown into a human-readable string displaying the single most significant unit.
+ * Example outputs:
+ *  - '2 yrs to go' or '1 yr to go' (if years > 0)
+ *  - '3 mos to go' or '1 mo to go' (if years === 0 and months > 0)
+ *  - '12 days to go' or '1 day to go' (if years === 0, months === 0, and days > 0)
+ *  - '剩餘 2 年' / '剩餘 3 個月' / '剩餘 12 日' (for zh-HK locale)
+ *
+ * @param {string|Date} targetDateInput - Target date.
+ * @param {string} [locale='en-GB'] - Locale identifier ('en-GB' or 'zh-HK').
+ * @param {string|Date} [fromDateInput=null] - Optional reference date (defaults to today).
+ * @returns {string} Formatted countdown string or empty string if date is not in future.
+ */
+export function formatCountdown(targetDateInput, locale = 'en-GB', fromDateInput = null) {
+  const parts = getCountdownParts(targetDateInput, fromDateInput)
+  if (!parts) return ''
+
+  const { years, months, days } = parts
+  const isZh = locale && locale.startsWith('zh')
+
+  if (years > 0) {
+    if (isZh) {
+      return `剩餘 ${years} 年`
+    }
+    return `${years} ${years === 1 ? 'yr' : 'yrs'} to go`
+  }
+
+  if (months > 0) {
+    if (isZh) {
+      return `剩餘 ${months} 個月`
+    }
+    return `${months} ${months === 1 ? 'mo' : 'mos'} to go`
+  }
+
+  if (days > 0) {
+    if (isZh) {
+      return `剩餘 ${days} 日`
+    }
+    return `${days} ${days === 1 ? 'day' : 'days'} to go`
+  }
+
+  return ''
+}
+

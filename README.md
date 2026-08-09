@@ -132,26 +132,37 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 
 ```
 bno-5plus1-tracker/
-├── public/                # Static assets and PWA icons
+├── e2e/                   # Playwright E2E UI & screenshot generation tests
+│   ├── app-ui.spec.js                         # E2E application user flow & UI test suite
+│   └── generate-instruction-screenshots.spec.js # Automated desktop & mobile user guide screenshot generator
+├── public/                # Static assets, PWA icons & user guide instructions
+│   └── instructions/      # Desktop (step*.png) & mobile (narrow_step*.png) screenshots
 ├── src/
 │   ├── assets/            # Global styles (main.css)
-│   ├── components/        # UI components (ReloadPrompt.vue)
+│   ├── components/        # UI components
+│   │   ├── ProfileDrawerSection.vue      # Side drawer multi-profile selector & management
+│   │   ├── ProfileManagementDialog.vue   # Modal dialog for managing applicant profiles
+│   │   └── ReloadPrompt.vue              # PWA service worker update notification prompt
 │   ├── locales/           # i18n translation dictionaries
 │   │   ├── en.js          # English localization dictionary
 │   │   └── zh-HK.js       # Traditional Chinese (HK) localization dictionary
 │   ├── plugins/           # Vuetify 3 theme & i18n configuration (vuetify.js, i18n.js)
 │   ├── router/            # Vue Router routes (index.js)
 │   ├── services/          # Services & Data I/O
-│   │   ├── dbService.js         # IndexedDB initialisation & v2 schema migration
-│   │   ├── fileStorageService.js# IndexedDB file blob CRUD service ('files' object store)
-│   │   ├── backupService.js     # YAML export/import service with node-level comments
-│   │   └── zipService.js        # JSZip backup archiving & extraction service
+│   │   ├── dbService.js               # IndexedDB initialisation & v2 schema migration
+│   │   ├── fileStorageService.js      # IndexedDB binary blob CRUD service ('files' object store)
+│   │   ├── backupService.js           # YAML export/import service with node-level comments
+│   │   ├── zipService.js              # JSZip backup archiving & extraction service
+│   │   ├── profileService.js          # Multi-profile management & data swapping engine
+│   │   └── schemaValidationService.js # Strict YAML & backup schema validation engine
 │   ├── stores/            # Pinia stores
 │   │   ├── absents.js     # Absence store (useAbsentsStore) & segment tree syncing
-│   │   └── documents.js   # Document & file store (useDocumentsStore)
+│   │   ├── documents.js   # Document & file store (useDocumentsStore)
+│   │   └── profiles.js    # Multi-profile store (useProfilesStore)
 │   ├── utils/             # Helper utilities
 │   │   ├── date.js        # Centralized UTC date parsing, formatting & day math
 │   │   ├── segmentTree.js # AbsenceSegmentTree O(log N) data structure
+│   │   ├── format.js      # Text formatting helper utilities
 │   │   └── id.js          # Unique ID generator utility
 │   ├── views/             # Application views
 │   │   ├── AbsenceView.vue     # Absence tracker dashboard
@@ -160,7 +171,7 @@ bno-5plus1-tracker/
 │   │   └── InstructionView.vue # User guide & operation manual with responsive screenshots
 │   ├── App.vue            # Root layout with right navigation drawer & language switcher
 │   └── main.js            # Vue app entrypoint with i18n plugin initialization
-├── tests/                 # Automated test suite
+├── tests/                 # Automated unit test suite
 │   ├── tracker.test.js            # Core absence store, segment tree & backup unit tests
 │   ├── components_and_e2e.test.js # E2E user flows & binary file upload integration tests
 │   ├── indexeddb_emulation.test.js# IndexedDB app_state & files object store tests
@@ -169,6 +180,7 @@ bno-5plus1-tracker/
 ├── .gitlab-ci.yml         # GitLab CI/CD pipeline for GitLab Pages
 ├── index.html             # HTML entry template
 ├── package.json           # App manifest and dependencies
+├── playwright.config.js   # Playwright configuration with testIgnore isolation
 └── vite.config.js         # Vite build configuration with Vuetify & VitePWA
 ```
 
@@ -178,6 +190,8 @@ bno-5plus1-tracker/
 - **[date.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/date.js)**: Centralized UTC date parsing (`parseDateUTC`), formatting (`formatDateUTC`, `formatDisplayDate`), normalization (`normalizeDate`), day arithmetic (`calculateDays`, `getOneDayBefore`), and tree boundary calculations (`getMaxSegmentTreeReturnDate`).
 - **[dbService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/dbService.js)**: Database service managing IndexedDB open/upgrade transactions, supporting `app_state` (key-value) and `files` (file blobs with `folderId` index) object stores under DB Schema Version 2.
 - **[fileStorageService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/fileStorageService.js)**: Dedicated IndexedDB binary blob service handling file record persistence, on-demand blob retrieval, size formatting, object URL creation, and metadata queries.
+- **[profileService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/profileService.js)** & **[useProfilesStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/profiles.js)**: Multi-profile management engine supporting isolated tracking for multiple family members, active profile switching, duplication, renaming, and profile metadata persistence.
+- **[schemaValidationService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/schemaValidationService.js)**: Strict schema validation engine enforcing YAML backup structure and ZIP manifest integrity (`backup.yaml` and `files-manifest.yaml`).
 - **[backupService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/backupService.js)**: Consolidated YAML backup service for structured data exports/imports with node-level comments.
 - **[zipService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/zipService.js)**: ZIP archiving engine using `jszip` and `yaml` serialization to package `backup.yaml`, `files-manifest.yaml`, and document file blobs into `.zip` archives.
 - **[locales/](file:///Users/csniper/Projects/bno-5plus1-tracker/src/locales)**: Internationalization translation dictionaries (`en.js` & `zh-HK.js`) providing full English and Traditional Chinese (HK) translations for all application views, forms, dialogs, badges, and official link cards.

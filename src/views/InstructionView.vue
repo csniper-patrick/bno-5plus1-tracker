@@ -13,7 +13,7 @@ export default {
     return {
       activeTab: 'step1',
       viewMode: 'auto', // 'auto' | 'desktop' | 'mobile'
-      faqOpened: [0]
+      faqOpened: null
     }
   },
 
@@ -571,7 +571,7 @@ export default {
         {{ $t('instruction.faq.title') }}
       </v-card-title>
       
-      <v-expansion-panels v-model="faqOpened" multiple variant="accordion" class="rounded-lg">
+      <v-expansion-panels v-model="faqOpened" variant="accordion" class="rounded-lg">
         <v-row align="start" density="compact">
           <v-col cols="12" md="6">
             <v-expansion-panel class="border mb-2 rounded-lg">

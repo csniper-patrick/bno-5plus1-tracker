@@ -229,6 +229,7 @@ export default {
     add_custom_item: 'Add Custom Evidence',
     item_title: 'Evidence Title',
     category: 'Category',
+    address: 'Address',
     address_line_1: 'Address Line 1',
     address_line_2: 'Address Line 2 (Optional)',
     city: 'City / Town',

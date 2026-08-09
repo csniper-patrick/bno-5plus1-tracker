@@ -170,14 +170,14 @@ export function sanitizeResidenceChecklist(loadedChecklist, uploadedFilesList = 
 }
 
 /**
- * Sorts address records chronologically by move-in date (oldest first).
+ * Sorts address records in descending order by move-in date (newest first).
  *
  * @param {Array<Object>} arr - List of address objects containing startDate.
  * @returns {Array<Object>} Sorted address array.
  */
 function sortAddresses(arr) {
   if (!Array.isArray(arr)) return []
-  return arr.sort((a, b) => ((a && a.startDate) || '').localeCompare((b && b.startDate) || ''))
+  return arr.sort((a, b) => ((b && b.startDate) || '').localeCompare((a && a.startDate) || ''))
 }
 
 /**

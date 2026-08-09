@@ -801,12 +801,12 @@ describe('Document Store Helper Operations', () => {
       postcode: 'M1 1AA',
     })
 
-    // Address history should sort chronologically (addr2 from 2022 before addr1 from 2023)
+    // Address history should sort in descending order of move-in date (addr1 from 2023 before addr2 from 2022)
     assert.strictEqual(docStore.addressHistory.length, 2)
-    assert.strictEqual(docStore.addressHistory[0].id, addr2.id)
+    assert.strictEqual(docStore.addressHistory[0].id, addr1.id)
 
     docStore.updateAddress(addr2.id, { addressLine1: '456 Updated Rd, Manchester' })
-    assert.strictEqual(docStore.addressHistory[0].addressLine1, '456 Updated Rd, Manchester')
+    assert.strictEqual(docStore.addressHistory[1].addressLine1, '456 Updated Rd, Manchester')
 
     docStore.deleteAddress(addr1.id)
     assert.strictEqual(docStore.addressHistory.length, 1)

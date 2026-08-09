@@ -1786,7 +1786,7 @@ export default {
                 <tr>
                   <th class="text-left font-weight-bold">{{ $t('document.move_in_date') }}</th>
                   <th class="text-left font-weight-bold">{{ $t('document.move_out_date') }}</th>
-                  <th class="text-left font-weight-bold">{{ $t('document.address_line_1') }}</th>
+                  <th class="text-left font-weight-bold" style="min-width: 250px">{{ $t('document.address') }}</th>
                   <th class="text-right font-weight-bold">{{ $t('absence.table_actions') }}</th>
                 </tr>
               </thead>
@@ -1827,7 +1827,7 @@ export default {
                     </v-chip>
                   </td>
 
-                  <td>
+                  <td style="min-width: 250px">
                     <div class="d-flex align-center ga-2 flex-wrap">
                       <span class="font-weight-medium text-body-2">
                         {{ item.addressLine1

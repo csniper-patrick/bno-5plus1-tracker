@@ -222,6 +222,7 @@ export default {
     add_custom_item: '新增自訂證明項目',
     item_title: '證明項目名稱',
     category: '類別',
+    address: '居住地址',
     address_line_1: '地址第一行',
     address_line_2: '地址第二行 (選填)',
     city: '城市 / 城鎮',

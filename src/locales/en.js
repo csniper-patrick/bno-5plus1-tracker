@@ -752,17 +752,30 @@ export default {
           'Recognized across Home Office caseworkers, UK employers, and professional registration bodies',
         ],
       },
+      register_citizenship_bno: {
+        title: 'Register as a British Citizen (Form B(OTA) / Section 4(2))',
+        category: 'Citizenship',
+        badge: 'Statutory Registration',
+        description:
+          'Official Home Office application for BN(O) status holders to register as British citizens under Section 4(2) of the British Nationality Act 1981 after 5 years UK residence and 12 months with ILR.',
+        highlights: [
+          'Statutory registration entitlement route specifically for British National (Overseas) status holders',
+          'Requires 5 years continuous UK residence and holding ILR for at least 12 months',
+          'Absence limits: Max 450 days total in 5 years, max 90 days in the 12 months prior to application',
+          'Must have been physically in the UK exactly 5 years before the application receipt date',
+        ],
+      },
       apply_citizenship_naturalisation: {
-        title: 'Apply for British Citizenship (Form AN)',
+        title: 'Apply for British Citizenship by Naturalisation (Form AN - Dependants)',
         category: 'Citizenship',
         badge: 'Naturalisation',
         description:
-          'Official guidance on applying for British Citizenship by Naturalisation after holding ILR for at least 12 months (or immediately if married to a UK citizen).',
+          'Official guidance on applying for British Citizenship by Naturalisation (Form AN) for non-BNO family members and dependants after holding ILR for at least 12 months.',
         highlights: [
-          'Absence limit 1: Max 450 days total absent in the 5 years before applying',
-          'Absence limit 2: Max 90 days absent in the 12 months immediately preceding application',
-          'Physical presence requirement: Must have been in the UK exactly 5 years prior to application date',
-          'Requires 2 referees, good character assessment, & citizenship ceremony',
+          'Standard naturalisation pathway for family members and dependants without BN(O) status',
+          'Absence limits: Max 450 days total in 5 years, max 90 days in the 12 months preceding application',
+          'Physical presence: Must have been physically present in the UK exactly 5 years prior to application',
+          'Requires 2 referees, Good Character assessment, and attendance at a citizenship ceremony',
         ],
       },
       good_character_guidance: {

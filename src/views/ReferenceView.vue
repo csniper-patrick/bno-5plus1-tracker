@@ -23,6 +23,7 @@ export default {
         'Living & Rights',
         'Qualifications & Tests',
         'Citizenship',
+        'Travel & Entry',
         'Tools & Source',
       ],
       sourceTypes: ['All', 'Official', '3rd Party'],
@@ -574,6 +575,165 @@ export default {
             'Switching visa categories and adding dependent family members',
           ],
         },
+        {
+          id: 'uk-eta-guidance',
+          title: 'UK Electronic Travel Authorisation (ETA) Guidance & Exemptions',
+          category: 'Travel & Entry',
+          url: 'https://www.gov.uk/electronic-travel-authorisation',
+          icon: 'mdi-airplane-check',
+          color: 'cyan-darken-3',
+          badge: 'Official ETA Rules',
+          isOfficial: true,
+          description:
+            'Official UK Government guidance on the Electronic Travel Authorisation (ETA) scheme, eligible visitors, and official exemptions for British passport holders and UK visa/eVisa holders.',
+          highlights: [
+            'British National (Overseas) passport holders DO NOT need an ETA to travel to or enter the UK',
+            'Holders of a valid BNO visa or UK permission to live/work/study (eVisa) DO NOT need an ETA',
+            'HKSAR passport holders visiting without a UK visa MUST obtain an ETA before travel (£20 fee, valid 2 years)',
+            'Official applications must be made only via the official "UK ETA" app or GOV.UK (beware of unofficial scam websites)',
+          ],
+        },
+        {
+          id: 'uk-eta-check-eligibility',
+          title: 'Check When You Can Get an ETA (Nationalities & Eligibility)',
+          category: 'Travel & Entry',
+          url: 'https://www.gov.uk/guidance/check-when-you-can-get-an-electronic-travel-authorisation-eta',
+          icon: 'mdi-passport-biometric',
+          color: 'teal-darken-2',
+          badge: 'Eligibility List',
+          isOfficial: true,
+          description:
+            'Official UKVI nationality eligibility schedule confirming who must apply for an ETA and official statutory exemptions for British nationals and residents.',
+          highlights: [
+            'Lists Hong Kong SAR on the non-visa national schedule requiring an ETA for tourism, business, and transit',
+            'British nationals (including BN(O) passport holders) are legally exempt from the ETA requirement',
+            'Individuals with settled, pre-settled, or long-term visa status (including BNO Visa) are exempt',
+            'Each traveler (including babies and children) must have their own ETA if not exempt',
+          ],
+        },
+        {
+          id: 'gov-uk-check-visa',
+          title: 'Check UK Visa Requirements (Entering UK as BNO / Visitor)',
+          category: 'Travel & Entry',
+          url: 'https://www.gov.uk/check-uk-visa',
+          icon: 'mdi-card-search-outline',
+          color: 'blue-darken-3',
+          badge: 'Official Checker',
+          isOfficial: true,
+          description:
+            'Interactive official UKVI questionnaire tool to verify exact entry requirements, visa exemptions, and travel permissions based on your nationality and purpose of visit.',
+          highlights: [
+            'Select "British National (Overseas)" to confirm 6-month visa-free and ETA-free visitor entry rights',
+            'Clarifies the difference between entering as a tourist/visitor vs relocating under the 5-year BNO route',
+            'Direct guidance for connecting flights, transit without visa (TWOV), and landside transit',
+          ],
+        },
+        {
+          id: 'uk-evisa-travel-guidance',
+          title: 'Travelling to the UK with an eVisa & Linking Passports',
+          category: 'Travel & Entry',
+          url: 'https://www.gov.uk/guidance/online-immigration-status-evisa',
+          icon: 'mdi-airplane-landing',
+          color: 'indigo-darken-2',
+          badge: 'Border Entry',
+          isOfficial: true,
+          description:
+            'Official Home Office instructions for BNO visa holders travelling internationally, linking current passports to their UKVI eVisa account, and crossing the UK border smoothly.',
+          highlights: [
+            'BNO visa holders travelling on HKSAR passports must link their passport to their UKVI account to board flights without an ETA',
+            'Keep travel document details (renewed passports) updated in your UKVI account before travelling',
+            'Eligible passport holders with biometric chips can use ePassport gates at UK airport border control',
+            'Carriers and UK Border Force access your digital visa status automatically upon passport scan',
+          ],
+        },
+        {
+          id: 'uk-eta-app-guidance',
+          title: 'Using the Official UK ETA Smartphone App',
+          category: 'Travel & Entry',
+          url: 'https://www.gov.uk/guidance/using-the-uk-eta-app',
+          icon: 'mdi-cellphone-key',
+          color: 'deep-purple-darken-1',
+          badge: 'Mobile App',
+          isOfficial: true,
+          description:
+            'Official guide for non-visa visitors (such as visiting friends/family with HKSAR passports) to apply for an ETA using the official smartphone app on iOS and Android.',
+          highlights: [
+            'Fastest method to apply: scan biometric passport chip and take a face photo',
+            'Decisions are typically issued within 3 working days (often within hours)',
+            "Digital ETA permission is electronically linked directly to the applicant's passport",
+          ],
+        },
+        {
+          id: 'uk-emergency-travel-document',
+          title: 'Apply for an Emergency Travel Document (Emergency Passport Abroad)',
+          category: 'Travel & Entry',
+          url: 'https://www.gov.uk/emergency-travel-document',
+          icon: 'mdi-passport-alert',
+          color: 'red-darken-3',
+          badge: 'Emergency Document',
+          isOfficial: true,
+          description:
+            'Official UK Government online application for an Emergency Travel Document (ETD / Emergency Passport) if you are outside the UK and your British or BN(O) passport has been lost, stolen, damaged, or expired.',
+          highlights: [
+            'Available to British nationals, including British National (Overseas) passport holders',
+            'Valid for urgent international travel through up to 5 countries or return to the UK / residence',
+            'Online application fee: £125 (usually ready for collection in 2 working days)',
+            'Collect in person at the nearest British Embassy, High Commission, or Consulate',
+          ],
+        },
+        {
+          id: 'uk-urgent-passport-service',
+          title: 'Get a UK Passport Urgently (1-Day Premium & 1-Week Fast Track)',
+          category: 'Travel & Entry',
+          url: 'https://www.gov.uk/get-a-passport-urgently',
+          icon: 'mdi-clock-fast',
+          color: 'orange-darken-3',
+          badge: 'Urgent Processing',
+          isOfficial: true,
+          description:
+            'Official HM Passport Office urgent renewal and replacement services for British and BN(O) passport holders needing emergency travel documents from within the UK.',
+          highlights: [
+            'Online Premium: Collect your new passport at an in-person appointment as early as 2 days after applying',
+            '1-Week Fast Track: Replacement passport delivered to your UK address within 1 week of appointment',
+            'Book appointments online up to 3 weeks in advance across UK passport regional centers',
+            'Accepted for passport renewals, replacements of damaged passports, and first adult passports (Fast Track)',
+          ],
+        },
+        {
+          id: 'uk-report-lost-stolen-passport',
+          title: 'Cancel & Report a Lost or Stolen Passport Online',
+          category: 'Travel & Entry',
+          url: 'https://www.gov.uk/report-a-lost-or-stolen-passport',
+          icon: 'mdi-shield-alert-outline',
+          color: 'deep-orange-darken-2',
+          badge: 'Security & Loss',
+          isOfficial: true,
+          description:
+            'Official UK Government service to immediately cancel and report lost or stolen British / BN(O) passports to prevent identity fraud and unauthorized border crossing.',
+          highlights: [
+            'Immediate cancellation reduces risk of fraudulent travel and identity theft',
+            'Generates official reference number needed for local police reports and travel insurance claims',
+            'Required prerequisite step when applying for an Emergency Travel Document (ETD) abroad',
+            'Can be completed online 24/7 from anywhere in the world',
+          ],
+        },
+        {
+          id: 'uk-find-embassy-abroad',
+          title: 'Find a British Embassy or Consulate (Emergency Consular Support)',
+          category: 'Travel & Entry',
+          url: 'https://www.gov.uk/world/embassies',
+          icon: 'mdi-city-variant-outline',
+          color: 'blue-grey-darken-2',
+          badge: 'Consular Support',
+          isOfficial: true,
+          description:
+            'Official Foreign, Commonwealth & Development Office (FCDO) global directory to locate the nearest British Embassy, High Commission, or Consulate for 24/7 emergency consular assistance abroad.',
+          highlights: [
+            '24/7 emergency consular telephone hotline for British nationals facing crises overseas',
+            'Designated collection centers for Emergency Travel Documents (ETD) and temporary travel passes',
+            'Provides directory of English-speaking local doctors, lawyers, and emergency contacts worldwide',
+          ],
+        },
       ],
     }
   },
@@ -589,6 +749,7 @@ export default {
         { key: 'Living & Rights', label: this.$t('reference.cat_living_rights') },
         { key: 'Qualifications & Tests', label: this.$t('reference.cat_qualifications') },
         { key: 'Citizenship', label: this.$t('reference.cat_citizenship') },
+        { key: 'Travel & Entry', label: this.$t('reference.cat_travel_entry') },
         { key: 'Tools & Source', label: this.$t('reference.cat_tools') },
       ]
     },
@@ -653,6 +814,42 @@ export default {
           matchesCategory && matchesSourceType && (matchesTitle || matchesDesc || matchesHighlights)
         )
       })
+    },
+
+    /**
+     * Total number of links grouped by category.
+     * @returns {Record<string, number>}
+     */
+    categoryCounts() {
+      const counts = { All: this.links.length }
+      for (const link of this.links) {
+        counts[link.category] = (counts[link.category] || 0) + 1
+      }
+      return counts
+    },
+
+    /**
+     * Total number of links grouped by source type.
+     * @returns {Record<string, number>}
+     */
+    sourceCounts() {
+      return {
+        All: this.links.length,
+        Official: this.links.filter((l) => l.isOfficial).length,
+        '3rd Party': this.links.filter((l) => !l.isOfficial).length,
+      }
+    },
+
+    /**
+     * Checks if any filter or search query is currently active.
+     * @returns {boolean}
+     */
+    hasActiveFilters() {
+      return (
+        Boolean(this.searchQuery && this.searchQuery.trim()) ||
+        this.selectedCategory !== 'All' ||
+        this.selectedSourceType !== 'All'
+      )
     },
   },
 
@@ -764,8 +961,9 @@ export default {
 
     <!-- Search & Category / Source Type Filters -->
     <v-card elevation="1" class="pa-4 rounded-lg bg-surface mb-6">
+      <!-- Top Row: Search Input + Source Type Filter + Quick Reset -->
       <v-row align="center">
-        <v-col cols="12" md="4">
+        <v-col cols="12" md="6">
           <v-text-field
             v-model="searchQuery"
             prepend-inner-icon="mdi-magnify"
@@ -777,56 +975,96 @@ export default {
           ></v-text-field>
         </v-col>
 
-        <v-col cols="12" md="8" class="d-flex align-center flex-wrap ga-2 justify-md-end">
-          <div class="d-flex align-center ga-1 mr-sm-2">
-            <span class="text-caption text-medium-emphasis font-weight-bold">{{
-              $t('reference.source_filter')
-            }}</span>
+        <v-col cols="12" md="6" class="d-flex align-center flex-wrap ga-2 justify-md-end">
+          <div class="d-flex align-center ga-1">
+            <span class="text-caption text-medium-emphasis font-weight-bold">
+              {{ $t('reference.source_filter') }}
+            </span>
             <v-chip-group
               v-model="selectedSourceType"
-              selected-class="v-chip--selected"
               mandatory
-              filter
             >
               <v-chip
                 v-for="st in sourceTypesMap"
                 :key="st.key"
                 :value="st.key"
                 size="small"
-                variant="outlined"
+                :variant="selectedSourceType === st.key ? 'flat' : 'outlined'"
                 color="primary"
-                class="font-weight-medium"
+                :class="selectedSourceType === st.key ? 'text-white font-weight-bold' : 'font-weight-medium'"
               >
                 {{ st.label }}
+                <span
+                  class="ml-1 text-caption"
+                  :class="selectedSourceType === st.key ? 'text-white font-weight-bold' : 'text-medium-emphasis'"
+                >
+                  ({{ sourceCounts[st.key] || 0 }})
+                </span>
               </v-chip>
             </v-chip-group>
           </div>
 
-          <div class="d-flex align-center ga-1">
-            <span class="text-caption text-medium-emphasis font-weight-bold">{{
-              $t('reference.category_filter')
-            }}</span>
-            <v-chip-group
-              v-model="selectedCategory"
-              selected-class="v-chip--selected"
-              mandatory
-              filter
-            >
-              <v-chip
-                v-for="cat in categoriesMap"
-                :key="cat.key"
-                :value="cat.key"
-                size="small"
-                variant="outlined"
-                color="primary"
-                class="font-weight-medium"
-              >
-                {{ cat.label }}
-              </v-chip>
-            </v-chip-group>
-          </div>
+          <v-btn
+            v-if="hasActiveFilters"
+            size="small"
+            variant="text"
+            color="error"
+            density="compact"
+            prepend-icon="mdi-filter-off-outline"
+            class="text-caption"
+            @click="resetFilters"
+          >
+            {{ $t('reference.reset_filters') }}
+          </v-btn>
         </v-col>
       </v-row>
+
+      <v-divider class="my-3"></v-divider>
+
+      <!-- Bottom Row: Category Filter Chips & Results Count -->
+      <div>
+        <div class="d-flex align-center justify-space-between mb-2">
+          <div class="d-flex align-center ga-1">
+            <v-icon icon="mdi-tag-multiple-outline" size="16" color="primary"></v-icon>
+            <span class="text-caption text-medium-emphasis font-weight-bold text-uppercase">
+              {{ $t('reference.category_filter') }}
+            </span>
+          </div>
+          <span class="text-caption text-medium-emphasis font-weight-medium">
+            {{
+              $t('reference.showing_results', {
+                count: filteredLinks.length,
+                total: links.length,
+              })
+            }}
+          </span>
+        </div>
+
+        <v-chip-group
+          v-model="selectedCategory"
+          mandatory
+          column
+        >
+          <v-chip
+            v-for="cat in categoriesMap"
+            :key="cat.key"
+            :value="cat.key"
+            size="small"
+            :variant="selectedCategory === cat.key ? 'flat' : 'outlined'"
+            color="primary"
+            :class="selectedCategory === cat.key ? 'text-white font-weight-bold' : 'font-weight-medium'"
+            class="my-1"
+          >
+            {{ cat.label }}
+            <span
+              class="ml-1 text-caption"
+              :class="selectedCategory === cat.key ? 'text-white font-weight-bold' : 'text-medium-emphasis'"
+            >
+              ({{ categoryCounts[cat.key] || 0 }})
+            </span>
+          </v-chip>
+        </v-chip-group>
+      </div>
     </v-card>
 
     <!-- Cards Grid -->

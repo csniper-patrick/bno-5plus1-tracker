@@ -448,6 +448,7 @@ export default {
     source_filter: 'Source:',
     category_filter: 'Category:',
     all: 'All',
+    cat_travel_entry: 'Travel & Entry (ETA / Border)',
     cat_visa_extension: 'Visa Extension',
     cat_bno_settlement: 'BNO Settlement',
     cat_policy_guidance: 'Policy & Guidance',
@@ -462,6 +463,7 @@ export default {
     no_results_title: 'No links matched your search',
     no_results_desc: 'Try adjusting your search query or selecting "All" categories.',
     reset_filters: 'Reset Filters',
+    showing_results: 'Showing {count} of {total} resources',
     key_takeaways: 'Key Takeaways & Highlights',
     link_copied: 'Link URL copied to clipboard!',
     links: {
@@ -845,6 +847,120 @@ export default {
           'Compare 2.5-year extension vs 5-year initial visa paths',
           'Immigration Health Surcharge (IHS) payment details',
           'Switching visa categories and adding dependent family members',
+        ],
+      },
+      uk_eta_guidance: {
+        title: 'UK Electronic Travel Authorisation (ETA) Guidance & Exemptions',
+        category: 'Travel & Entry',
+        badge: 'Official ETA Rules',
+        description:
+          'Official UK Government guidance on the Electronic Travel Authorisation (ETA) scheme, eligible visitors, and official exemptions for British passport holders and UK visa/eVisa holders.',
+        highlights: [
+          'British National (Overseas) passport holders DO NOT need an ETA to travel to or enter the UK',
+          'Holders of a valid BNO visa or UK permission to live/work/study (eVisa) DO NOT need an ETA',
+          'HKSAR passport holders visiting without a UK visa MUST obtain an ETA before travel (£20 fee, valid 2 years)',
+          'Official applications must be made only via the official "UK ETA" app or GOV.UK (beware of unofficial scam websites)',
+        ],
+      },
+      uk_eta_check_eligibility: {
+        title: 'Check When You Can Get an ETA (Nationalities & Eligibility)',
+        category: 'Travel & Entry',
+        badge: 'Eligibility List',
+        description:
+          'Official UKVI nationality eligibility schedule confirming who must apply for an ETA and official statutory exemptions for British nationals and residents.',
+        highlights: [
+          'Lists Hong Kong SAR on the non-visa national schedule requiring an ETA for tourism, business, and transit',
+          'British nationals (including BN(O) passport holders) are legally exempt from the ETA requirement',
+          'Individuals with settled, pre-settled, or long-term visa status (including BNO Visa) are exempt',
+          'Each traveler (including babies and children) must have their own ETA if not exempt',
+        ],
+      },
+      gov_uk_check_visa: {
+        title: 'Check UK Visa Requirements (Entering UK as BNO / Visitor)',
+        category: 'Travel & Entry',
+        badge: 'Official Checker',
+        description:
+          'Interactive official UKVI questionnaire tool to verify exact entry requirements, visa exemptions, and travel permissions based on your nationality and purpose of visit.',
+        highlights: [
+          'Select "British National (Overseas)" to confirm 6-month visa-free and ETA-free visitor entry rights',
+          'Clarifies the difference between entering as a tourist/visitor vs relocating under the 5-year BNO route',
+          'Direct guidance for connecting flights, transit without visa (TWOV), and landside transit',
+        ],
+      },
+      uk_evisa_travel_guidance: {
+        title: 'Travelling to the UK with an eVisa & Linking Passports',
+        category: 'Travel & Entry',
+        badge: 'Border Entry',
+        description:
+          'Official Home Office instructions for BNO visa holders travelling internationally, linking current passports to their UKVI eVisa account, and crossing the UK border smoothly.',
+        highlights: [
+          'BNO visa holders travelling on HKSAR passports must link their passport to their UKVI account to board flights without an ETA',
+          'Keep travel document details (renewed passports) updated in your UKVI account before travelling',
+          'Eligible passport holders with biometric chips can use ePassport gates at UK airport border control',
+          'Carriers and UK Border Force access your digital visa status automatically upon passport scan',
+        ],
+      },
+      uk_eta_app_guidance: {
+        title: 'Using the Official UK ETA Smartphone App',
+        category: 'Travel & Entry',
+        badge: 'Mobile App',
+        description:
+          'Official guide for non-visa visitors (such as visiting friends/family with HKSAR passports) to apply for an ETA using the official smartphone app on iOS and Android.',
+        highlights: [
+          'Fastest method to apply: scan biometric passport chip and take a face photo',
+          'Decisions are typically issued within 3 working days (often within hours)',
+          "Digital ETA permission is electronically linked directly to the applicant's passport",
+        ],
+      },
+      uk_emergency_travel_document: {
+        title: 'Apply for an Emergency Travel Document (Emergency Passport Abroad)',
+        category: 'Travel & Entry',
+        badge: 'Emergency Document',
+        description:
+          'Official UK Government online application for an Emergency Travel Document (ETD / Emergency Passport) if you are outside the UK and your British or BN(O) passport has been lost, stolen, damaged, or expired.',
+        highlights: [
+          'Available to British nationals, including British National (Overseas) passport holders',
+          'Valid for urgent international travel through up to 5 countries or return to the UK / residence',
+          'Online application fee: £125 (usually ready for collection in 2 working days)',
+          'Collect in person at the nearest British Embassy, High Commission, or Consulate',
+        ],
+      },
+      uk_urgent_passport_service: {
+        title: 'Get a UK Passport Urgently (1-Day Premium & 1-Week Fast Track)',
+        category: 'Travel & Entry',
+        badge: 'Urgent Processing',
+        description:
+          'Official HM Passport Office urgent renewal and replacement services for British and BN(O) passport holders needing emergency travel documents from within the UK.',
+        highlights: [
+          'Online Premium: Collect your new passport at an in-person appointment as early as 2 days after applying',
+          '1-Week Fast Track: Replacement passport delivered to your UK address within 1 week of appointment',
+          'Book appointments online up to 3 weeks in advance across UK passport regional centers',
+          'Accepted for passport renewals, replacements of damaged passports, and first adult passports (Fast Track)',
+        ],
+      },
+      uk_report_lost_stolen_passport: {
+        title: 'Cancel & Report a Lost or Stolen Passport Online',
+        category: 'Travel & Entry',
+        badge: 'Security & Loss',
+        description:
+          'Official UK Government service to immediately cancel and report lost or stolen British / BN(O) passports to prevent identity fraud and unauthorized border crossing.',
+        highlights: [
+          'Immediate cancellation reduces risk of fraudulent travel and identity theft',
+          'Generates official reference number needed for local police reports and travel insurance claims',
+          'Required prerequisite step when applying for an Emergency Travel Document (ETD) abroad',
+          'Can be completed online 24/7 from anywhere in the world',
+        ],
+      },
+      uk_find_embassy_abroad: {
+        title: 'Find a British Embassy or Consulate (Emergency Consular Support)',
+        category: 'Travel & Entry',
+        badge: 'Consular Support',
+        description:
+          'Official Foreign, Commonwealth & Development Office (FCDO) global directory to locate the nearest British Embassy, High Commission, or Consulate for 24/7 emergency consular assistance abroad.',
+        highlights: [
+          '24/7 emergency consular telephone hotline for British nationals facing crises overseas',
+          'Designated collection centers for Emergency Travel Documents (ETD) and temporary travel passes',
+          'Provides directory of English-speaking local doctors, lawyers, and emergency contacts worldwide',
         ],
       },
     },

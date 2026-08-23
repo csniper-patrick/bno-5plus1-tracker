@@ -1089,7 +1089,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     return { valid: true, error: '' }
   }
 
-  function addAbsence({ startDate, endDate, dest = '', stops = null }) {
+  function addAbsence({ id = '', startDate, endDate, dest = '', stops = null }) {
     const validation = validateAbsence({ startDate, endDate })
     if (!validation.valid) {
       throw new Error(validation.error)
@@ -1101,7 +1101,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     ]
 
     const newEntry = {
-      id: generateId(),
+      id: id && String(id).trim() ? String(id).trim() : generateId(),
       startDate,
       endDate,
       dest,
@@ -1199,17 +1199,17 @@ export const useAbsentsStore = defineStore('absents', () => {
     )
     const importedVisaExpiryDate = normalizeDate(
       parsed.visa_expiry_date ||
-        parsed.visaExpiryDate ||
-        parsed.visa_expire_date ||
-        parsed.visaExpireDate ||
-        '',
+      parsed.visaExpiryDate ||
+      parsed.visa_expire_date ||
+      parsed.visaExpireDate ||
+      '',
     )
     const importedArrivalDate = normalizeDate(
       parsed.uk_arrival_date ||
-        parsed.ukArrivalDate ||
-        parsed.arrival_date ||
-        parsed.arrivalDate ||
-        '',
+      parsed.ukArrivalDate ||
+      parsed.arrival_date ||
+      parsed.arrivalDate ||
+      '',
     )
     const importedIlrApprovedDate = normalizeDate(
       parsed.ilr_approved_date || parsed.ilrApprovedDate || parsed.ilr_date || parsed.ilrDate || '',
@@ -1222,6 +1222,7 @@ export const useAbsentsStore = defineStore('absents', () => {
         : []
 
     const validNewEntries = []
+    const seenIds = new Set()
     for (const item of rawAbsences) {
       if (!item || typeof item !== 'object') continue
       let startDate = normalizeDate(item.startDate || item.start_date || '')
@@ -1253,13 +1254,22 @@ export const useAbsentsStore = defineStore('absents', () => {
       }
 
       if (startDate && endDate) {
+        let entryId =
+          item.id !== undefined && item.id !== null && String(item.id).trim()
+            ? String(item.id).trim()
+            : generateId()
+        if (seenIds.has(entryId) || entryId === AUTO_ARRIVAL_ID) {
+          entryId = generateId()
+        }
+        seenIds.add(entryId)
+
         validNewEntries.push({
-          id: generateId(),
+          id: entryId,
           startDate,
           endDate,
           dest,
           stops,
-          createdAt: new Date().toISOString(),
+          createdAt: item.createdAt || new Date().toISOString(),
         })
       }
     }

@@ -230,7 +230,7 @@ describe('Backup Service', () => {
   it('should export and parse YAML backup data correctly', () => {
     const fakeAbsentsStore = {
       absences: [
-        { id: '1', startDate: '2023-05-10', endDate: '2023-05-20', dest: 'Japan' },
+        { id: 'custom_abs_123', startDate: '2023-05-10', endDate: '2023-05-20', dest: 'Japan' },
         {
           id: 'auto_uk_arrival_record',
           isAutoArrival: true,
@@ -246,11 +246,13 @@ describe('Backup Service', () => {
     const yamlStr = exportAbsencesBackup(fakeAbsentsStore)
     assert.ok(yamlStr.includes('2022-01-01'))
     assert.ok(yamlStr.includes('Japan'))
+    assert.ok(yamlStr.includes('custom_abs_123'))
     assert.ok(!yamlStr.includes('auto_uk_arrival_record'))
 
     const parsed = parseYAML(yamlStr)
     assert.strictEqual(parsed.visa_start_date, '2022-01-01')
     assert.strictEqual(parsed.absences.length, 1)
+    assert.strictEqual(parsed.absences[0].id, 'custom_abs_123')
     assert.strictEqual(parsed.absences[0].dest, 'Japan')
   })
 
@@ -542,16 +544,22 @@ absences:
       ilrApprovedDate: '2026-03-01',
     })
 
-    store.addAbsence({ startDate: '2022-01-05', endDate: '2022-01-20', dest: 'Winter Break' })
+    const addedAbsence = store.addAbsence({
+      startDate: '2022-01-05',
+      endDate: '2022-01-20',
+      dest: 'Winter Break',
+    })
+    const originalAbsenceId = addedAbsence.id
 
     const fullYaml = exportFullBackup(store, { getDocumentsExportData: () => [] })
+    assert.ok(fullYaml.includes(`id: ${originalAbsenceId}`))
     assert.ok(
       fullYaml.includes('visa_expiry_date: 2023-09-01') ||
-        fullYaml.includes("visa_expiry_date: '2023-09-01'"),
+      fullYaml.includes("visa_expiry_date: '2023-09-01'"),
     )
     assert.ok(
       fullYaml.includes('ilr_approved_date: 2026-03-01') ||
-        fullYaml.includes("ilr_approved_date: '2026-03-01'"),
+      fullYaml.includes("ilr_approved_date: '2026-03-01'"),
     )
 
     // Clear store and re-import
@@ -562,7 +570,67 @@ absences:
     assert.strictEqual(store.visaExpiryDate, '2023-09-01')
     assert.strictEqual(store.ukArrivalDate, '2021-03-10')
     assert.strictEqual(store.ilrApprovedDate, '2026-03-01')
-    assert.strictEqual(store.absences.filter((a) => !a.isAutoArrival).length, 1)
+    const nonArrivalAbsences = store.absences.filter((a) => !a.isAutoArrival)
+    assert.strictEqual(nonArrivalAbsences.length, 1)
+    assert.strictEqual(nonArrivalAbsences[0].id, originalAbsenceId)
+  })
+
+  it('should export absence record IDs and preserve them on import, resolving duplicate or blank IDs', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    store.setVisaStartDate('2021-01-01')
+    store.addAbsence({
+      id: 'trip_fixed_001',
+      startDate: '2021-05-01',
+      endDate: '2021-05-10',
+      dest: 'Paris',
+    })
+    store.addAbsence({
+      id: 'trip_fixed_002',
+      startDate: '2021-08-01',
+      endDate: '2021-08-15',
+      dest: 'Tokyo',
+    })
+
+    const exportedYaml = store.exportYAML()
+    assert.ok(exportedYaml.includes('trip_fixed_001'))
+    assert.ok(exportedYaml.includes('trip_fixed_002'))
+
+    // Re-import and verify IDs match
+    store.clearAbsences()
+    store.importYAML(exportedYaml)
+
+    const imported = store.absences.filter((a) => !a.isAutoArrival)
+    assert.strictEqual(imported.length, 2)
+    assert.strictEqual(imported[0].id, 'trip_fixed_001')
+    assert.strictEqual(imported[1].id, 'trip_fixed_002')
+
+    // Test import with duplicate ID or omitted ID
+    const yamlWithDuplicatesAndBlanks = `
+visa_start_date: '2021-01-01'
+absences:
+  - id: 'shared_id'
+    startDate: '2021-05-01'
+    endDate: '2021-05-10'
+    dest: 'Paris'
+  - id: 'shared_id'
+    startDate: '2021-06-01'
+    endDate: '2021-06-10'
+    dest: 'Berlin'
+  - startDate: '2021-07-01'
+    endDate: '2021-07-10'
+    dest: 'Rome'
+`
+    store.clearAbsences()
+    store.importYAML(yamlWithDuplicatesAndBlanks)
+
+    const reimported = store.absences.filter((a) => !a.isAutoArrival)
+    assert.strictEqual(reimported.length, 3)
+    assert.strictEqual(reimported[0].id, 'shared_id')
+    assert.ok(reimported[1].id && reimported[1].id !== 'shared_id')
+    assert.ok(reimported[2].id && reimported[2].id.length > 0)
   })
 })
 

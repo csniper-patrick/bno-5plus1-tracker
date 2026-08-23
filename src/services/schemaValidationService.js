@@ -84,6 +84,14 @@ export function validateBackupData(data) {
         return
       }
 
+      if (rec.id !== undefined && rec.id !== null) {
+        if (typeof rec.id !== 'string' && typeof rec.id !== 'number') {
+          errors.push(`absences[${idx}]: Invalid "id". Expected string or number.`)
+        } else if (String(rec.id).trim() === '') {
+          errors.push(`absences[${idx}]: "id" cannot be empty.`)
+        }
+      }
+
       const sDate = rec.startDate || rec.start_date || ''
       const eDate = rec.endDate || rec.end_date || ''
 

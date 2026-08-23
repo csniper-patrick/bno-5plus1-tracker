@@ -1,4 +1,5 @@
 import { Document, parse } from 'yaml'
+import { generateId } from '../utils/id.js'
 
 /**
  * Service for consolidating YAML backup generation, comment formatting, and backup parsing.
@@ -13,6 +14,7 @@ import { Document, parse } from 'yaml'
  */
 function mapAbsenceRecord(item) {
   const record = {
+    id: item.id || generateId(),
     startDate: item.startDate,
     endDate: item.endDate,
     dest: item.dest || '',

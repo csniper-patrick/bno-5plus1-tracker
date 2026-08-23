@@ -104,6 +104,48 @@ describe('Data Validation & Schema Enforcement Unit Tests', () => {
       assert.strictEqual(res.errors.some((e) => e.includes('Missing required "startDate"')), true)
     })
 
+    it('should validate absence record id format and detect empty or invalid types', () => {
+      const validAbsences = {
+        absences: [
+          {
+            id: 'abs_12345',
+            startDate: '2023-08-01',
+            endDate: '2023-08-10',
+            dest: 'Spain',
+          },
+          {
+            id: 999,
+            startDate: '2023-09-01',
+            endDate: '2023-09-10',
+            dest: 'Japan',
+          },
+        ],
+      }
+      const validRes = validateBackupData(validAbsences)
+      assert.strictEqual(validRes.isValid, true)
+
+      const badIdAbsences = {
+        absences: [
+          {
+            id: '',
+            startDate: '2023-08-01',
+            endDate: '2023-08-10',
+            dest: 'Spain',
+          },
+          {
+            id: { invalid: 'object' },
+            startDate: '2023-09-01',
+            endDate: '2023-09-10',
+            dest: 'Japan',
+          },
+        ],
+      }
+      const badRes = validateBackupData(badIdAbsences)
+      assert.strictEqual(badRes.isValid, false)
+      assert.strictEqual(badRes.errors.some((e) => e.includes('"id" cannot be empty')), true)
+      assert.strictEqual(badRes.errors.some((e) => e.includes('Invalid "id"')), true)
+    })
+
     it('should detect address history date errors and handle unknown housingStatus with warnings', () => {
       const badAddress = {
         documents: {

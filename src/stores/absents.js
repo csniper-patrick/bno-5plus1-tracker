@@ -13,6 +13,7 @@ import {
 import { generateId } from '../utils/id.js'
 import { exportAbsencesBackup, parseYAML } from '../services/backupService.js'
 import * as dbService from '../services/dbService.js'
+import * as profileService from '../services/profileService.js'
 
 /**
  * Storage keys used to persist user data across browser sessions in IndexedDB.
@@ -1141,6 +1142,12 @@ export const useAbsentsStore = defineStore('absents', () => {
       sortAbsencesArray(absences.value)
       removeRecordFromSegmentTree(oldRecord)
       addRecordToSegmentTree(absences.value[index])
+
+      profileService.syncUpdatedAbsenceAcrossProfiles(absences.value[index]).catch((err) => {
+        console.error('Failed to sync updated absence across profiles:', err)
+      })
+
+      return absences.value[index]
     }
   }
 
@@ -1199,17 +1206,17 @@ export const useAbsentsStore = defineStore('absents', () => {
     )
     const importedVisaExpiryDate = normalizeDate(
       parsed.visa_expiry_date ||
-      parsed.visaExpiryDate ||
-      parsed.visa_expire_date ||
-      parsed.visaExpireDate ||
-      '',
+        parsed.visaExpiryDate ||
+        parsed.visa_expire_date ||
+        parsed.visaExpireDate ||
+        '',
     )
     const importedArrivalDate = normalizeDate(
       parsed.uk_arrival_date ||
-      parsed.ukArrivalDate ||
-      parsed.arrival_date ||
-      parsed.arrivalDate ||
-      '',
+        parsed.ukArrivalDate ||
+        parsed.arrival_date ||
+        parsed.arrivalDate ||
+        '',
     )
     const importedIlrApprovedDate = normalizeDate(
       parsed.ilr_approved_date || parsed.ilrApprovedDate || parsed.ilr_date || parsed.ilrDate || '',
@@ -1347,5 +1354,6 @@ export const useAbsentsStore = defineStore('absents', () => {
     clearAbsences,
     exportYAML,
     importYAML,
+    syncUpdatedAbsenceAcrossProfiles: profileService.syncUpdatedAbsenceAcrossProfiles,
   }
 })

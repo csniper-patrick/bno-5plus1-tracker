@@ -1,9 +1,11 @@
 import { describe, it, beforeEach } from 'node:test'
 import assert from 'node:assert'
 import 'fake-indexeddb/auto'
+import { createPinia, setActivePinia } from 'pinia'
 
 import * as dbService from '../src/services/dbService.js'
 import * as profileService from '../src/services/profileService.js'
+import { useAbsentsStore } from '../src/stores/absents.js'
 
 describe('Multi-Profile Management & Data Swapping Service', () => {
   beforeEach(async () => {
@@ -335,6 +337,150 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
     const resNonExistent = await profileService.copyAbsenceToProfiles(testRecord, ['non_existent_profile_id_xyz'])
     assert.strictEqual(resNonExistent.success, true)
     assert.strictEqual(resNonExistent.count, 0)
+  })
+
+  it('syncUpdatedAbsenceAcrossProfiles updates matching records across other profiles by id to maintain consistency', async () => {
+    await profileService.initProfiles()
+
+    // 1. Create multiple profiles: Spouse, Child 1, Child 2
+    const spouse = await profileService.createProfile('Spouse')
+    const child1 = await profileService.createProfile('Child 1')
+    const child2 = await profileService.createProfile('Child 2')
+
+    // Switch back to Main Applicant
+    await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
+
+    // 2. Main Applicant creates a shared trip and copies to Spouse and Child 1 (Child 2 stayed home)
+    const initialTrip = {
+      id: 'shared_family_trip_777',
+      startDate: '2023-08-01',
+      endDate: '2023-08-10',
+      dest: 'Rome, Italy',
+      reason: 'Summer Holiday',
+      stops: [
+        { date: '2023-08-01', dest: 'Rome, Italy' },
+        { date: '2023-08-10', dest: '' },
+      ],
+    }
+
+    await profileService.copyAbsenceToProfiles(initialTrip, [spouse.id, child1.id])
+
+    // Verify initial copy
+    let profilesData = await dbService.getItem(profileService.PROFILES_DATA_KEY)
+    assert.strictEqual(profilesData[spouse.id].absences.length, 1)
+    assert.strictEqual(profilesData[spouse.id].absences[0].dest, 'Rome, Italy')
+    assert.strictEqual(profilesData[child1.id].absences.length, 1)
+    assert.strictEqual(profilesData[child1.id].absences[0].dest, 'Rome, Italy')
+    assert.strictEqual(profilesData[child2.id].absences.length, 0)
+
+    // 3. User later modifies the trip in Main Applicant (e.g. extended dates, multi-stop in Rome & Florence)
+    const updatedTrip = {
+      id: 'shared_family_trip_777',
+      startDate: '2023-08-01',
+      endDate: '2023-08-18',
+      dest: 'Rome ➔ Florence, Italy',
+      reason: 'Extended Summer Vacation',
+      stops: [
+        { date: '2023-08-01', dest: 'Rome' },
+        { date: '2023-08-10', dest: 'Florence' },
+        { date: '2023-08-18', dest: '' },
+      ],
+    }
+
+    // Call syncUpdatedAbsenceAcrossProfiles
+    const syncRes = await profileService.syncUpdatedAbsenceAcrossProfiles(updatedTrip)
+    assert.strictEqual(syncRes.success, true)
+    assert.strictEqual(syncRes.updatedCount, 2)
+    assert.ok(syncRes.updatedProfiles.includes('Spouse'))
+    assert.ok(syncRes.updatedProfiles.includes('Child 1'))
+
+    // 4. Verify inactive profile payloads are updated
+    profilesData = await dbService.getItem(profileService.PROFILES_DATA_KEY)
+
+    const spouseAbsence = profilesData[spouse.id].absences[0]
+    assert.strictEqual(spouseAbsence.endDate, '2023-08-18')
+    assert.strictEqual(spouseAbsence.dest, 'Rome ➔ Florence, Italy')
+    assert.strictEqual(spouseAbsence.reason, 'Extended Summer Vacation')
+    assert.strictEqual(spouseAbsence.stops.length, 3)
+
+    const child1Absence = profilesData[child1.id].absences[0]
+    assert.strictEqual(child1Absence.endDate, '2023-08-18')
+    assert.strictEqual(child1Absence.dest, 'Rome ➔ Florence, Italy')
+    assert.strictEqual(child1Absence.stops.length, 3)
+
+    // Child 2 remains empty
+    assert.strictEqual(profilesData[child2.id].absences.length, 0)
+
+    // 5. Switch to Spouse profile and verify restored active data is fully up-to-date
+    await profileService.switchProfile(spouse.id)
+    const spouseActiveAbsences = await dbService.getItem('bno_absences')
+    assert.strictEqual(spouseActiveAbsences.length, 1)
+    assert.strictEqual(spouseActiveAbsences[0].id, 'shared_family_trip_777')
+    assert.strictEqual(spouseActiveAbsences[0].endDate, '2023-08-18')
+    assert.strictEqual(spouseActiveAbsences[0].dest, 'Rome ➔ Florence, Italy')
+    assert.strictEqual(spouseActiveAbsences[0].reason, 'Extended Summer Vacation')
+  })
+
+  it('syncUpdatedAbsenceAcrossProfiles handles edge cases (empty record, non-matching id)', async () => {
+    await profileService.initProfiles()
+
+    const resNull = await profileService.syncUpdatedAbsenceAcrossProfiles(null)
+    assert.strictEqual(resNull.success, false)
+    assert.strictEqual(resNull.updatedCount, 0)
+
+    const resNoId = await profileService.syncUpdatedAbsenceAcrossProfiles({ startDate: '2023-01-01' })
+    assert.strictEqual(resNoId.success, false)
+    assert.strictEqual(resNoId.updatedCount, 0)
+
+    const resUnmatched = await profileService.syncUpdatedAbsenceAcrossProfiles({
+      id: 'completely_unknown_id_xyz',
+      startDate: '2023-01-01',
+      endDate: '2023-01-10',
+    })
+    assert.strictEqual(resUnmatched.success, true)
+    assert.strictEqual(resUnmatched.updatedCount, 0)
+    assert.strictEqual(resUnmatched.updatedProfiles.length, 0)
+  })
+
+  it('absentsStore.updateAbsence automatically propagates edits to matching records in other profiles', async () => {
+    await profileService.initProfiles()
+
+    // Create Spouse profile
+    const spouse = await profileService.createProfile('Spouse')
+
+    // Switch back to Main Applicant
+    await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
+
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+    await store.initStore()
+    store.setVisaStartDate('2021-01-01')
+
+    // Add absence in Main Applicant
+    const added = store.addAbsence({
+      id: 'vacation_sync_999',
+      startDate: '2022-06-01',
+      endDate: '2022-06-15',
+      dest: 'Japan',
+    })
+
+    // Copy to Spouse
+    await profileService.copyAbsenceToProfile(added, spouse.id)
+
+    // Now update absence in Main Applicant store
+    store.updateAbsence('vacation_sync_999', {
+      endDate: '2022-06-25',
+      dest: 'Japan & Korea',
+    })
+
+    // Wait a brief moment for async sync to settle
+    await new Promise((r) => setTimeout(r, 50))
+
+    // Verify Spouse profile in storage has the updated details
+    const profilesData = await dbService.getItem(profileService.PROFILES_DATA_KEY)
+    assert.strictEqual(profilesData[spouse.id].absences.length, 1)
+    assert.strictEqual(profilesData[spouse.id].absences[0].endDate, '2022-06-25')
+    assert.strictEqual(profilesData[spouse.id].absences[0].dest, 'Japan & Korea')
   })
 })
 

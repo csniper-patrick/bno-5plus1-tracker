@@ -203,6 +203,22 @@ export const useProfilesStore = defineStore('profiles', () => {
     return copyAbsenceToProfiles(record, [targetProfileId])
   }
 
+  /**
+   * Synchronizes an updated absence record across all other profiles where the record exists by ID.
+   *
+   * @param {Object} record - Updated absence record.
+   * @returns {Promise<{ success: boolean, updatedCount: number, updatedProfiles: Array<string> }>}
+   */
+  async function syncUpdatedAbsenceAcrossProfiles(record) {
+    try {
+      const result = await profileService.syncUpdatedAbsenceAcrossProfiles(record)
+      return result
+    } catch (e) {
+      console.error('profilesStore.syncUpdatedAbsenceAcrossProfiles error:', e)
+      return { success: false, updatedCount: 0, updatedProfiles: [] }
+    }
+  }
+
   return {
     isInitialized,
     isLoading,
@@ -217,5 +233,6 @@ export const useProfilesStore = defineStore('profiles', () => {
     duplicateProfile,
     copyAbsenceToProfiles,
     copyAbsenceToProfile,
+    syncUpdatedAbsenceAcrossProfiles,
   }
 })

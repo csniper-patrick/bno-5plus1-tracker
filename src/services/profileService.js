@@ -336,9 +336,9 @@ export async function copyAbsenceToProfiles(record, targetProfileIds) {
       Array.isArray(record.stops) && record.stops.length >= 2
         ? record.stops.map((s) => ({ date: s.date || '', dest: s.dest || '' }))
         : [
-            { date: record.startDate, dest: record.dest || '' },
-            { date: record.endDate, dest: '' },
-          ],
+          { date: record.startDate, dest: record.dest || '' },
+          { date: record.endDate, dest: '' },
+        ],
     createdAt: record.createdAt || new Date().toISOString(),
   }
 
@@ -405,4 +405,72 @@ export async function copyAbsenceToProfiles(record, targetProfileIds) {
  */
 export async function copyAbsenceToProfile(record, targetProfileId) {
   return copyAbsenceToProfiles(record, [targetProfileId])
+}
+
+/**
+ * Synchronizes an updated absence record across all other profiles where the record exists by ID.
+ * Checks all profile payloads in IndexedDB and updates the matching record accordingly to maintain consistency.
+ *
+ * @param {Object} updatedRecord - Absence record object containing updated fields and id.
+ * @returns {Promise<{ success: boolean, updatedCount: number, updatedProfiles: Array<string> }>}
+ */
+export async function syncUpdatedAbsenceAcrossProfiles(updatedRecord) {
+  if (!updatedRecord || !updatedRecord.id) {
+    return { success: false, updatedCount: 0, updatedProfiles: [] }
+  }
+
+  const currentActiveId = (await dbService.getItem(ACTIVE_PROFILE_KEY)) || DEFAULT_PROFILE_ID
+  const metaList = (await dbService.getItem(PROFILES_META_KEY)) || []
+  let profilesData = (await dbService.getItem(PROFILES_DATA_KEY)) || {}
+
+  let updatedCount = 0
+  const updatedProfiles = []
+
+  const clonedUpdate = {
+    id: updatedRecord.id,
+    startDate: updatedRecord.startDate,
+    endDate: updatedRecord.endDate,
+    dest: updatedRecord.dest || '',
+    ...(updatedRecord.reason !== undefined ? { reason: updatedRecord.reason } : {}),
+    stops:
+      Array.isArray(updatedRecord.stops) && updatedRecord.stops.length >= 2
+        ? updatedRecord.stops.map((s) => ({ date: s.date || '', dest: s.dest || '' }))
+        : [
+          { date: updatedRecord.startDate, dest: updatedRecord.dest || '' },
+          { date: updatedRecord.endDate, dest: '' },
+        ],
+  }
+
+  for (const profileId of Object.keys(profilesData)) {
+    if (profileId === currentActiveId) continue
+
+    const payload = profilesData[profileId]
+    if (payload && Array.isArray(payload.absences)) {
+      const idx = payload.absences.findIndex((a) => a.id === updatedRecord.id)
+      if (idx !== -1) {
+        const oldAbsence = payload.absences[idx]
+        payload.absences[idx] = {
+          ...oldAbsence,
+          ...clonedUpdate,
+          createdAt: oldAbsence.createdAt || updatedRecord.createdAt || new Date().toISOString(),
+        }
+
+        payload.absences.sort((a, b) => {
+          const startDiff = (a.startDate || '').localeCompare(b.startDate || '')
+          if (startDiff !== 0) return startDiff
+          return (a.endDate || '').localeCompare(b.endDate || '')
+        })
+
+        updatedCount++
+        const profileMeta = metaList.find((m) => m.id === profileId)
+        updatedProfiles.push(profileMeta ? profileMeta.name : profileId)
+      }
+    }
+  }
+
+  if (updatedCount > 0) {
+    await dbService.setItem(PROFILES_DATA_KEY, profilesData)
+  }
+
+  return { success: true, updatedCount, updatedProfiles }
 }

@@ -33,7 +33,8 @@
         "vue.volar",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "google.google-antigravity"
+        "google.google-antigravity",
+        "shd101wyy.markdown-preview-enhanced"
       ]
     }
   }

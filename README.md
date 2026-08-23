@@ -1,7 +1,7 @@
 # BNO 5+1 Tracker (Unofficial 3rd-Party App) 🇬🇧✈️
 
 [![Vue 3](https://img.shields.io/badge/Vue-3.5-4fc08d.svg?logo=vuedotjs)](https://vuejs.org/)
-[![Vite](https://img.shields.io/badge/Vite-8.1-646cff.svg?logo=vite)](https://vite.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8.2-646cff.svg?logo=vite)](https://vite.dev/)
 [![Vuetify 3](https://img.shields.io/badge/Vuetify-3.7-1867c0.svg?logo=vuetify)](https://vuetifyjs.com/)
 [![Pinia](https://img.shields.io/badge/Pinia-4.0-yellow.svg)](https://pinia.vuejs.org/)
 [![vue-i18n](https://img.shields.io/badge/vue--i18n-11.4-green.svg)](https://vue-i18n.intlify.dev/)

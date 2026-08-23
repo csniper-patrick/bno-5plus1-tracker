@@ -175,6 +175,34 @@ export const useProfilesStore = defineStore('profiles', () => {
     }
   }
 
+  /**
+   * Copies an absence record to one or more target profiles, preserving its ID and data integrity.
+   *
+   * @param {Object} record - Absence record to copy.
+   * @param {string|Array<string>} targetProfileIds - Target profile ID or list of IDs.
+   * @returns {Promise<{ success: boolean, count: number }>}
+   */
+  async function copyAbsenceToProfiles(record, targetProfileIds) {
+    try {
+      const result = await profileService.copyAbsenceToProfiles(record, targetProfileIds)
+      return result
+    } catch (e) {
+      console.error('profilesStore.copyAbsenceToProfiles error:', e)
+      return { success: false, count: 0 }
+    }
+  }
+
+  /**
+   * Copies an absence record to a single target profile.
+   *
+   * @param {Object} record - Absence record to copy.
+   * @param {string} targetProfileId - Target profile ID.
+   * @returns {Promise<{ success: boolean, count: number }>}
+   */
+  async function copyAbsenceToProfile(record, targetProfileId) {
+    return copyAbsenceToProfiles(record, [targetProfileId])
+  }
+
   return {
     isInitialized,
     isLoading,
@@ -187,5 +215,7 @@ export const useProfilesStore = defineStore('profiles', () => {
     updateProfile,
     deleteProfile,
     duplicateProfile,
+    copyAbsenceToProfiles,
+    copyAbsenceToProfile,
   }
 })

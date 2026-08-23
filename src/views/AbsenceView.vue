@@ -2,7 +2,12 @@
 import { mapStores } from 'pinia'
 import { useAbsentsStore } from '../stores/absents'
 import { useProfilesStore } from '../stores/profiles'
-import { normalizeDate, calculateDays, getMaxSegmentTreeReturnDate, formatCountdown } from '../utils/date'
+import {
+  normalizeDate,
+  calculateDays,
+  getMaxSegmentTreeReturnDate,
+  formatCountdown,
+} from '../utils/date'
 
 /**
  * AbsenceView Component
@@ -50,6 +55,13 @@ export default {
         dest: '',
       },
 
+      /** Copy record to other profiles dialog state */
+      copyDialog: {
+        show: false,
+        record: null,
+        selectedProfileIds: [],
+      },
+
       /** Clear all records confirmation dialog toggle */
       clearAllDialog: false,
 
@@ -88,6 +100,27 @@ export default {
   computed: {
     // Generates this.absentsStore and this.profilesStore mapping to Pinia store
     ...mapStores(useAbsentsStore, useProfilesStore),
+
+    /**
+     * List of other profiles (excluding the active profile).
+     * @returns {Array}
+     */
+    otherProfiles() {
+      if (!this.profilesStore || !Array.isArray(this.profilesStore.profilesList)) {
+        return []
+      }
+      return this.profilesStore.profilesList.filter(
+        (p) => p.id !== this.profilesStore.activeProfileId,
+      )
+    },
+
+    /**
+     * Whether multiple profiles exist.
+     * @returns {boolean}
+     */
+    hasMultipleProfiles() {
+      return this.otherProfiles.length > 0
+    },
 
     /**
      * Returns stored absences list sorted according to tableSortBy and tableSortOrder.
@@ -649,6 +682,79 @@ export default {
     },
 
     /**
+     * Opens the copy record dialog for the given item.
+     * @param {Object} item - Absence record object.
+     */
+    openCopyDialog(item) {
+      if (item.isAutoArrival || item.id === 'auto_uk_arrival_record') return
+      this.copyDialog = {
+        show: true,
+        record: { ...item },
+        selectedProfileIds: this.otherProfiles.length === 1 ? [this.otherProfiles[0].id] : [],
+      }
+    },
+
+    /**
+     * Toggles select-all for other profiles in copy dialog.
+     */
+    toggleSelectAllProfiles() {
+      if (this.copyDialog.selectedProfileIds.length === this.otherProfiles.length) {
+        this.copyDialog.selectedProfileIds = []
+      } else {
+        this.copyDialog.selectedProfileIds = this.otherProfiles.map((p) => p.id)
+      }
+    },
+
+    /**
+     * Toggles a single profile selection in copy dialog.
+     * @param {string} profileId
+     */
+    toggleProfileSelection(profileId) {
+      const idx = this.copyDialog.selectedProfileIds.indexOf(profileId)
+      if (idx !== -1) {
+        this.copyDialog.selectedProfileIds.splice(idx, 1)
+      } else {
+        this.copyDialog.selectedProfileIds.push(profileId)
+      }
+    },
+
+    /**
+     * Executes copying the absence record to selected target profiles.
+     */
+    async executeCopyRecord() {
+      if (
+        !this.copyDialog.record ||
+        !this.copyDialog.selectedProfileIds ||
+        this.copyDialog.selectedProfileIds.length === 0
+      ) {
+        this.showSnackbar(this.$t('absence.no_target_profiles_selected'), 'warning')
+        return
+      }
+
+      const targetIds = [...this.copyDialog.selectedProfileIds]
+      const recordToCopy = this.copyDialog.record
+
+      const result = await this.profilesStore.copyAbsenceToProfiles(recordToCopy, targetIds)
+
+      this.copyDialog.show = false
+
+      if (result && result.success) {
+        if (targetIds.length === 1) {
+          const targetMeta = this.otherProfiles.find((p) => p.id === targetIds[0])
+          const targetName = targetMeta ? targetMeta.name : ''
+          this.showSnackbar(this.$t('absence.copy_record_success', { name: targetName }), 'success')
+        } else {
+          this.showSnackbar(
+            this.$t('absence.copy_record_multi_success', { count: targetIds.length }),
+            'success',
+          )
+        }
+      } else {
+        this.showSnackbar('Failed to copy record to selected profiles.', 'error')
+      }
+    },
+
+    /**
      * Confirms and executes clear-all action for all absence records and key dates.
      */
     executeClearAll() {
@@ -1050,7 +1156,9 @@ export default {
                 <div>
                   <i18n-t keypath="absence.visa_expired_body" scope="global">
                     <template #expiry>
-                      <strong>{{ formatDateWithCountdown(absentsStore.effectiveVisaExpiryDate) }}</strong>
+                      <strong>{{
+                        formatDateWithCountdown(absentsStore.effectiveVisaExpiryDate)
+                      }}</strong>
                     </template>
                   </i18n-t>
                 </div>
@@ -1069,7 +1177,9 @@ export default {
                 <div>
                   <i18n-t keypath="absence.visa_extension_needed_body" scope="global">
                     <template #expiry>
-                      <strong>{{ formatDateWithCountdown(absentsStore.effectiveVisaExpiryDate) }}</strong>
+                      <strong>{{
+                        formatDateWithCountdown(absentsStore.effectiveVisaExpiryDate)
+                      }}</strong>
                     </template>
                     <template #target>
                       <strong>{{ formatDate(absentsStore.settlementTargetDate) }}</strong>
@@ -1087,7 +1197,9 @@ export default {
               >
                 <i18n-t keypath="absence.visa_cover_verified_body" scope="global">
                   <template #expiry>
-                    <strong>{{ formatDateWithCountdown(absentsStore.effectiveVisaExpiryDate) }}</strong>
+                    <strong>{{
+                      formatDateWithCountdown(absentsStore.effectiveVisaExpiryDate)
+                    }}</strong>
                   </template>
                   <template #target>
                     {{ formatDate(absentsStore.settlementTargetDate) }}
@@ -2035,6 +2147,12 @@ export default {
                             @click="startEdit(item)"
                           ></v-list-item>
                           <v-list-item
+                            v-if="hasMultipleProfiles"
+                            prepend-icon="mdi-account-arrow-right-outline"
+                            :title="$t('absence.copy_to_profile')"
+                            @click="openCopyDialog(item)"
+                          ></v-list-item>
+                          <v-list-item
                             prepend-icon="mdi-delete-outline"
                             :title="$t('absence.delete_record_title')"
                             @click="confirmDelete(item)"
@@ -2105,6 +2223,121 @@ export default {
           <v-btn color="error" variant="flat" @click="executeDelete">{{
             $t('absence.delete_confirm')
           }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Copy Record to Other Profiles Dialog -->
+    <v-dialog v-model="copyDialog.show" max-width="500px">
+      <v-card elevation="2" class="rounded-lg pa-3" color="surface">
+        <v-card-title class="px-0 pt-0 font-weight-bold text-h6 d-flex align-center ga-2">
+          <v-icon icon="mdi-account-arrow-right-outline" color="primary"></v-icon>
+          <span>{{ $t('absence.copy_to_profile_title') }}</span>
+        </v-card-title>
+
+        <v-card-text class="px-0 py-2">
+          <!-- Record Summary Preview Card -->
+          <v-card
+            v-if="copyDialog.record"
+            variant="tonal"
+            color="primary"
+            class="pa-3 rounded-lg mb-3"
+          >
+            <div class="d-flex align-center justify-space-between mb-1">
+              <span class="text-caption font-weight-bold">
+                <v-icon icon="mdi-airplane-takeoff" size="small" class="mr-1"></v-icon>
+                {{ formatDate(copyDialog.record.startDate) }}
+                ➔
+                <v-icon icon="mdi-airplane-landing" size="small" class="mx-1"></v-icon>
+                {{ formatDate(copyDialog.record.endDate) }}
+              </span>
+              <v-chip size="x-small" color="primary" variant="flat" class="font-weight-bold">
+                {{ calculateDays(copyDialog.record.startDate, copyDialog.record.endDate) }}
+                {{ $t('absence.full_days') }}
+              </v-chip>
+            </div>
+            <div class="text-caption text-medium-emphasis text-truncate">
+              <v-icon icon="mdi-map-marker-outline" size="12" class="mr-1"></v-icon>
+              {{ copyDialog.record.dest || $t('absence.unspecified') }}
+            </div>
+          </v-card>
+
+          <p class="text-caption text-medium-emphasis mb-2">
+            {{ $t('absence.copy_to_profile_desc') }}
+          </p>
+
+          <!-- Select All / Deselect All Button (if more than 1 other profile) -->
+          <div v-if="otherProfiles.length > 1" class="d-flex justify-end mb-2">
+            <v-btn
+              variant="text"
+              density="compact"
+              size="x-small"
+              color="primary"
+              class="font-weight-bold text-none"
+              @click="toggleSelectAllProfiles"
+            >
+              {{
+                copyDialog.selectedProfileIds.length === otherProfiles.length
+                  ? $t('app.clear_dialog_cancel')
+                  : $t('absence.select_all_profiles')
+              }}
+            </v-btn>
+          </div>
+
+          <!-- List of Other Profiles with Checkboxes -->
+          <v-list class="pa-0 bg-transparent">
+            <v-card
+              v-for="profile in otherProfiles"
+              :key="profile.id"
+              variant="outlined"
+              class="mb-2 pa-2 border-secondary-lighten cursor-pointer"
+              :class="{
+                'bg-primary-lighten-5 border-primary': copyDialog.selectedProfileIds.includes(
+                  profile.id,
+                ),
+              }"
+              @click="toggleProfileSelection(profile.id)"
+            >
+              <div class="d-flex align-center">
+                <v-checkbox-btn
+                  :model-value="copyDialog.selectedProfileIds.includes(profile.id)"
+                  density="compact"
+                  color="primary"
+                  class="mr-2"
+                  @click.stop="toggleProfileSelection(profile.id)"
+                ></v-checkbox-btn>
+
+                <v-avatar
+                  size="32"
+                  :color="profile.avatarColor || '#1976D2'"
+                  class="text-white font-weight-bold mr-3"
+                >
+                  {{ (profile.name || 'P').charAt(0).toUpperCase() }}
+                </v-avatar>
+
+                <div class="flex-grow-1 min-w-0">
+                  <div class="font-weight-bold text-subtitle-2 text-truncate">
+                    {{ profile.name }}
+                  </div>
+                </div>
+              </div>
+            </v-card>
+          </v-list>
+        </v-card-text>
+
+        <v-card-actions class="px-0 pb-0 justify-end ga-2">
+          <v-btn variant="text" @click="copyDialog.show = false">
+            {{ $t('absence.cancel') }}
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            prepend-icon="mdi-content-copy"
+            :disabled="copyDialog.selectedProfileIds.length === 0"
+            @click="executeCopyRecord"
+          >
+            {{ $t('absence.copy_action') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

@@ -998,10 +998,7 @@ export default {
             <span class="text-caption text-medium-emphasis font-weight-bold">
               {{ $t('reference.source_filter') }}
             </span>
-            <v-chip-group
-              v-model="selectedSourceType"
-              mandatory
-            >
+            <v-chip-group v-model="selectedSourceType" mandatory>
               <v-chip
                 v-for="st in sourceTypesMap"
                 :key="st.key"
@@ -1009,12 +1006,20 @@ export default {
                 size="small"
                 :variant="selectedSourceType === st.key ? 'flat' : 'outlined'"
                 color="primary"
-                :class="selectedSourceType === st.key ? 'text-white font-weight-bold' : 'font-weight-medium'"
+                :class="
+                  selectedSourceType === st.key
+                    ? 'text-white font-weight-bold'
+                    : 'font-weight-medium'
+                "
               >
                 {{ st.label }}
                 <span
                   class="ml-1 text-caption"
-                  :class="selectedSourceType === st.key ? 'text-white font-weight-bold' : 'text-medium-emphasis'"
+                  :class="
+                    selectedSourceType === st.key
+                      ? 'text-white font-weight-bold'
+                      : 'text-medium-emphasis'
+                  "
                 >
                   ({{ sourceCounts[st.key] || 0 }})
                 </span>
@@ -1058,11 +1063,7 @@ export default {
           </span>
         </div>
 
-        <v-chip-group
-          v-model="selectedCategory"
-          mandatory
-          column
-        >
+        <v-chip-group v-model="selectedCategory" mandatory column>
           <v-chip
             v-for="cat in categoriesMap"
             :key="cat.key"
@@ -1070,13 +1071,19 @@ export default {
             size="small"
             :variant="selectedCategory === cat.key ? 'flat' : 'outlined'"
             color="primary"
-            :class="selectedCategory === cat.key ? 'text-white font-weight-bold' : 'font-weight-medium'"
+            :class="
+              selectedCategory === cat.key ? 'text-white font-weight-bold' : 'font-weight-medium'
+            "
             class="my-1"
           >
             {{ cat.label }}
             <span
               class="ml-1 text-caption"
-              :class="selectedCategory === cat.key ? 'text-white font-weight-bold' : 'text-medium-emphasis'"
+              :class="
+                selectedCategory === cat.key
+                  ? 'text-white font-weight-bold'
+                  : 'text-medium-emphasis'
+              "
             >
               ({{ categoryCounts[cat.key] || 0 }})
             </span>

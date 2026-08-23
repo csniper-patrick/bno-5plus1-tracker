@@ -1776,7 +1776,9 @@ export default {
                 <tr>
                   <th class="text-left font-weight-bold">{{ $t('document.move_in_date') }}</th>
                   <th class="text-left font-weight-bold">{{ $t('document.move_out_date') }}</th>
-                  <th class="text-left font-weight-bold" style="min-width: 250px">{{ $t('document.address') }}</th>
+                  <th class="text-left font-weight-bold" style="min-width: 250px">
+                    {{ $t('document.address') }}
+                  </th>
                   <th class="text-right font-weight-bold">{{ $t('absence.table_actions') }}</th>
                 </tr>
               </thead>
@@ -2145,7 +2147,9 @@ export default {
             filter
             class="my-1"
           >
-            <span class="text-truncate" style="max-width: 160px">{{ $t(`document.folder_${folder.id}`) }}</span>
+            <span class="text-truncate" style="max-width: 160px">{{
+              $t(`document.folder_${folder.id}`)
+            }}</span>
             <template v-if="fileCountByFolder[folder.id] > 0">
               <span class="ml-1 text-caption">({{ fileCountByFolder[folder.id] }})</span>
             </template>
@@ -2256,7 +2260,10 @@ export default {
                 ></v-icon>
               </div>
             </th>
-            <th class="text-right font-weight-bold text-no-wrap" style="width: 50px; min-width: 50px">
+            <th
+              class="text-right font-weight-bold text-no-wrap"
+              style="width: 50px; min-width: 50px"
+            >
               {{ $t('absence.table_actions') }}
             </th>
           </tr>

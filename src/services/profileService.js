@@ -297,3 +297,104 @@ export async function duplicateProfile(profileId) {
 
   return newMeta
 }
+
+/**
+ * Copies an absence record to one or more target profiles, preserving its ID and data integrity.
+ *
+ * @param {Object} record - Absence record to copy.
+ * @param {string|Array<string>} targetProfileIds - Single target profile ID or array of profile IDs.
+ * @returns {Promise<{ success: boolean, count: number }>}
+ */
+export async function copyAbsenceToProfiles(record, targetProfileIds) {
+  if (!record || !record.id) {
+    return { success: false, count: 0 }
+  }
+
+  const ids = Array.isArray(targetProfileIds) ? targetProfileIds : [targetProfileIds]
+  if (ids.length === 0) {
+    return { success: true, count: 0 }
+  }
+
+  const currentActiveId = (await dbService.getItem(ACTIVE_PROFILE_KEY)) || DEFAULT_PROFILE_ID
+  let profilesData = (await dbService.getItem(PROFILES_DATA_KEY)) || {}
+
+  // Deep clone record to avoid object reference sharing, preserving ID
+  const clonedRecord = {
+    id: record.id,
+    startDate: record.startDate,
+    endDate: record.endDate,
+    dest: record.dest || '',
+    stops:
+      Array.isArray(record.stops) && record.stops.length >= 2
+        ? record.stops.map((s) => ({ date: s.date || '', dest: s.dest || '' }))
+        : [
+            { date: record.startDate, dest: record.dest || '' },
+            { date: record.endDate, dest: '' },
+          ],
+    createdAt: record.createdAt || new Date().toISOString(),
+  }
+
+  let copiedCount = 0
+
+  for (const targetId of ids) {
+    if (targetId === currentActiveId) {
+      // If copying to current active profile, update active key
+      const activeAbsences = (await dbService.getItem('bno_absences')) || []
+      const existingIdx = activeAbsences.findIndex((a) => a.id === clonedRecord.id)
+      if (existingIdx !== -1) {
+        activeAbsences[existingIdx] = { ...clonedRecord }
+      } else {
+        activeAbsences.push({ ...clonedRecord })
+      }
+      activeAbsences.sort((a, b) => {
+        const startDiff = (a.startDate || '').localeCompare(b.startDate || '')
+        if (startDiff !== 0) return startDiff
+        return (a.endDate || '').localeCompare(b.endDate || '')
+      })
+      await dbService.setItem('bno_absences', activeAbsences)
+      copiedCount++
+    } else {
+      const targetPayload = profilesData[targetId] || {
+        absences: [],
+        visaStartDate: '',
+        visaExpiryDate: '',
+        ukArrivalDate: '',
+        ilrApprovedDate: '',
+        documents: null,
+      }
+      if (!Array.isArray(targetPayload.absences)) {
+        targetPayload.absences = []
+      }
+
+      const existingIdx = targetPayload.absences.findIndex((a) => a.id === clonedRecord.id)
+      if (existingIdx !== -1) {
+        targetPayload.absences[existingIdx] = { ...clonedRecord }
+      } else {
+        targetPayload.absences.push({ ...clonedRecord })
+      }
+
+      targetPayload.absences.sort((a, b) => {
+        const startDiff = (a.startDate || '').localeCompare(b.startDate || '')
+        if (startDiff !== 0) return startDiff
+        return (a.endDate || '').localeCompare(b.endDate || '')
+      })
+
+      profilesData[targetId] = targetPayload
+      copiedCount++
+    }
+  }
+
+  await dbService.setItem(PROFILES_DATA_KEY, profilesData)
+  return { success: true, count: copiedCount }
+}
+
+/**
+ * Copies an absence record to a single target profile.
+ *
+ * @param {Object} record - Absence record to copy.
+ * @param {string} targetProfileId - Target profile ID.
+ * @returns {Promise<{ success: boolean, count: number }>}
+ */
+export async function copyAbsenceToProfile(record, targetProfileId) {
+  return copyAbsenceToProfiles(record, [targetProfileId])
+}

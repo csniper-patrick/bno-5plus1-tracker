@@ -130,4 +130,96 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
     const metaList = await dbService.getItem(profileService.PROFILES_META_KEY)
     assert.strictEqual(metaList.length, 1)
   })
+
+  it('copyAbsenceToProfile copies absence record preserving its exact id', async () => {
+    await profileService.initProfiles()
+
+    // Create a 2nd profile (Spouse)
+    const spouseMeta = await profileService.createProfile('Spouse')
+
+    // Switch back to Main Applicant
+    await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
+
+    const testRecord = {
+      id: 'custom_absence_id_999',
+      startDate: '2023-04-10',
+      endDate: '2023-04-20',
+      dest: 'Tokyo, Japan',
+      stops: [
+        { date: '2023-04-10', dest: 'Tokyo, Japan' },
+        { date: '2023-04-20', dest: '' },
+      ],
+      createdAt: '2023-04-01T00:00:00.000Z',
+    }
+
+    const res = await profileService.copyAbsenceToProfile(testRecord, spouseMeta.id)
+    assert.strictEqual(res.success, true)
+    assert.strictEqual(res.count, 1)
+
+    // Verify record in inactive profile storage
+    const profilesData = await dbService.getItem(profileService.PROFILES_DATA_KEY)
+    assert.ok(profilesData[spouseMeta.id])
+    assert.strictEqual(profilesData[spouseMeta.id].absences.length, 1)
+
+    const copied = profilesData[spouseMeta.id].absences[0]
+    assert.strictEqual(copied.id, 'custom_absence_id_999')
+    assert.strictEqual(copied.startDate, '2023-04-10')
+    assert.strictEqual(copied.endDate, '2023-04-20')
+    assert.strictEqual(copied.dest, 'Tokyo, Japan')
+    assert.strictEqual(copied.stops.length, 2)
+
+    // Switch to Spouse profile and verify restored active data preserves the id
+    await profileService.switchProfile(spouseMeta.id)
+    const activeAbsences = await dbService.getItem('bno_absences')
+    assert.strictEqual(activeAbsences.length, 1)
+    assert.strictEqual(activeAbsences[0].id, 'custom_absence_id_999')
+    assert.strictEqual(activeAbsences[0].dest, 'Tokyo, Japan')
+  })
+
+  it('copyAbsenceToProfiles copies to multiple profiles and updates existing records by id', async () => {
+    await profileService.initProfiles()
+
+    const spouseMeta = await profileService.createProfile('Spouse')
+    const childMeta = await profileService.createProfile('Child')
+
+    // Switch back to Main Applicant
+    await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
+
+    const testRecord = {
+      id: 'family_holiday_id_101',
+      startDate: '2023-07-01',
+      endDate: '2023-07-15',
+      dest: 'Hong Kong',
+      stops: [
+        { date: '2023-07-01', dest: 'Hong Kong' },
+        { date: '2023-07-15', dest: '' },
+      ],
+    }
+
+    // Copy to both Spouse and Child
+    const res = await profileService.copyAbsenceToProfiles(testRecord, [
+      spouseMeta.id,
+      childMeta.id,
+    ])
+    assert.strictEqual(res.success, true)
+    assert.strictEqual(res.count, 2)
+
+    const profilesData = await dbService.getItem(profileService.PROFILES_DATA_KEY)
+    assert.strictEqual(profilesData[spouseMeta.id].absences.length, 1)
+    assert.strictEqual(profilesData[spouseMeta.id].absences[0].id, 'family_holiday_id_101')
+    assert.strictEqual(profilesData[childMeta.id].absences.length, 1)
+    assert.strictEqual(profilesData[childMeta.id].absences[0].id, 'family_holiday_id_101')
+
+    // Re-copy with updated destination: should update existing record, not duplicate
+    const updatedRecord = {
+      ...testRecord,
+      dest: 'Hong Kong & Macau',
+    }
+
+    await profileService.copyAbsenceToProfiles(updatedRecord, [spouseMeta.id])
+    const profilesDataAfterUpdate = await dbService.getItem(profileService.PROFILES_DATA_KEY)
+    assert.strictEqual(profilesDataAfterUpdate[spouseMeta.id].absences.length, 1)
+    assert.strictEqual(profilesDataAfterUpdate[spouseMeta.id].absences[0].id, 'family_holiday_id_101')
+    assert.strictEqual(profilesDataAfterUpdate[spouseMeta.id].absences[0].dest, 'Hong Kong & Macau')
+  })
 })

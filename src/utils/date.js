@@ -236,4 +236,3 @@ export function formatCountdown(targetDateInput, locale = 'en-GB', fromDateInput
 
   return ''
 }
-

@@ -24,7 +24,12 @@
         },
         "ltex.java.path": "/usr"
       },
-      "extensions": ["vue.volar", "dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+      "extensions": [
+        "vue.volar",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "google.google-antigravity"
+      ]
     }
   }
 }

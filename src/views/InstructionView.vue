@@ -591,30 +591,61 @@ export default {
                     {{ $t('instruction.step5.point4') }}
                   </v-list-item-title>
                 </v-list-item>
+                <v-list-item class="px-0">
+                  <template v-slot:prepend>
+                    <v-icon icon="mdi-check-circle-outline" color="success" class="mr-3"></v-icon>
+                  </template>
+                  <v-list-item-title class="font-weight-medium text-wrap">
+                    {{ $t('instruction.step5.point5') }}
+                  </v-list-item-title>
+                </v-list-item>
               </v-list>
 
               <v-alert
                 type="info"
                 variant="tonal"
                 icon="mdi-account-group"
-                class="mb-4 text-caption"
+                class="mb-3 text-caption"
               >
                 {{ $t('profiles.section_title') }}: {{ $t('instruction.step5.desc') }}
+              </v-alert>
+
+              <v-alert
+                type="success"
+                variant="tonal"
+                icon="mdi-account-multiple-plus-outline"
+                class="mb-4 text-caption"
+              >
+                {{ $t('instruction.step5.copy_feature_tip') }}
               </v-alert>
             </v-col>
 
             <v-col cols="12" md="6">
-              <v-card variant="outlined" class="pa-2 rounded-lg elevation-1">
+              <v-card variant="outlined" class="pa-2 rounded-lg elevation-1 mb-3">
                 <v-img
                   :key="imgPrefix + 'step5_profiles.png'"
                   :src="imgPrefix + 'step5_profiles.png'"
                   alt="Multi-Profile Management"
                   contain
                   class="rounded"
-                  :style="{ maxHeight: isMobileView ? '480px' : 'auto' }"
+                  :style="{ maxHeight: isMobileView ? '450px' : 'auto' }"
                 ></v-img>
-                <div class="text-caption text-center text-medium-emphasis mt-2">
-                  {{ $t('instruction.step5.caption') }} ({{ viewportStatusText }})
+                <div class="text-caption text-center text-medium-emphasis mt-1">
+                  {{ $t('instruction.step5.caption1') }} ({{ viewportStatusText }})
+                </div>
+              </v-card>
+
+              <v-card variant="outlined" class="pa-2 rounded-lg elevation-1">
+                <v-img
+                  :key="imgPrefix + 'step5_copy_to_profile.png'"
+                  :src="imgPrefix + 'step5_copy_to_profile.png'"
+                  alt="Copy Record to Other Profiles Modal"
+                  contain
+                  class="rounded"
+                  :style="{ maxHeight: isMobileView ? '450px' : 'auto' }"
+                ></v-img>
+                <div class="text-caption text-center text-medium-emphasis mt-1">
+                  {{ $t('instruction.step5.caption2') }} ({{ viewportStatusText }})
                 </div>
               </v-card>
             </v-col>
@@ -716,6 +747,22 @@ export default {
               </v-expansion-panel-title>
               <v-expansion-panel-text class="text-body-2">
                 {{ $t('instruction.faq.a7') }}
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <v-expansion-panel class="border mb-2 rounded-lg">
+              <v-expansion-panel-title class="font-weight-bold">
+                <v-icon
+                  icon="mdi-account-arrow-right-outline"
+                  color="primary"
+                  class="mr-2"
+                ></v-icon>
+                {{ $t('instruction.faq.q8') }}
+              </v-expansion-panel-title>
+              <v-expansion-panel-text class="text-body-2">
+                {{ $t('instruction.faq.a8') }}
               </v-expansion-panel-text>
             </v-expansion-panel>
           </v-col>

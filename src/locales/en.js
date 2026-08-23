@@ -1071,16 +1071,21 @@ export default {
       caption: 'Curated Official GOV.UK Policy Guidance & Reference Links',
     },
     step5: {
-      header: 'Step 5: Manage Multi-Applicant Profiles',
-      desc: 'Track residency milestones and document checklists for your entire family (Main Applicant, Spouse, Dependents) with complete data isolation.',
+      header: 'Step 5: Manage Multi-Applicant Profiles & Copy Records',
+      desc: 'Track residency milestones and document checklists for your entire family (Main Applicant, Spouse, Dependents) with complete data isolation, and duplicate joint travel records seamlessly.',
       point1: 'Access the Profile Section directly at the top of the Right Navigation Drawer.',
       point2: 'Expand the profile switcher to instantly switch between active applicant profiles.',
       point3:
         'Click "+ Add Profile" to create new family member profiles with custom names and avatar colors.',
       point4:
         'Duplicate or delete existing profiles while protecting active data from accidental loss.',
+      point5:
+        'Copy absence records across profiles: Click the action menu (⋮) on any trip in the Absence Records table, choose "Copy to Profile", select target family member(s), and copy instantly without re-entering dates or itineraries.',
       action_btn: 'Open Profile Drawer Section',
-      caption: 'Multi-Profile Switcher & Profile Management Demonstration',
+      copy_feature_tip:
+        'Family Travel Tip: When your family travels abroad together, log the trip once under the Main Applicant profile and use "Copy to Profile" to duplicate the record to Spouse and Children profiles in one click.',
+      caption1: 'Multi-Profile Switcher & Drawer Demonstration',
+      caption2: 'Copy Absence Record to Other Profiles Dialog Demonstration',
     },
     faq: {
       title: 'Frequently Asked Questions (App Operations)',
@@ -1098,6 +1103,8 @@ export default {
       a6: 'In the Document & Qualifications Tracker, the top row features the overall readiness banner alongside the National Insurance (NI) card for quick NIN access. The Life in the UK and B1 English cards are arranged cleanly on the line below (or side-by-side on wide screens). Enter your status, dates, URNs, and notes directly into each card.',
       q7: 'How can I view or preview uploaded PDF document files in the vault?',
       a7: 'In the Document Vault, click the view or open button on any uploaded document card to instantly preview or view the PDF/image file directly in your browser without transmitting any data outside your device.',
+      q8: "How do I copy an absence record to another family member's profile?",
+      a8: 'When multiple profiles exist, locate the trip in the Absence Records table, click the action menu button (⋮) on that row, and select "Copy to Profile". In the dialog that appears, check the target profile(s) and click "Copy Record". The entire trip details (dates, stops, and reason) will be duplicated to those profiles without overwriting their existing dates or documents.',
     },
   },
   profiles: {

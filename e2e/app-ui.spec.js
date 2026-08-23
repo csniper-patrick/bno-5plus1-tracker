@@ -183,5 +183,117 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
     }
   });
 
+  test('8. Multi-Profile Management & Copy Record to Profile', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Open right side navigation drawer
+    const drawerBtn = page.locator('header button:has(.mdi-menu)').first();
+    await drawerBtn.click();
+    await page.waitForTimeout(400);
+
+    // Expand Profile Switcher section if collapsed
+    const switchProfileBtn = page.locator('button[title="Switch Profile"]').first();
+    if (await switchProfileBtn.isVisible()) {
+      await switchProfileBtn.click();
+      await page.waitForTimeout(300);
+    }
+
+    // Click in-drawer "Add Profile" button to show input form
+    const addProfileBtn = page.locator('.v-navigation-drawer button:has-text("Add Profile")').first();
+    if (await addProfileBtn.isVisible()) {
+      await addProfileBtn.click();
+      await page.waitForTimeout(300);
+
+      // Fill profile name in text field and press Enter
+      const nameInput = page.locator('.v-navigation-drawer input[type="text"]').last();
+      await nameInput.fill('Spouse');
+      await nameInput.press('Enter');
+      await page.waitForTimeout(600);
+    }
+
+    // Expand Profile Switcher section to see all profiles if needed
+    const expandBtn = page.locator('button[title="Switch Profile"]').first();
+    if (await expandBtn.isVisible()) {
+      await expandBtn.click();
+      await page.waitForTimeout(300);
+    }
+
+    // Switch back to Main Applicant
+    const mainApplicantItem = page.locator('.v-navigation-drawer .v-list-item:has-text("Main Applicant")').first();
+    if (await mainApplicantItem.isVisible()) {
+      await mainApplicantItem.click();
+      await page.waitForTimeout(500);
+    }
+
+    // Close drawer
+    const overlay = page.locator('.v-overlay--active .v-overlay__scrim').first();
+    if (await overlay.isVisible()) {
+      await overlay.click();
+    } else {
+      await drawerBtn.click();
+    }
+    await page.waitForTimeout(400);
+
+    // Log a trip in Main Applicant
+    const dateInputs = page.locator('.v-main input[type="date"]');
+    const textInputs = page.locator('.v-main input[type="text"]');
+
+    if (await dateInputs.count() >= 2 && await textInputs.count() >= 1) {
+      await dateInputs.nth(0).fill('2023-04-10');
+      await textInputs.nth(0).fill('Paris Family Holiday');
+      await dateInputs.nth(1).fill('2023-04-20');
+
+      const addBtn = page.locator('button:has-text("Add Absence Record")').first();
+      await addBtn.click();
+      await page.waitForTimeout(600);
+
+      // Verify trip is logged in the absence table
+      await expect(page.locator('.v-main')).toContainText('Paris Family Holiday');
+
+      // Open row actions menu (⋮)
+      const rowActionsBtn = page.locator('tbody tr:has-text("Paris Family Holiday") button[title="Actions menu"]').first();
+      await rowActionsBtn.click();
+      await page.waitForTimeout(300);
+
+      // Click "Copy to Profile" item
+      const copyMenuItem = page.locator('.v-menu .v-list-item:has-text("Copy to Profile")').first();
+      await expect(copyMenuItem).toBeVisible();
+      await copyMenuItem.click();
+      await page.waitForTimeout(400);
+
+      // In Copy Record dialog, select target profile (Spouse) and click "Copy Record"
+      const copyDialog = page.locator('.v-dialog:has-text("Copy Record to Other Profiles")');
+      await expect(copyDialog).toBeVisible();
+      await expect(copyDialog).toContainText('Paris Family Holiday');
+
+      // Click Copy Record button in dialog
+      const copyBtn = copyDialog.locator('button:has-text("Copy Record")').first();
+      await expect(copyBtn).toBeEnabled();
+      await copyBtn.click();
+      await page.waitForTimeout(500);
+
+      // Switch profile to Spouse and verify record
+      await drawerBtn.click();
+      await page.waitForTimeout(400);
+      const spouseItem = page.locator('.v-navigation-drawer .v-list-item:has-text("Spouse")').first();
+      if (await spouseItem.isVisible()) {
+        await spouseItem.click();
+        await page.waitForTimeout(500);
+      }
+      const overlayClose = page.locator('.v-overlay--active .v-overlay__scrim').first();
+      if (await overlayClose.isVisible()) {
+        await overlayClose.click();
+      } else {
+        await drawerBtn.click();
+      }
+      await page.waitForTimeout(400);
+
+      // Verify copied trip is now present in Spouse's absence table
+      await expect(page.locator('.v-main')).toContainText('Paris Family Holiday');
+    }
+  });
+
 });
+
 

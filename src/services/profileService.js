@@ -316,14 +316,22 @@ export async function copyAbsenceToProfiles(record, targetProfileIds) {
   }
 
   const currentActiveId = (await dbService.getItem(ACTIVE_PROFILE_KEY)) || DEFAULT_PROFILE_ID
+  const metaList = (await dbService.getItem(PROFILES_META_KEY)) || []
   let profilesData = (await dbService.getItem(PROFILES_DATA_KEY)) || {}
 
-  // Deep clone record to avoid object reference sharing, preserving ID
+  // Filter IDs to only include valid, existing profiles
+  const validIds = ids.filter((id) => id === currentActiveId || metaList.some((m) => m.id === id))
+  if (validIds.length === 0) {
+    return { success: true, count: 0 }
+  }
+
+  // Deep clone record to avoid object reference sharing, preserving ID and metadata
   const clonedRecord = {
     id: record.id,
     startDate: record.startDate,
     endDate: record.endDate,
     dest: record.dest || '',
+    reason: record.reason || '',
     stops:
       Array.isArray(record.stops) && record.stops.length >= 2
         ? record.stops.map((s) => ({ date: s.date || '', dest: s.dest || '' }))
@@ -336,7 +344,7 @@ export async function copyAbsenceToProfiles(record, targetProfileIds) {
 
   let copiedCount = 0
 
-  for (const targetId of ids) {
+  for (const targetId of validIds) {
     if (targetId === currentActiveId) {
       // If copying to current active profile, update active key
       const activeAbsences = (await dbService.getItem('bno_absences')) || []

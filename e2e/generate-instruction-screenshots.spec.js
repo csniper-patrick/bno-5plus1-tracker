@@ -160,6 +160,16 @@ test.describe('Generate InstructionView Screenshots', () => {
           }
         }
 
+        const profilesStore = pinia._s.get('profiles')
+        if (profilesStore) {
+          await profilesStore.initStore()
+          if (profilesStore.profilesList.length <= 1) {
+            await profilesStore.createProfile('Spouse', '#E91E63')
+            await profilesStore.createProfile('Child (Teen)', '#4CAF50')
+            await profilesStore.switchProfile('profile_default')
+          }
+        }
+
         await new Promise((resolve) => setTimeout(resolve, 300))
       }
     })
@@ -268,7 +278,7 @@ test.describe('Generate InstructionView Screenshots', () => {
     await page.waitForTimeout(400)
     await page.click('button[title="Navigation Menu"]')
     await page.waitForTimeout(500)
-    const chevron = page.locator('button[title="Switch Profile"]')
+    const chevron = page.locator('button[title="Switch Profile"]').first()
     if (await chevron.isVisible()) {
       await chevron.click()
       await page.waitForTimeout(500)
@@ -277,6 +287,39 @@ test.describe('Generate InstructionView Screenshots', () => {
       path: path.join(outputDir, 'step5_profiles.png'),
       fullPage: false
     })
+
+    // Close drawer
+    const overlay = page.locator('.v-overlay--active .v-overlay__scrim').first()
+    if (await overlay.isVisible()) {
+      await overlay.click()
+      await page.waitForTimeout(400)
+    }
+
+    // 8. step5_copy_to_profile.png (Demo copying record to another profile)
+    await page.goto('/')
+    await page.waitForTimeout(400)
+    const actionsBtn = page.locator('tbody tr button[title="Actions menu"]').first()
+    if (await actionsBtn.isVisible()) {
+      await actionsBtn.click()
+      await page.waitForTimeout(300)
+      const copyMenuItem = page.locator('.v-menu .v-list-item:has-text("Copy to Profile"), .v-menu .v-list-item:has-text("複製至其他檔案")').first()
+      if (await copyMenuItem.isVisible()) {
+        await copyMenuItem.click()
+        await page.waitForTimeout(500)
+        const copyDialog = page.locator('.v-dialog').first()
+        if (await copyDialog.isVisible()) {
+          // Select target profiles
+          const profileCards = copyDialog.locator('.v-list .v-card')
+          if (await profileCards.count() > 0) {
+            await profileCards.nth(0).click()
+            await page.waitForTimeout(200)
+          }
+          await copyDialog.screenshot({ path: path.join(outputDir, 'step5_copy_to_profile.png') })
+        }
+        await page.keyboard.press('Escape')
+        await page.waitForTimeout(300)
+      }
+    }
   })
 
   // ---------------------------------------------------------------------------
@@ -355,7 +398,7 @@ test.describe('Generate InstructionView Screenshots', () => {
     await page.waitForTimeout(400)
     await page.click('button[title="Navigation Menu"]')
     await page.waitForTimeout(500)
-    const mobileChevron = page.locator('button[title="Switch Profile"]')
+    const mobileChevron = page.locator('button[title="Switch Profile"]').first()
     if (await mobileChevron.isVisible()) {
       await mobileChevron.click()
       await page.waitForTimeout(500)
@@ -364,5 +407,39 @@ test.describe('Generate InstructionView Screenshots', () => {
       path: path.join(outputDir, 'narrow_step5_profiles.png'),
       fullPage: false
     })
+
+    // Close drawer
+    const mobileOverlay = page.locator('.v-overlay--active .v-overlay__scrim').first()
+    if (await mobileOverlay.isVisible()) {
+      await mobileOverlay.click()
+      await page.waitForTimeout(400)
+    }
+
+    // 8. narrow_step5_copy_to_profile.png (Demo copying record to another profile on mobile)
+    await page.goto('/')
+    await page.waitForTimeout(400)
+    const mobileActionsBtn = page.locator('tbody tr button[title="Actions menu"]').first()
+    if (await mobileActionsBtn.isVisible()) {
+      await mobileActionsBtn.click()
+      await page.waitForTimeout(300)
+      const mobileCopyMenuItem = page.locator('.v-menu .v-list-item:has-text("Copy to Profile"), .v-menu .v-list-item:has-text("複製至其他檔案")').first()
+      if (await mobileCopyMenuItem.isVisible()) {
+        await mobileCopyMenuItem.click()
+        await page.waitForTimeout(500)
+        const copyDialog = page.locator('.v-dialog').first()
+        if (await copyDialog.isVisible()) {
+          // Select target profiles
+          const profileCards = copyDialog.locator('.v-list .v-card')
+          if (await profileCards.count() > 0) {
+            await profileCards.nth(0).click()
+            await page.waitForTimeout(200)
+          }
+          await copyDialog.screenshot({ path: path.join(outputDir, 'narrow_step5_copy_to_profile.png') })
+        }
+        await page.keyboard.press('Escape')
+        await page.waitForTimeout(300)
+      }
+    }
   })
 })
+

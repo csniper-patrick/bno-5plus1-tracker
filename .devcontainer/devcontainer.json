@@ -1,17 +1,22 @@
 {
   "name": "bno-5plus1-tracker",
   "image": "docker.io/library/node:lts",
-
   "shutdownAction": "stopContainer",
-
   // 1. Launch container with option "--user root"
-  "runArgs": ["--user=root", "--pull=newer", "--rm"],
-  "appPort": ["5173:5173"],
-
+  "runArgs": [
+    "--user=root",
+    "--pull=newer",
+    "--rm"
+  ],
+  "appPort": [
+    "5173:5173"
+  ],
   // 2. Mount current working directory to /runner
   "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind",
   "workspaceFolder": "${localWorkspaceFolder}",
-
+  "mounts": [
+    "source=${localEnv:HOME}/.gemini,target=/root/.gemini,type=bind"
+  ],
   // 3. Set shell to /bin/bash
   "customizations": {
     "vscode": {

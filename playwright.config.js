@@ -14,7 +14,8 @@ export default defineConfig({
   reporter: [['html', { open: 'never' }], ['list']],
   use: {
     baseURL: 'http://localhost:5173',
-    locale: 'en-US',
+    locale: 'en-GB',
+    timezoneId: 'Europe/London',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -23,11 +24,21 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], locale: 'en-US', launchOptions: { args: ['--lang=en-US'] } },
+      use: {
+        ...devices['Desktop Chrome'],
+        locale: 'en-GB',
+        timezoneId: 'Europe/London',
+        launchOptions: { args: ['--lang=en-GB'] },
+      },
     },
     {
       name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'], locale: 'en-US', launchOptions: { args: ['--lang=en-US'] } },
+      use: {
+        ...devices['Pixel 5'],
+        locale: 'en-GB',
+        timezoneId: 'Europe/London',
+        launchOptions: { args: ['--lang=en-GB'] },
+      },
     },
     ...(process.env.ALL_BROWSERS
       ? [

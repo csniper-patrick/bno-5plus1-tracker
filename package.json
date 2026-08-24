@@ -7,11 +7,11 @@
     "dev": "vite --host",
     "build": "vite-ssg build",
     "preview": "vite preview",
-    "test": "node --test tests/*.test.js && playwright test",
+    "test": "node --test tests/*.test.js && LANG=en_GB.UTF-8 LC_ALL=en_GB.UTF-8 LC_TIME=en_GB.UTF-8 playwright test",
     "test:unit": "node --test tests/*.test.js",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "capture:screenshots": "CAPTURE_SCREENSHOTS=true playwright test e2e/generate-instruction-screenshots.spec.js",
+    "test:e2e": "LANG=en_GB.UTF-8 LC_ALL=en_GB.UTF-8 LC_TIME=en_GB.UTF-8 playwright test",
+    "test:e2e:ui": "LANG=en_GB.UTF-8 LC_ALL=en_GB.UTF-8 LC_TIME=en_GB.UTF-8 playwright test --ui",
+    "capture:screenshots": "LANG=en_GB.UTF-8 LC_ALL=en_GB.UTF-8 LC_TIME=en_GB.UTF-8 CAPTURE_SCREENSHOTS=true playwright test e2e/generate-instruction-screenshots.spec.js",
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {

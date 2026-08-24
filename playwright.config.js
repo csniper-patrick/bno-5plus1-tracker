@@ -28,7 +28,16 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         locale: 'en-GB',
         timezoneId: 'Europe/London',
-        launchOptions: { args: ['--lang=en-GB'] },
+        launchOptions: {
+          args: ['--lang=en-GB'],
+          env: {
+            ...process.env,
+            LANG: 'en_GB.UTF-8',
+            LC_ALL: 'en_GB.UTF-8',
+            LC_TIME: 'en_GB.UTF-8',
+            LANGUAGE: 'en_GB:en',
+          },
+        },
       },
     },
     {
@@ -37,7 +46,16 @@ export default defineConfig({
         ...devices['Pixel 5'],
         locale: 'en-GB',
         timezoneId: 'Europe/London',
-        launchOptions: { args: ['--lang=en-GB'] },
+        launchOptions: {
+          args: ['--lang=en-GB'],
+          env: {
+            ...process.env,
+            LANG: 'en_GB.UTF-8',
+            LC_ALL: 'en_GB.UTF-8',
+            LC_TIME: 'en_GB.UTF-8',
+            LANGUAGE: 'en_GB:en',
+          },
+        },
       },
     },
     ...(process.env.ALL_BROWSERS

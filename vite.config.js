@@ -67,7 +67,10 @@ export default defineConfig({
         })
       },
       transformIndexHtml(html) {
-        return html.replace(/https:\/\/csniper\.gitlab\.io\/bno-5plus1-tracker/g, pagesUrl)
+        return html
+          .replace(/%VITE_CI_PAGES_URL%/g, pagesUrl)
+          .replace(/%CI_PAGES_URL%/g, pagesUrl)
+          .replace(/https:\/\/csniper\.gitlab\.io\/bno-5plus1-tracker/g, pagesUrl)
       },
       async closeBundle() {
         const outDir = resolve(fileURLToPath(new URL('.', import.meta.url)), 'dist')

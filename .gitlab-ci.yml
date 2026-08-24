@@ -34,6 +34,8 @@ pages:
   stage: deploy
   script:
     - export VITE_CI_PROJECT_URL=$CI_PROJECT_URL
+    - export VITE_CI_PAGES_URL=$CI_PAGES_URL
+    - export CI_PAGES_URL=$CI_PAGES_URL
     - npm ci --cache .npm --prefer-offline
     - npm run build
     - rm -rf public

@@ -1,4 +1,7 @@
 <script>
+import { useHead } from '@unhead/vue'
+import { getSeoMeta } from '../utils/seo'
+
 /**
  * InstructionView Component
  *
@@ -8,6 +11,10 @@
  */
 export default {
   name: 'InstructionView',
+
+  setup() {
+    useHead(getSeoMeta('instruction'))
+  },
 
   data() {
     return {

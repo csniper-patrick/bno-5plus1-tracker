@@ -10,6 +10,9 @@ import {
   formatDateUTC,
 } from '../utils/date'
 
+import { useHead } from '@unhead/vue'
+import { getSeoMeta } from '../utils/seo'
+
 import AbsenceOverviewHeader from '../components/absence/AbsenceOverviewHeader.vue'
 import AbsenceRuleStatusCards from '../components/absence/AbsenceRuleStatusCards.vue'
 import AbsenceFormCard from '../components/absence/AbsenceFormCard.vue'
@@ -27,6 +30,10 @@ import KeyDatesDialog from '../components/absence/KeyDatesDialog.vue'
  */
 export default {
   name: 'AbsenceView',
+
+  setup() {
+    useHead(getSeoMeta('home'))
+  },
 
   components: {
     AbsenceOverviewHeader,

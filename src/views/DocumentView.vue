@@ -3,6 +3,9 @@ import { mapStores } from 'pinia'
 import { useDocumentsStore } from '../stores/documents'
 import { useAbsentsStore } from '../stores/absents'
 
+import { useHead } from '@unhead/vue'
+import { getSeoMeta } from '../utils/seo'
+
 import DocumentHeaderCard from '../components/document/DocumentHeaderCard.vue'
 import NationalInsuranceCard from '../components/document/NationalInsuranceCard.vue'
 import LifeInUkCard from '../components/document/LifeInUkCard.vue'
@@ -21,6 +24,10 @@ import DocumentVaultSection from '../components/document/DocumentVaultSection.vu
  */
 export default {
   name: 'DocumentView',
+
+  setup() {
+    useHead(getSeoMeta('documents'))
+  },
 
   components: {
     DocumentHeaderCard,

@@ -66,6 +66,11 @@ An unofficial, 3rd-party web application designed for **British National (Overse
   - Calculates your exact **Earliest ILR Settlement Date**, **Earliest ILR Application Date** (28 days prior), and **Target Naturalisation Date**, displaying dynamic countdowns in brackets (e.g., `2 yrs to go`, `3 mos to go`, `12 days to go`) for future dates.
 - **🎨 Modern Responsive Vuetify 3 UI**
   - Features Union Jack Dark/Light theme toggling, 3-dots vertical action menus for table rows, context-aware form controls, status chips, and intuitive 2-line Key Dates modal forms.
+- **🔍 Search Engine Optimization (SEO) & Social Sharing Cards**
+  - Route-specific titles, meta descriptions, bilingual keywords (EN / 繁體中文), canonical links, and Open Graph / Twitter Card social previews managed via `@unhead/vue` and pre-rendered with `vite-ssg`.
+  - 1200×630px high-resolution Open Graph social preview banner (`og-image.png`) embedding the official app favicon and Union Jack branding.
+  - Schema.org JSON-LD structured data for rich search engine snippets: `WebApplication` on `/`, `BreadcrumbList` on `/documents`, `FAQPage` on `/reference`, and `HowTo` + `FAQPage` on `/instruction`.
+  - Dynamic `CI_PAGES_URL` integration with automated build-time XML sitemap (`sitemap.xml`) and crawler directives (`robots.txt`) generation for GitLab Pages.
 - **💾 Local Device Storage & Data Privacy (IndexedDB Schema v2)**
   - All data input (travel dates, visa details, test certificates, continuous residence checklists, address history, and uploaded document blobs) is stored strictly locally on your device in browser `IndexedDB` (using `app_state` and `files` object stores). No data is uploaded, collected, or transmitted to any external server.
 - **⚡ PWA Offline Support**
@@ -141,8 +146,10 @@ bno-5plus1-tracker/
 ├── e2e/                   # Playwright E2E UI & screenshot generation tests
 │   ├── app-ui.spec.js                         # E2E application user flow & UI test suite
 │   └── generate-instruction-screenshots.spec.js # Automated desktop & mobile user guide screenshot generator
-├── public/                # Static assets, PWA icons & user guide instructions
-│   └── instructions/      # Desktop (step*.png) & mobile (narrow_step*.png) screenshots
+├── public/                # Static assets, PWA icons, OG social banner & user guide instructions
+│   ├── instructions/      # Desktop (step*.png) & mobile (narrow_step*.png) screenshots
+│   ├── og-image.png       # 1200x630px high-resolution Open Graph social preview banner (with app favicon)
+│   └── og-image.svg       # Vector source for Open Graph social banner
 ├── src/
 │   ├── assets/            # Global styles (main.css)
 │   ├── components/        # UI components
@@ -184,6 +191,7 @@ bno-5plus1-tracker/
 │   ├── utils/             # Helper utilities
 │   │   ├── date.js        # Centralized UTC date parsing, formatting & day math
 │   │   ├── segmentTree.js # AbsenceSegmentTree O(log N) data structure
+│   │   ├── seo.js         # Centralized SEO metadata, canonical URLs, OG/Twitter tags & Schema.org JSON-LD engine
 │   │   ├── format.js      # Text formatting helper utilities
 │   │   └── id.js          # Unique ID generator utility
 │   ├── views/             # Application views
@@ -198,18 +206,20 @@ bno-5plus1-tracker/
 │   ├── profiles.test.js           # Multi-profile isolation, swapping & companion sync tests
 │   ├── components_and_e2e.test.js # E2E user flows & binary file upload integration tests
 │   ├── indexeddb_emulation.test.js# IndexedDB app_state & files object store tests
+│   ├── seo.test.js                # SEO metadata, dynamic CI_PAGES_URL, sitemap.xml & Schema.org JSON-LD tests
 │   └── validation.test.js         # Strict YAML schema validation & date utility edge case tests
 ├── .antigravity.md        # AI Agent workspace context & guidelines
 ├── .gitlab-ci.yml         # GitLab CI/CD pipeline for GitLab Pages
 ├── index.html             # HTML entry template
 ├── package.json           # App manifest and dependencies
 ├── playwright.config.js   # Playwright configuration with testIgnore isolation
-└── vite.config.js         # Vite build configuration with Vuetify & VitePWA
+└── vite.config.js         # Vite build configuration with Vuetify, VitePWA & dynamic SEO plugins
 ```
 
 ### Key Modules & Data Structures
 
 - **[AbsenceSegmentTree](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/segmentTree.js)**: 1-indexed array-backed segment tree (`Int32Array`) using standard `leftNode = 2 * node` and `rightNode = 2 * node + 1` child indexing (0th index unused), initialized to zero by default, supporting $O(1)$ point queries (`queryPoint`), $O(1)$ per-step sliding window rolling updates, $O(D \log N)$ interval range updates (`updateRange`, $D = \text{range length}$), and $O(\log N)$ range sum queries (`query`) over a 10-year period (3,653 days).
+- **[seo.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/seo.js)**: Centralized SEO and structured data engine. Dynamically resolves base deployment URLs from GitLab CI (`CI_PAGES_URL` / `VITE_CI_PAGES_URL`), produces route-specific `<title>`, `<meta name="description">`, keywords, canonical `<link>` tags, and generates Schema.org JSON-LD structured data (`WebApplication`, `BreadcrumbList`, `FAQPage`, `HowTo`) alongside XML sitemaps and crawler `robots.txt` directives.
 - **[date.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/date.js)**: Centralized UTC date parsing (`parseDateUTC`), formatting (`formatDateUTC`, `formatDisplayDate`), normalization (`normalizeDate`), day arithmetic (`calculateDays`, `getOneDayBefore`), and tree boundary calculations (`getMaxSegmentTreeReturnDate`).
 - **[dbService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/dbService.js)**: Database service managing IndexedDB open/upgrade transactions, supporting `app_state` (key-value) and `files` (file blobs with `folderId` index) object stores under DB Schema Version 2.
 - **[fileStorageService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/fileStorageService.js)**: Dedicated IndexedDB binary blob service handling file record persistence, on-demand blob retrieval, size formatting, object URL creation, and metadata queries.

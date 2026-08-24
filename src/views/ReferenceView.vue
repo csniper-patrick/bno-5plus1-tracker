@@ -1,4 +1,7 @@
 <script>
+import { useHead } from '@unhead/vue'
+import { getSeoMeta } from '../utils/seo'
+
 /**
  * ReferenceView Component
  *
@@ -8,6 +11,10 @@
  */
 export default {
   name: 'ReferenceView',
+
+  setup() {
+    useHead(getSeoMeta('reference'))
+  },
 
   data() {
     return {

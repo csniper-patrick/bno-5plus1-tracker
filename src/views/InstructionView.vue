@@ -613,7 +613,7 @@ export default {
               <v-alert
                 type="success"
                 variant="tonal"
-                icon="mdi-account-multiple-plus-outline"
+                icon="mdi-share-variant-outline"
                 class="mb-4 text-caption"
               >
                 {{ $t('instruction.step5.copy_feature_tip') }}
@@ -639,7 +639,7 @@ export default {
                 <v-img
                   :key="imgPrefix + 'step5_copy_to_profile.png'"
                   :src="imgPrefix + 'step5_copy_to_profile.png'"
-                  alt="Copy Record to Other Profiles Modal"
+                  alt="Share Record with Other Profiles Modal"
                   contain
                   class="rounded"
                   :style="{ maxHeight: isMobileView ? '450px' : 'auto' }"

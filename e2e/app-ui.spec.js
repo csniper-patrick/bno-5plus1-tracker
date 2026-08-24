@@ -14,13 +14,13 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
           configurable: true,
         });
         window.localStorage.setItem('bno_tracker_locale', 'en');
-      } catch (e) {}
+      } catch (e) { }
     });
   });
 
   test('1. App Shell, Navigation & Drawer Links', async ({ page }) => {
     await page.goto('/');
-    
+
     // Verify title bar & header title
     await expect(page).toHaveTitle(/BNO 5\+1 Tracker/);
     await expect(page.locator('header')).toContainText('BNO 5+1 Tracker');
@@ -91,6 +91,14 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
 
       // Verify trip is logged in the absence table
       await expect(page.locator('.v-main')).toContainText('Hong Kong - Summer Family Visit');
+
+      // Verify Shared With column is hidden when only 1 profile exists
+      const fullViewBtn = page.locator('button:has-text("Full")').first();
+      if (await fullViewBtn.isVisible()) {
+        await fullViewBtn.click();
+        await page.waitForTimeout(300);
+        await expect(page.locator('th:has-text("Shared With")')).toHaveCount(0);
+      }
     }
   });
 
@@ -189,13 +197,23 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
 
     // Open right side navigation drawer
     const drawerBtn = page.locator('header button:has(.mdi-menu)').first();
+    const closeDrawer = async () => {
+      const scrim = page.locator('.v-navigation-drawer__scrim, .v-overlay__scrim').first();
+      if (await scrim.isVisible()) {
+        await scrim.click({ position: { x: 5, y: 5 }, force: true });
+      } else {
+        await drawerBtn.click();
+      }
+      await page.waitForTimeout(400);
+    };
+
     await drawerBtn.click();
     await page.waitForTimeout(400);
 
     // Expand Profile Switcher section if collapsed
-    const switchProfileBtn = page.locator('button[title="Switch Profile"]').first();
-    if (await switchProfileBtn.isVisible()) {
-      await switchProfileBtn.click();
+    const expandDown1 = page.locator('.v-navigation-drawer button:has(.mdi-chevron-down)').first();
+    if (await expandDown1.isVisible()) {
+      await expandDown1.click();
       await page.waitForTimeout(300);
     }
 
@@ -212,10 +230,10 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
       await page.waitForTimeout(600);
     }
 
-    // Expand Profile Switcher section to see all profiles if needed
-    const expandBtn = page.locator('button[title="Switch Profile"]').first();
-    if (await expandBtn.isVisible()) {
-      await expandBtn.click();
+    // Expand Profile Switcher section if collapsed
+    const expandDown2 = page.locator('.v-navigation-drawer button:has(.mdi-chevron-down)').first();
+    if (await expandDown2.isVisible()) {
+      await expandDown2.click();
       await page.waitForTimeout(300);
     }
 
@@ -226,14 +244,9 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
       await page.waitForTimeout(500);
     }
 
-    // Close drawer
-    const overlay = page.locator('.v-overlay--active .v-overlay__scrim').first();
-    if (await overlay.isVisible()) {
-      await overlay.click();
-    } else {
-      await drawerBtn.click();
-    }
-    await page.waitForTimeout(400);
+    // Refresh page state to ensure drawer is closed and active profile is active
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
 
     // Log a trip in Main Applicant
     const dateInputs = page.locator('.v-main input[type="date"]');
@@ -256,41 +269,57 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
       await rowActionsBtn.click();
       await page.waitForTimeout(300);
 
-      // Click "Copy to Profile" item
-      const copyMenuItem = page.locator('.v-menu .v-list-item:has-text("Copy to Profile")').first();
-      await expect(copyMenuItem).toBeVisible();
-      await copyMenuItem.click();
+      // Click "Share with..." item
+      const shareMenuItem = page.locator('.v-menu .v-list-item:has-text("Share with")').first();
+      await expect(shareMenuItem).toBeVisible();
+      await shareMenuItem.click();
       await page.waitForTimeout(400);
 
-      // In Copy Record dialog, select target profile (Spouse) and click "Copy Record"
-      const copyDialog = page.locator('.v-dialog:has-text("Copy Record to Other Profiles")');
-      await expect(copyDialog).toBeVisible();
-      await expect(copyDialog).toContainText('Paris Family Holiday');
+      // In Share Record dialog, select target profile (Spouse) and click "Share Record"
+      const shareDialog = page.locator('.v-dialog:has-text("Share Record with Other Profiles")');
+      await expect(shareDialog).toBeVisible();
+      await expect(shareDialog).toContainText('Paris Family Holiday');
 
-      // Click Copy Record button in dialog
-      const copyBtn = copyDialog.locator('button:has-text("Copy Record")').first();
-      await expect(copyBtn).toBeEnabled();
-      await copyBtn.click();
+      // Click Share Record button in dialog
+      const shareBtn = shareDialog.locator('button:has-text("Share Record")').first();
+      await expect(shareBtn).toBeEnabled();
+      await shareBtn.click();
       await page.waitForTimeout(500);
 
       // Switch profile to Spouse and verify record
       await drawerBtn.click();
       await page.waitForTimeout(400);
+
+      const expandDown3 = page.locator('.v-navigation-drawer button:has(.mdi-chevron-down)').first();
+      if (await expandDown3.isVisible()) {
+        await expandDown3.click();
+        await page.waitForTimeout(300);
+      }
+
       const spouseItem = page.locator('.v-navigation-drawer .v-list-item:has-text("Spouse")').first();
-      if (await spouseItem.isVisible()) {
-        await spouseItem.click();
-        await page.waitForTimeout(500);
-      }
-      const overlayClose = page.locator('.v-overlay--active .v-overlay__scrim').first();
-      if (await overlayClose.isVisible()) {
-        await overlayClose.click();
-      } else {
-        await drawerBtn.click();
-      }
-      await page.waitForTimeout(400);
+      await expect(spouseItem).toBeVisible();
+      await spouseItem.click();
+      await page.waitForTimeout(500);
+
+      await page.goto('/');
+      await page.waitForLoadState('networkidle');
 
       // Verify copied trip is now present in Spouse's absence table
       await expect(page.locator('.v-main')).toContainText('Paris Family Holiday');
+
+      // Toggle to Full View Mode and verify Shared With column & avatar
+      const fullViewBtn = page.locator('button:has-text("Full")').first();
+      if (await fullViewBtn.isVisible()) {
+        await fullViewBtn.click();
+        await page.waitForTimeout(400);
+
+        // Verify Shared With column header
+        await expect(page.locator('th:has-text("Shared With")')).toBeVisible();
+
+        // Verify Main Applicant avatar initial 'M' is displayed for shared trip
+        const sharedAvatar = page.locator('tbody tr:has-text("Paris Family Holiday") .v-avatar:has-text("M")');
+        await expect(sharedAvatar).toBeVisible();
+      }
     }
   });
 

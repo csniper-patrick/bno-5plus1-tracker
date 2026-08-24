@@ -6,6 +6,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import * as dbService from '../src/services/dbService.js'
 import * as profileService from '../src/services/profileService.js'
 import { useAbsentsStore } from '../src/stores/absents.js'
+import { useProfilesStore } from '../src/stores/profiles.js'
 
 describe('Multi-Profile Management & Data Swapping Service', () => {
   beforeEach(async () => {
@@ -481,6 +482,52 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
     assert.strictEqual(profilesData[spouse.id].absences.length, 1)
     assert.strictEqual(profilesData[spouse.id].absences[0].endDate, '2022-06-25')
     assert.strictEqual(profilesData[spouse.id].absences[0].dest, 'Japan & Korea')
+  })
+
+  it('getProfilesSharingAbsence returns list of other profiles containing the absence record id', async () => {
+    await profileService.initProfiles()
+
+    const spouse = await profileService.createProfile('Spouse', '#E91E63')
+    const child1 = await profileService.createProfile('Child 1', '#4CAF50')
+    const child2 = await profileService.createProfile('Child 2', '#FF9800')
+
+    // Switch back to Main Applicant
+    await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
+
+    const sharedTrip = {
+      id: 'shared_trip_icons_test',
+      startDate: '2023-12-20',
+      endDate: '2023-12-30',
+      dest: 'Vienna, Austria',
+    }
+
+    // Copy to Spouse and Child 1
+    await profileService.copyAbsenceToProfiles(sharedTrip, [spouse.id, child1.id])
+
+    // Test profileService.getProfilesSharingAbsence
+    const sharingService = await profileService.getProfilesSharingAbsence('shared_trip_icons_test')
+    assert.strictEqual(sharingService.length, 2)
+    assert.ok(sharingService.some((p) => p.name === 'Spouse' && p.avatarColor === '#E91E63'))
+    assert.ok(sharingService.some((p) => p.name === 'Child 1' && p.avatarColor === '#4CAF50'))
+    assert.strictEqual(sharingService.some((p) => p.name === 'Child 2'), false)
+
+    // Test edge cases
+    assert.deepStrictEqual(await profileService.getProfilesSharingAbsence(''), [])
+    assert.deepStrictEqual(await profileService.getProfilesSharingAbsence('unknown_id_123'), [])
+
+    // Test useProfilesStore.getProfilesSharingAbsence
+    setActivePinia(createPinia())
+    const profilesStore = useProfilesStore()
+    await profilesStore.initStore()
+
+    const sharingStore = profilesStore.getProfilesSharingAbsence('shared_trip_icons_test')
+    assert.strictEqual(sharingStore.length, 2)
+    assert.ok(sharingStore.some((p) => p.name === 'Spouse'))
+    assert.ok(sharingStore.some((p) => p.name === 'Child 1'))
+    assert.strictEqual(sharingStore.some((p) => p.name === 'Child 2'), false)
+
+    assert.deepStrictEqual(profilesStore.getProfilesSharingAbsence(''), [])
+    assert.deepStrictEqual(profilesStore.getProfilesSharingAbsence('non_existent_id'), [])
   })
 })
 

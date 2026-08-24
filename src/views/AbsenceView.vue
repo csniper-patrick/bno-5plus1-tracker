@@ -755,6 +755,21 @@ export default {
     },
 
     /**
+     * Returns the list of other profiles that share this absence record.
+     * @param {Object} item - Absence record object.
+     * @returns {Array<Object>}
+     */
+    getSharedProfiles(item) {
+      if (!item || !item.id || item.isAutoArrival || item.id === 'auto_uk_arrival_record') {
+        return []
+      }
+      if (typeof this.profilesStore?.getProfilesSharingAbsence === 'function') {
+        return this.profilesStore.getProfilesSharingAbsence(item.id)
+      }
+      return []
+    },
+
+    /**
      * Confirms and executes clear-all action for all absence records and key dates.
      */
     executeClearAll() {
@@ -1894,11 +1909,11 @@ export default {
               <thead>
                 <tr>
                   <th
-                    class="text-left font-weight-bold cursor-pointer user-select-none"
-                    style="width: 110px"
+                    class="text-left font-weight-bold cursor-pointer user-select-none text-no-wrap"
+                    style="min-width: 90px; width: 100px; white-space: nowrap"
                     @click="sortByColumn('status')"
                   >
-                    <div class="d-flex align-center ga-1">
+                    <div class="d-flex align-center ga-1 text-no-wrap">
                       <span>{{ $t('absence.table_status') }}</span>
                       <v-icon
                         v-if="tableSortBy === 'status'"
@@ -1909,10 +1924,11 @@ export default {
                     </div>
                   </th>
                   <th
-                    class="text-left font-weight-bold cursor-pointer user-select-none"
+                    class="text-left font-weight-bold cursor-pointer user-select-none text-no-wrap"
+                    style="min-width: 160px; white-space: nowrap"
                     @click="sortByColumn('startDate')"
                   >
-                    <div class="d-flex align-center ga-1">
+                    <div class="d-flex align-center ga-1 text-no-wrap">
                       <span>{{ $t('absence.trip_timeline') }}</span>
                       <v-icon
                         v-if="tableSortBy === 'startDate'"
@@ -1923,11 +1939,11 @@ export default {
                     </div>
                   </th>
                   <th
-                    class="text-center font-weight-bold cursor-pointer user-select-none"
-                    style="width: 140px"
+                    class="text-center font-weight-bold cursor-pointer user-select-none text-no-wrap"
+                    style="min-width: 120px; width: 130px; white-space: nowrap"
                     @click="sortByColumn('days')"
                   >
-                    <div class="d-flex align-center justify-center ga-1">
+                    <div class="d-flex align-center justify-center ga-1 text-no-wrap">
                       <span>{{ $t('absence.full_days') }}</span>
                       <v-icon
                         v-if="tableSortBy === 'days'"
@@ -1937,7 +1953,17 @@ export default {
                       ></v-icon>
                     </div>
                   </th>
-                  <th class="text-right font-weight-bold" style="width: 110px">
+                  <th
+                    v-if="timelineViewMode === 'full' && hasMultipleProfiles"
+                    class="text-center font-weight-bold user-select-none text-no-wrap"
+                    style="min-width: 100px; width: 120px; white-space: nowrap"
+                  >
+                    <span class="text-no-wrap">{{ $t('absence.shared_with') }}</span>
+                  </th>
+                  <th
+                    class="text-right font-weight-bold text-no-wrap"
+                    style="min-width: 90px; width: 100px; white-space: nowrap"
+                  >
                     {{ $t('absence.table_actions') }}
                   </th>
                 </tr>
@@ -2116,6 +2142,42 @@ export default {
                       {{ calculateDays(item.startDate, item.endDate) }} day(s)
                     </v-chip>
                   </td>
+                  <td
+                    v-if="timelineViewMode === 'full' && hasMultipleProfiles"
+                    class="text-center align-middle"
+                    style="width: 120px"
+                  >
+                    <template v-if="item.isAutoArrival || item.id === 'auto_uk_arrival_record'">
+                      <span class="text-caption text-medium-emphasis">—</span>
+                    </template>
+                    <template v-else>
+                      <div
+                        v-if="getSharedProfiles(item).length > 0"
+                        class="d-flex align-center justify-center ga-1 flex-wrap"
+                      >
+                        <v-tooltip
+                          v-for="profile in getSharedProfiles(item)"
+                          :key="profile.id"
+                          :text="profile.name"
+                          location="top"
+                        >
+                          <template #activator="{ props }">
+                            <v-avatar
+                              v-bind="props"
+                              size="24"
+                              :color="profile.avatarColor || '#1976D2'"
+                              class="text-white font-weight-bold elevation-1 cursor-pointer"
+                            >
+                              <span style="font-size: 10px">{{
+                                (profile.name || 'P').charAt(0).toUpperCase()
+                              }}</span>
+                            </v-avatar>
+                          </template>
+                        </v-tooltip>
+                      </div>
+                      <span v-else class="text-caption text-medium-emphasis">—</span>
+                    </template>
+                  </td>
                   <td class="text-right align-middle">
                     <template v-if="item.isAutoArrival || item.id === 'auto_uk_arrival_record'">
                       <v-chip
@@ -2148,7 +2210,7 @@ export default {
                           ></v-list-item>
                           <v-list-item
                             v-if="hasMultipleProfiles"
-                            prepend-icon="mdi-account-arrow-right-outline"
+                            prepend-icon="mdi-share-variant-outline"
                             :title="$t('absence.copy_to_profile')"
                             @click="openCopyDialog(item)"
                           ></v-list-item>
@@ -2231,7 +2293,7 @@ export default {
     <v-dialog v-model="copyDialog.show" max-width="500px">
       <v-card elevation="2" class="rounded-lg pa-3" color="surface">
         <v-card-title class="px-0 pt-0 font-weight-bold text-h6 d-flex align-center ga-2">
-          <v-icon icon="mdi-account-arrow-right-outline" color="primary"></v-icon>
+          <v-icon icon="mdi-share-variant-outline" color="primary"></v-icon>
           <span>{{ $t('absence.copy_to_profile_title') }}</span>
         </v-card-title>
 
@@ -2332,7 +2394,7 @@ export default {
           <v-btn
             color="primary"
             variant="flat"
-            prepend-icon="mdi-content-copy"
+            prepend-icon="mdi-share-variant-outline"
             :disabled="copyDialog.selectedProfileIds.length === 0"
             @click="executeCopyRecord"
           >
@@ -2519,5 +2581,9 @@ export default {
 }
 .user-select-none {
   user-select: none;
+}
+.v-table thead th {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
 }
 </style>

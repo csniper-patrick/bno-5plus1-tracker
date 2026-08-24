@@ -336,9 +336,9 @@ export async function copyAbsenceToProfiles(record, targetProfileIds) {
       Array.isArray(record.stops) && record.stops.length >= 2
         ? record.stops.map((s) => ({ date: s.date || '', dest: s.dest || '' }))
         : [
-          { date: record.startDate, dest: record.dest || '' },
-          { date: record.endDate, dest: '' },
-        ],
+            { date: record.startDate, dest: record.dest || '' },
+            { date: record.endDate, dest: '' },
+          ],
     createdAt: record.createdAt || new Date().toISOString(),
   }
 
@@ -436,9 +436,9 @@ export async function syncUpdatedAbsenceAcrossProfiles(updatedRecord) {
       Array.isArray(updatedRecord.stops) && updatedRecord.stops.length >= 2
         ? updatedRecord.stops.map((s) => ({ date: s.date || '', dest: s.dest || '' }))
         : [
-          { date: updatedRecord.startDate, dest: updatedRecord.dest || '' },
-          { date: updatedRecord.endDate, dest: '' },
-        ],
+            { date: updatedRecord.startDate, dest: updatedRecord.dest || '' },
+            { date: updatedRecord.endDate, dest: '' },
+          ],
   }
 
   for (const profileId of Object.keys(profilesData)) {
@@ -473,4 +473,38 @@ export async function syncUpdatedAbsenceAcrossProfiles(updatedRecord) {
   }
 
   return { success: true, updatedCount, updatedProfiles }
+}
+
+/**
+ * Retrieves the entire profiles data payload dictionary from IndexedDB.
+ *
+ * @returns {Promise<Object>} Object mapping profile IDs to their data payloads.
+ */
+export async function getProfilesData() {
+  return (await dbService.getItem(PROFILES_DATA_KEY)) || {}
+}
+
+/**
+ * Finds all other profiles that contain a given absence record ID in their saved data.
+ *
+ * @param {string} absenceId - The ID of the absence record to check.
+ * @returns {Promise<Array<Object>>} List of profile metadata objects sharing the absence.
+ */
+export async function getProfilesSharingAbsence(absenceId) {
+  if (!absenceId) return []
+  const currentActiveId = (await dbService.getItem(ACTIVE_PROFILE_KEY)) || DEFAULT_PROFILE_ID
+  const metaList = (await dbService.getItem(PROFILES_META_KEY)) || []
+  const profilesData = (await dbService.getItem(PROFILES_DATA_KEY)) || {}
+
+  const matchingProfiles = []
+  for (const profile of metaList) {
+    if (profile.id === currentActiveId) continue
+    const data = profilesData[profile.id]
+    if (data && Array.isArray(data.absences)) {
+      if (data.absences.some((a) => a.id === absenceId)) {
+        matchingProfiles.push({ ...profile })
+      }
+    }
+  }
+  return matchingProfiles
 }

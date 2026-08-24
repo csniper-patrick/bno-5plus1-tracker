@@ -695,9 +695,9 @@ export default {
     },
 
     /**
-     * Determines if a companion profile is eligible to receive a shared absence record.
-     * Requires the target profile to have a configured Visa Start Date, and the record's
-     * departure date must be on or after that Visa Start Date.
+     * Checks if a target profile is eligible to receive a shared absence record.
+     * Target profile must have a valid Visa Start Date, and the record
+     * departure date must be on or after both that Visa Start Date and (if set) UK Arrival Date.
      *
      * @param {string} profileId - Target profile ID.
      * @param {Object} [record] - Optional absence record (defaults to this.shareDialog.record).
@@ -709,6 +709,8 @@ export default {
       const visaStartDate = profilePayload?.visaStartDate || ''
       if (!visaStartDate) return false
       if (record.startDate < visaStartDate) return false
+      const ukArrivalDate = profilePayload?.ukArrivalDate || ''
+      if (ukArrivalDate && record.startDate < ukArrivalDate) return false
       return true
     },
 
@@ -723,11 +725,15 @@ export default {
       if (!profileId || !record) return ''
       const profilePayload = this.profilesStore?.profilesData?.[profileId]
       const visaStartDate = profilePayload?.visaStartDate || ''
+      const ukArrivalDate = profilePayload?.ukArrivalDate || ''
       if (!visaStartDate) {
         return this.$t('absence.share_disabled_no_visa_start')
       }
       if (record.startDate && record.startDate < visaStartDate) {
         return this.$t('absence.share_disabled_start_before_visa', { date: visaStartDate })
+      }
+      if (ukArrivalDate && record.startDate && record.startDate < ukArrivalDate) {
+        return this.$t('absence.share_disabled_start_before_arrival', { date: ukArrivalDate })
       }
       return ''
     },

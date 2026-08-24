@@ -53,7 +53,7 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 - **👥 Multi-Profile Management & Absence Sharing / Companion Sync**
   - Track multiple family members (e.g. Main Applicant, Spouse, Dependants) with independent key visa dates, travel records, continuous residence checklists, and document vaults in isolated profile environments.
   - **Shared Absence Journeys ("Shared With" / 「同行成員」)**: Conveniently share travel records across profiles using the "Shared With..." dialog with individual selection and select-all/clear capabilities.
-  - **Visa Start Date Eligibility Validation**: Automatically checks companion profiles' configured Visa Start Dates against absence departure dates, disabling ineligible profiles with high-contrast amber warnings (`Before visa start` / `Visa start date not set`) to prevent invalid cross-profile entries.
+  - **Visa Start & UK Arrival Date Eligibility Validation**: Automatically checks companion profiles' configured Visa Start Dates and UK Arrival Dates against absence departure dates, disabling ineligible profiles with high-contrast amber warnings (`Before visa start` / `Before UK arrival` / `Visa start date not set`) to prevent invalid cross-profile entries.
   - **Real-Time Cross-Profile Synchronization**: Edits made to a shared trip (dates, destinations, stops) automatically sync across all companion profiles sharing that record ID.
   - **Companion Avatar Chips & Dynamic Visibility**: The expanded table view displays profile avatar chips with initial letters and distinct colors for family members sharing each journey. The column automatically hides when only a single profile exists.
 - **🧭 Right Navigation Drawer & Consolidated Data Management**

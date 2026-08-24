@@ -615,9 +615,15 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
     const childLateVisa = await profileService.createProfile('Child Late Visa')
     await dbService.setItem('bno_visa_start_date', '2023-01-01')
 
-    // Profile 3: Parent with visa start date earlier than the trip (2021-01-01)
+    // Profile 3: Sibling with early visa start date (2021-01-01) but LATE UK arrival date (2023-01-01)
+    const siblingLateArrival = await profileService.createProfile('Sibling Late Arrival')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
+    await dbService.setItem('bno_uk_arrival_date', '2023-01-01')
+
+    // Profile 4: Parent with visa start date (2021-01-01) and UK arrival (2021-01-15) earlier than trip
     const parentEarlyVisa = await profileService.createProfile('Parent Early Visa')
     await dbService.setItem('bno_visa_start_date', '2021-01-01')
+    await dbService.setItem('bno_uk_arrival_date', '2021-01-15')
 
     // Switch back to Main Applicant (visa start 2021-01-01)
     await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
@@ -631,10 +637,11 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
       dest: 'Japan',
     }
 
-    // Try sharing with all 3 profiles: only Parent Early Visa should be accepted
+    // Try sharing with all 4 profiles: only Parent Early Visa should be accepted
     const res = await profileService.syncSharedAbsenceProfiles(earlyTrip, [
       spouseNoVisa.id,
       childLateVisa.id,
+      siblingLateArrival.id,
       parentEarlyVisa.id,
     ])
 
@@ -644,6 +651,7 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
     const data = await profileService.getProfilesData()
     assert.strictEqual(data[spouseNoVisa.id].absences.some((a) => a.id === 'early_trip_2022'), false)
     assert.strictEqual(data[childLateVisa.id].absences.some((a) => a.id === 'early_trip_2022'), false)
+    assert.strictEqual(data[siblingLateArrival.id].absences.some((a) => a.id === 'early_trip_2022'), false)
     assert.strictEqual(data[parentEarlyVisa.id].absences.some((a) => a.id === 'early_trip_2022'), true)
   })
 })

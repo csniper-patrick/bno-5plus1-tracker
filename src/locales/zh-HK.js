@@ -89,6 +89,7 @@ export default {
     copy_record_cleared: '已清除此離境記錄的所有同行成員。',
     share_disabled_no_visa_start: '未設定簽證生效日期',
     share_disabled_start_before_visa: '早於簽證生效日期 ({date})',
+    share_disabled_start_before_arrival: '早於抵英日期 ({date})',
     no_target_profiles_selected: '請至少選擇一個要同行的檔案。',
     departure_date: '離英日期 (離開英國)',
     return_date: '返英日期 (回到英國)',

@@ -90,6 +90,7 @@ export default {
     copy_record_cleared: 'Cleared shared companions for this record.',
     share_disabled_no_visa_start: 'Visa start date not set',
     share_disabled_start_before_visa: 'Before visa start ({date})',
+    share_disabled_start_before_arrival: 'Before UK arrival ({date})',
     no_target_profiles_selected: 'Please select at least one profile.',
     departure_date: 'Departure Date (Start)',
     return_date: 'Return Date (End)',

@@ -367,6 +367,8 @@ describe('Companion Profile Share Eligibility Validation', () => {
     const visaStartDate = profilePayload?.visaStartDate || ''
     if (!visaStartDate) return false
     if (record.startDate < visaStartDate) return false
+    const ukArrivalDate = profilePayload?.ukArrivalDate || ''
+    if (ukArrivalDate && record.startDate < ukArrivalDate) return false
     return true
   }
 
@@ -374,11 +376,15 @@ describe('Companion Profile Share Eligibility Validation', () => {
     if (!profileId || !record) return ''
     const profilePayload = profilesData?.[profileId]
     const visaStartDate = profilePayload?.visaStartDate || ''
+    const ukArrivalDate = profilePayload?.ukArrivalDate || ''
     if (!visaStartDate) {
       return 'Visa start date not set'
     }
     if (record.startDate && record.startDate < visaStartDate) {
       return `Before visa start (${visaStartDate})`
+    }
+    if (ukArrivalDate && record.startDate && record.startDate < ukArrivalDate) {
+      return `Before UK arrival (${ukArrivalDate})`
     }
     return ''
   }
@@ -386,14 +392,22 @@ describe('Companion Profile Share Eligibility Validation', () => {
   const mockProfilesData = {
     profile_no_visa: {
       visaStartDate: '',
+      ukArrivalDate: '',
       absences: [],
     },
     profile_late_visa: {
       visaStartDate: '2023-01-01',
+      ukArrivalDate: '2023-01-10',
+      absences: [],
+    },
+    profile_late_arrival: {
+      visaStartDate: '2021-06-01',
+      ukArrivalDate: '2023-01-01',
       absences: [],
     },
     profile_early_visa: {
       visaStartDate: '2021-06-01',
+      ukArrivalDate: '2021-06-15',
       absences: [],
     },
   }
@@ -423,7 +437,18 @@ describe('Companion Profile Share Eligibility Validation', () => {
     )
   })
 
-  it('should mark profile with earlier or equal visa start date as eligible with no disabled reason', () => {
+  it('should mark profile with earlier visa start date but later UK arrival date as ineligible with correct reason', () => {
+    const eligible = isProfileShareable('profile_late_arrival', mockRecord, mockProfilesData)
+    assert.strictEqual(eligible, false)
+
+    const reason = getProfileShareDisabledReason('profile_late_arrival', mockRecord, mockProfilesData)
+    assert.strictEqual(
+      reason,
+      'Before UK arrival (2023-01-01)',
+    )
+  })
+
+  it('should mark profile with earlier or equal visa start date and UK arrival date as eligible with no disabled reason', () => {
     const eligible = isProfileShareable('profile_early_visa', mockRecord, mockProfilesData)
     assert.strictEqual(eligible, true)
 
@@ -435,6 +460,7 @@ describe('Companion Profile Share Eligibility Validation', () => {
     const otherProfiles = [
       { id: 'profile_no_visa' },
       { id: 'profile_late_visa' },
+      { id: 'profile_late_arrival' },
       { id: 'profile_early_visa' },
     ]
 

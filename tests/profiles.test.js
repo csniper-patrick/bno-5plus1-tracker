@@ -529,5 +529,66 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
     assert.deepStrictEqual(profilesStore.getProfilesSharingAbsence(''), [])
     assert.deepStrictEqual(profilesStore.getProfilesSharingAbsence('non_existent_id'), [])
   })
+
+  it('syncSharedAbsenceProfiles allows adding, updating, and clearing shared records from other profiles', async () => {
+    await profileService.initProfiles()
+
+    const spouse = await profileService.createProfile('Spouse', '#E91E63')
+    const child = await profileService.createProfile('Child', '#4CAF50')
+
+    await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
+
+    const trip = {
+      id: 'trip_sync_clear_test',
+      startDate: '2024-06-01',
+      endDate: '2024-06-10',
+      dest: 'Rome, Italy',
+    }
+
+    // 1. Share with Spouse and Child
+    const res1 = await profileService.syncSharedAbsenceProfiles(trip, [spouse.id, child.id])
+    assert.strictEqual(res1.success, true)
+    assert.strictEqual(res1.count, 2)
+
+    let sharing = await profileService.getProfilesSharingAbsence('trip_sync_clear_test')
+    assert.strictEqual(sharing.length, 2)
+
+    // 2. Unshare from Child (only Spouse remains selected)
+    const res2 = await profileService.syncSharedAbsenceProfiles(trip, [spouse.id])
+    assert.strictEqual(res2.success, true)
+    assert.strictEqual(res2.count, 1)
+
+    sharing = await profileService.getProfilesSharingAbsence('trip_sync_clear_test')
+    assert.strictEqual(sharing.length, 1)
+    assert.strictEqual(sharing[0].name, 'Spouse')
+
+    // Verify Child profile payload in storage does NOT have the trip
+    const data = await profileService.getProfilesData()
+    assert.strictEqual(data[child.id].absences.some((a) => a.id === 'trip_sync_clear_test'), false)
+    assert.strictEqual(data[spouse.id].absences.some((a) => a.id === 'trip_sync_clear_test'), true)
+
+    // 3. Clear from all profiles (empty array)
+    const res3 = await profileService.syncSharedAbsenceProfiles(trip, [])
+    assert.strictEqual(res3.success, true)
+    assert.strictEqual(res3.count, 0)
+
+    sharing = await profileService.getProfilesSharingAbsence('trip_sync_clear_test')
+    assert.strictEqual(sharing.length, 0)
+
+    const dataCleared = await profileService.getProfilesData()
+    assert.strictEqual(dataCleared[spouse.id].absences.some((a) => a.id === 'trip_sync_clear_test'), false)
+    assert.strictEqual(dataCleared[child.id].absences.some((a) => a.id === 'trip_sync_clear_test'), false)
+
+    // 4. Test store wrapper
+    setActivePinia(createPinia())
+    const profilesStore = useProfilesStore()
+    await profilesStore.initStore()
+
+    await profilesStore.syncSharedAbsenceProfiles(trip, [spouse.id])
+    assert.strictEqual(profilesStore.getProfilesSharingAbsence('trip_sync_clear_test').length, 1)
+
+    await profilesStore.syncSharedAbsenceProfiles(trip, [])
+    assert.strictEqual(profilesStore.getProfilesSharingAbsence('trip_sync_clear_test').length, 0)
+  })
 })
 

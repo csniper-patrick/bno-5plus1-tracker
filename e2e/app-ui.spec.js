@@ -269,19 +269,29 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
       await rowActionsBtn.click();
       await page.waitForTimeout(300);
 
-      // Click "Share with..." item
-      const shareMenuItem = page.locator('.v-menu .v-list-item:has-text("Share with")').first();
+      // Click "Shared With..." item
+      const shareMenuItem = page.locator('.v-menu .v-list-item:has-text("Shared With"), .v-menu .v-list-item:has-text("同行成員"), .v-menu .v-list-item:has-text("Share with")').first();
       await expect(shareMenuItem).toBeVisible();
       await shareMenuItem.click();
       await page.waitForTimeout(400);
 
-      // In Share Record dialog, select target profile (Spouse) and click "Share Record"
-      const shareDialog = page.locator('.v-dialog:has-text("Share Record with Other Profiles")');
+      // In Share Record dialog, select target profile (Spouse) and click "Save Selection"
+      const shareDialog = page.locator('.v-dialog');
       await expect(shareDialog).toBeVisible();
       await expect(shareDialog).toContainText('Paris Family Holiday');
 
-      // Click Share Record button in dialog
-      const shareBtn = shareDialog.locator('button:has-text("Share Record")').first();
+      // Click Spouse card to check it if not checked
+      const spouseSelectCard = shareDialog.locator('.v-list .v-card:has-text("Spouse")').first();
+      if (await spouseSelectCard.isVisible()) {
+        const isChecked = await spouseSelectCard.locator('input[type="checkbox"]').isChecked().catch(() => false);
+        if (!isChecked) {
+          await spouseSelectCard.click();
+          await page.waitForTimeout(200);
+        }
+      }
+
+      // Click Save Selection button in dialog
+      const shareBtn = shareDialog.locator('button:has-text("Save Selection"), button:has-text("確認選擇"), button:has-text("Share Record")').first();
       await expect(shareBtn).toBeEnabled();
       await shareBtn.click();
       await page.waitForTimeout(500);
@@ -304,7 +314,7 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
       await page.goto('/');
       await page.waitForLoadState('networkidle');
 
-      // Verify copied trip is now present in Spouse's absence table
+      // Verify shared trip is now present in Spouse's absence table
       await expect(page.locator('.v-main')).toContainText('Paris Family Holiday');
 
       // Toggle to Full View Mode and verify Shared With column & avatar
@@ -319,6 +329,39 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
         // Verify Main Applicant avatar initial 'M' is displayed for shared trip
         const sharedAvatar = page.locator('tbody tr:has-text("Paris Family Holiday") .v-avatar:has-text("M")');
         await expect(sharedAvatar).toBeVisible();
+      }
+
+      // Now test clearing: Switch back to Main Applicant and clear Spouse
+      await drawerBtn.click();
+      await page.waitForTimeout(400);
+      const mainAppItem = page.locator('.v-navigation-drawer .v-list-item:has-text("Main Applicant")').first();
+      if (await mainAppItem.isVisible()) {
+        await mainAppItem.click();
+        await page.waitForTimeout(500);
+      }
+      await page.goto('/');
+      await page.waitForLoadState('networkidle');
+
+      const actionsBtn2 = page.locator('tbody tr:has-text("Paris Family Holiday") button[title="Actions menu"]').first();
+      if (await actionsBtn2.isVisible()) {
+        await actionsBtn2.click();
+        await page.waitForTimeout(300);
+        const shareMenuItem2 = page.locator('.v-menu .v-list-item:has-text("Shared With"), .v-menu .v-list-item:has-text("同行成員")').first();
+        if (await shareMenuItem2.isVisible()) {
+          await shareMenuItem2.click();
+          await page.waitForTimeout(400);
+
+          const shareDialog2 = page.locator('.v-dialog');
+          const spouseCard2 = shareDialog2.locator('.v-list .v-card:has-text("Spouse")').first();
+          if (await spouseCard2.isVisible()) {
+            await spouseCard2.click(); // Uncheck Spouse
+            await page.waitForTimeout(200);
+          }
+
+          const saveBtn2 = shareDialog2.locator('button:has-text("Save Selection"), button:has-text("確認選擇")').first();
+          await saveBtn2.click();
+          await page.waitForTimeout(500);
+        }
       }
     }
   });

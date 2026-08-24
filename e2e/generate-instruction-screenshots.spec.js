@@ -302,7 +302,7 @@ test.describe('Generate InstructionView Screenshots', () => {
     if (await actionsBtn.isVisible()) {
       await actionsBtn.click()
       await page.waitForTimeout(300)
-      const copyMenuItem = page.locator('.v-menu .v-list-item:has-text("Share with"), .v-menu .v-list-item:has-text("與其他檔案共享"), .v-menu .v-list-item:has-text("Copy to Profile")').first()
+      const copyMenuItem = page.locator('.v-menu .v-list-item:has-text("Shared With"), .v-menu .v-list-item:has-text("同行成員"), .v-menu .v-list-item:has-text("Share with"), .v-menu .v-list-item:has-text("與其他檔案共享"), .v-menu .v-list-item:has-text("Copy to Profile")').first()
       if (await copyMenuItem.isVisible()) {
         await copyMenuItem.click()
         await page.waitForTimeout(500)
@@ -422,7 +422,7 @@ test.describe('Generate InstructionView Screenshots', () => {
     if (await mobileActionsBtn.isVisible()) {
       await mobileActionsBtn.click()
       await page.waitForTimeout(300)
-      const mobileCopyMenuItem = page.locator('.v-menu .v-list-item:has-text("Share with"), .v-menu .v-list-item:has-text("與其他檔案共享"), .v-menu .v-list-item:has-text("Copy to Profile")').first()
+      const mobileCopyMenuItem = page.locator('.v-menu .v-list-item:has-text("Shared With"), .v-menu .v-list-item:has-text("同行成員"), .v-menu .v-list-item:has-text("Share with"), .v-menu .v-list-item:has-text("與其他檔案共享"), .v-menu .v-list-item:has-text("Copy to Profile")').first()
       if (await mobileCopyMenuItem.isVisible()) {
         await mobileCopyMenuItem.click()
         await page.waitForTimeout(500)

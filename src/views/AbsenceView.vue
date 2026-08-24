@@ -682,15 +682,16 @@ export default {
     },
 
     /**
-     * Opens the copy record dialog for the given item.
+     * Opens the shared with dialog for the given item, initializing with current shared profiles.
      * @param {Object} item - Absence record object.
      */
     openCopyDialog(item) {
       if (item.isAutoArrival || item.id === 'auto_uk_arrival_record') return
+      const currentShared = this.getSharedProfiles(item).map((p) => p.id)
       this.copyDialog = {
         show: true,
         record: { ...item },
-        selectedProfileIds: this.otherProfiles.length === 1 ? [this.otherProfiles[0].id] : [],
+        selectedProfileIds: [...currentShared],
       }
     },
 
@@ -719,27 +720,22 @@ export default {
     },
 
     /**
-     * Executes copying the absence record to selected target profiles.
+     * Executes setting and syncing shared companion profiles for the absence record.
      */
     async executeCopyRecord() {
-      if (
-        !this.copyDialog.record ||
-        !this.copyDialog.selectedProfileIds ||
-        this.copyDialog.selectedProfileIds.length === 0
-      ) {
-        this.showSnackbar(this.$t('absence.no_target_profiles_selected'), 'warning')
-        return
-      }
+      if (!this.copyDialog.record) return
 
       const targetIds = [...this.copyDialog.selectedProfileIds]
-      const recordToCopy = this.copyDialog.record
+      const recordToSync = this.copyDialog.record
 
-      const result = await this.profilesStore.copyAbsenceToProfiles(recordToCopy, targetIds)
+      const result = await this.profilesStore.syncSharedAbsenceProfiles(recordToSync, targetIds)
 
       this.copyDialog.show = false
 
       if (result && result.success) {
-        if (targetIds.length === 1) {
+        if (targetIds.length === 0) {
+          this.showSnackbar(this.$t('absence.copy_record_cleared'), 'info')
+        } else if (targetIds.length === 1) {
           const targetMeta = this.otherProfiles.find((p) => p.id === targetIds[0])
           const targetName = targetMeta ? targetMeta.name : ''
           this.showSnackbar(this.$t('absence.copy_record_success', { name: targetName }), 'success')
@@ -750,7 +746,7 @@ export default {
           )
         }
       } else {
-        this.showSnackbar('Failed to copy record to selected profiles.', 'error')
+        this.showSnackbar('Failed to update shared companion profiles.', 'error')
       }
     },
 
@@ -2340,7 +2336,7 @@ export default {
             >
               {{
                 copyDialog.selectedProfileIds.length === otherProfiles.length
-                  ? $t('app.clear_dialog_cancel')
+                  ? $t('absence.clear_all_profiles')
                   : $t('absence.select_all_profiles')
               }}
             </v-btn>
@@ -2395,7 +2391,6 @@ export default {
             color="primary"
             variant="flat"
             prepend-icon="mdi-share-variant-outline"
-            :disabled="copyDialog.selectedProfileIds.length === 0"
             @click="executeCopyRecord"
           >
             {{ $t('absence.copy_action') }}

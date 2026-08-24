@@ -184,6 +184,24 @@ export const useProfilesStore = defineStore('profiles', () => {
   }
 
   /**
+   * Sets the exact list of other profiles that should share an absence record (adding or clearing).
+   *
+   * @param {Object} record - Absence record to share.
+   * @param {string|Array<string>} targetProfileIds - Target profile ID or list of IDs.
+   * @returns {Promise<{ success: boolean, count: number }>}
+   */
+  async function syncSharedAbsenceProfiles(record, targetProfileIds) {
+    try {
+      const result = await profileService.syncSharedAbsenceProfiles(record, targetProfileIds)
+      profilesData.value = await profileService.getProfilesData()
+      return result
+    } catch (e) {
+      console.error('profilesStore.syncSharedAbsenceProfiles error:', e)
+      return { success: false, count: 0 }
+    }
+  }
+
+  /**
    * Copies an absence record to one or more target profiles, preserving its ID and data integrity.
    *
    * @param {Object} record - Absence record to copy.
@@ -191,14 +209,7 @@ export const useProfilesStore = defineStore('profiles', () => {
    * @returns {Promise<{ success: boolean, count: number }>}
    */
   async function copyAbsenceToProfiles(record, targetProfileIds) {
-    try {
-      const result = await profileService.copyAbsenceToProfiles(record, targetProfileIds)
-      profilesData.value = await profileService.getProfilesData()
-      return result
-    } catch (e) {
-      console.error('profilesStore.copyAbsenceToProfiles error:', e)
-      return { success: false, count: 0 }
-    }
+    return syncSharedAbsenceProfiles(record, targetProfileIds)
   }
 
   /**
@@ -209,7 +220,7 @@ export const useProfilesStore = defineStore('profiles', () => {
    * @returns {Promise<{ success: boolean, count: number }>}
    */
   async function copyAbsenceToProfile(record, targetProfileId) {
-    return copyAbsenceToProfiles(record, [targetProfileId])
+    return syncSharedAbsenceProfiles(record, [targetProfileId])
   }
 
   /**
@@ -263,6 +274,7 @@ export const useProfilesStore = defineStore('profiles', () => {
     updateProfile,
     deleteProfile,
     duplicateProfile,
+    syncSharedAbsenceProfiles,
     copyAbsenceToProfiles,
     copyAbsenceToProfile,
     syncUpdatedAbsenceAcrossProfiles,

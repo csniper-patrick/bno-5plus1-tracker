@@ -123,6 +123,19 @@ export default {
     },
 
     /**
+     * List of other profiles that are eligible to share the currently dialog-opened absence record.
+     * @returns {Array}
+     */
+    eligibleShareProfiles() {
+      if (!this.shareDialog?.record || !Array.isArray(this.otherProfiles)) {
+        return []
+      }
+      return this.otherProfiles.filter((p) =>
+        this.isProfileShareable(p.id, this.shareDialog.record),
+      )
+    },
+
+    /**
      * Returns stored absences list sorted according to tableSortBy and tableSortOrder.
      * @returns {Array}
      */
@@ -682,35 +695,85 @@ export default {
     },
 
     /**
+     * Determines if a companion profile is eligible to receive a shared absence record.
+     * Requires the target profile to have a configured Visa Start Date, and the record's
+     * departure date must be on or after that Visa Start Date.
+     *
+     * @param {string} profileId - Target profile ID.
+     * @param {Object} [record] - Optional absence record (defaults to this.shareDialog.record).
+     * @returns {boolean}
+     */
+    isProfileShareable(profileId, record = this.shareDialog?.record) {
+      if (!profileId || !record || !record.startDate) return false
+      const profilePayload = this.profilesStore?.profilesData?.[profileId]
+      const visaStartDate = profilePayload?.visaStartDate || ''
+      if (!visaStartDate) return false
+      if (record.startDate < visaStartDate) return false
+      return true
+    },
+
+    /**
+     * Returns the human-readable explanation why a companion profile is ineligible to share an absence record.
+     *
+     * @param {string} profileId - Target profile ID.
+     * @param {Object} [record] - Optional absence record (defaults to this.shareDialog.record).
+     * @returns {string}
+     */
+    getProfileShareDisabledReason(profileId, record = this.shareDialog?.record) {
+      if (!profileId || !record) return ''
+      const profilePayload = this.profilesStore?.profilesData?.[profileId]
+      const visaStartDate = profilePayload?.visaStartDate || ''
+      if (!visaStartDate) {
+        return this.$t('absence.share_disabled_no_visa_start')
+      }
+      if (record.startDate && record.startDate < visaStartDate) {
+        return this.$t('absence.share_disabled_start_before_visa', { date: visaStartDate })
+      }
+      return ''
+    },
+
+    /**
      * Opens the shared with dialog for the given item, initializing with current shared profiles.
      * @param {Object} item - Absence record object.
      */
     openShareDialog(item) {
       if (item.isAutoArrival || item.id === 'auto_uk_arrival_record') return
       const currentShared = this.getSharedProfiles(item).map((p) => p.id)
+      const record = { ...item }
       this.shareDialog = {
         show: true,
-        record: { ...item },
-        selectedProfileIds: [...currentShared],
+        record,
+        selectedProfileIds: currentShared.filter((id) => this.isProfileShareable(id, record)),
       }
     },
 
     /**
-     * Toggles select-all for other profiles in share dialog.
+     * Toggles select-all for eligible other profiles in share dialog.
      */
     toggleSelectAllProfiles() {
-      if (this.shareDialog.selectedProfileIds.length === this.otherProfiles.length) {
-        this.shareDialog.selectedProfileIds = []
+      const eligibleIds = this.eligibleShareProfiles.map((p) => p.id)
+      if (eligibleIds.length === 0) return
+
+      const allEligibleSelected = eligibleIds.every((id) =>
+        this.shareDialog.selectedProfileIds.includes(id),
+      )
+      if (allEligibleSelected) {
+        this.shareDialog.selectedProfileIds = this.shareDialog.selectedProfileIds.filter(
+          (id) => !eligibleIds.includes(id),
+        )
       } else {
-        this.shareDialog.selectedProfileIds = this.otherProfiles.map((p) => p.id)
+        this.shareDialog.selectedProfileIds = Array.from(
+          new Set([...this.shareDialog.selectedProfileIds, ...eligibleIds]),
+        )
       }
     },
 
     /**
-     * Toggles a single profile selection in share dialog.
+     * Toggles a single profile selection in share dialog if eligible.
      * @param {string} profileId
      */
     toggleProfileSelection(profileId) {
+      if (!this.isProfileShareable(profileId, this.shareDialog?.record)) return
       const idx = this.shareDialog.selectedProfileIds.indexOf(profileId)
       if (idx !== -1) {
         this.shareDialog.selectedProfileIds.splice(idx, 1)
@@ -725,7 +788,9 @@ export default {
     async saveSharedProfiles() {
       if (!this.shareDialog.record) return
 
-      const targetIds = [...this.shareDialog.selectedProfileIds]
+      const targetIds = this.shareDialog.selectedProfileIds.filter((id) =>
+        this.isProfileShareable(id, this.shareDialog.record),
+      )
       const recordToSync = this.shareDialog.record
 
       const result = await this.profilesStore.syncSharedAbsenceProfiles(recordToSync, targetIds)
@@ -2332,10 +2397,12 @@ export default {
               size="x-small"
               color="primary"
               class="font-weight-bold text-none"
+              :disabled="eligibleShareProfiles.length === 0"
               @click="toggleSelectAllProfiles"
             >
               {{
-                shareDialog.selectedProfileIds.length === otherProfiles.length
+                eligibleShareProfiles.length > 0 &&
+                eligibleShareProfiles.every((p) => shareDialog.selectedProfileIds.includes(p.id))
                   ? $t('absence.clear_all_profiles')
                   : $t('absence.select_all_profiles')
               }}
@@ -2348,17 +2415,21 @@ export default {
               v-for="profile in otherProfiles"
               :key="profile.id"
               variant="outlined"
-              class="mb-2 pa-2 border-secondary-lighten cursor-pointer"
+              class="mb-2 pa-2 border-secondary-lighten"
               :class="{
-                'bg-primary-lighten-5 border-primary': shareDialog.selectedProfileIds.includes(
-                  profile.id,
-                ),
+                'cursor-pointer': isProfileShareable(profile.id),
+                'cursor-not-allowed bg-surface-variant': !isProfileShareable(profile.id),
+                'bg-primary-lighten-5 border-primary':
+                  isProfileShareable(profile.id) &&
+                  shareDialog.selectedProfileIds.includes(profile.id),
               }"
+              :ripple="isProfileShareable(profile.id)"
               @click="toggleProfileSelection(profile.id)"
             >
               <div class="d-flex align-center">
                 <v-checkbox-btn
                   :model-value="shareDialog.selectedProfileIds.includes(profile.id)"
+                  :disabled="!isProfileShareable(profile.id)"
                   density="compact"
                   color="primary"
                   class="mr-2"
@@ -2368,7 +2439,7 @@ export default {
                 <v-avatar
                   size="32"
                   :color="profile.avatarColor || '#1976D2'"
-                  class="text-white font-weight-bold mr-3"
+                  class="text-white font-weight-bold mr-3 flex-shrink-0"
                 >
                   {{ (profile.name || 'P').charAt(0).toUpperCase() }}
                 </v-avatar>
@@ -2376,6 +2447,25 @@ export default {
                 <div class="flex-grow-1 min-w-0">
                   <div class="font-weight-bold text-subtitle-2 text-truncate">
                     {{ profile.name }}
+                  </div>
+                  <div
+                    v-if="!isProfileShareable(profile.id)"
+                    class="text-caption text-warning d-flex align-center ga-1 mt-1 text-wrap font-weight-medium"
+                  >
+                    <v-icon
+                      icon="mdi-alert-circle-outline"
+                      color="warning"
+                      size="14"
+                      class="flex-shrink-0"
+                    ></v-icon>
+                    <span>{{ getProfileShareDisabledReason(profile.id) }}</span>
+                  </div>
+                  <div
+                    v-else-if="profilesStore.profilesData?.[profile.id]?.visaStartDate"
+                    class="text-caption text-medium-emphasis mt-0"
+                  >
+                    {{ $t('absence.visa_start') }}:
+                    {{ profilesStore.profilesData[profile.id].visaStartDate }}
                   </div>
                 </div>
               </div>

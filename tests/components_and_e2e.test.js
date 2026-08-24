@@ -359,3 +359,99 @@ describe('End-to-End User Flow 2: Document Vault, Address Log & Backup Restores'
     assert.strictEqual(fullRecord.data.byteLength, fileBuffer.length)
   })
 })
+
+describe('Companion Profile Share Eligibility Validation', () => {
+  function isProfileShareable(profileId, record, profilesData) {
+    if (!profileId || !record || !record.startDate) return false
+    const profilePayload = profilesData?.[profileId]
+    const visaStartDate = profilePayload?.visaStartDate || ''
+    if (!visaStartDate) return false
+    if (record.startDate < visaStartDate) return false
+    return true
+  }
+
+  function getProfileShareDisabledReason(profileId, record, profilesData) {
+    if (!profileId || !record) return ''
+    const profilePayload = profilesData?.[profileId]
+    const visaStartDate = profilePayload?.visaStartDate || ''
+    if (!visaStartDate) {
+      return 'Visa start date not set'
+    }
+    if (record.startDate && record.startDate < visaStartDate) {
+      return `Before visa start (${visaStartDate})`
+    }
+    return ''
+  }
+
+  const mockProfilesData = {
+    profile_no_visa: {
+      visaStartDate: '',
+      absences: [],
+    },
+    profile_late_visa: {
+      visaStartDate: '2023-01-01',
+      absences: [],
+    },
+    profile_early_visa: {
+      visaStartDate: '2021-06-01',
+      absences: [],
+    },
+  }
+
+  const mockRecord = {
+    id: 'trip_1',
+    startDate: '2022-05-10',
+    endDate: '2022-05-20',
+  }
+
+  it('should mark profile without visa start date as ineligible with correct reason', () => {
+    const eligible = isProfileShareable('profile_no_visa', mockRecord, mockProfilesData)
+    assert.strictEqual(eligible, false)
+
+    const reason = getProfileShareDisabledReason('profile_no_visa', mockRecord, mockProfilesData)
+    assert.strictEqual(reason, 'Visa start date not set')
+  })
+
+  it('should mark profile with later visa start date as ineligible with correct reason', () => {
+    const eligible = isProfileShareable('profile_late_visa', mockRecord, mockProfilesData)
+    assert.strictEqual(eligible, false)
+
+    const reason = getProfileShareDisabledReason('profile_late_visa', mockRecord, mockProfilesData)
+    assert.strictEqual(
+      reason,
+      'Before visa start (2023-01-01)',
+    )
+  })
+
+  it('should mark profile with earlier or equal visa start date as eligible with no disabled reason', () => {
+    const eligible = isProfileShareable('profile_early_visa', mockRecord, mockProfilesData)
+    assert.strictEqual(eligible, true)
+
+    const reason = getProfileShareDisabledReason('profile_early_visa', mockRecord, mockProfilesData)
+    assert.strictEqual(reason, '')
+  })
+
+  it('should handle select-all toggling respecting only eligible profiles', () => {
+    const otherProfiles = [
+      { id: 'profile_no_visa' },
+      { id: 'profile_late_visa' },
+      { id: 'profile_early_visa' },
+    ]
+
+    const eligibleIds = otherProfiles
+      .map((p) => p.id)
+      .filter((id) => isProfileShareable(id, mockRecord, mockProfilesData))
+
+    assert.deepStrictEqual(eligibleIds, ['profile_early_visa'])
+
+    let selectedIds = []
+
+    // Select all eligible
+    selectedIds = Array.from(new Set([...selectedIds, ...eligibleIds]))
+    assert.deepStrictEqual(selectedIds, ['profile_early_visa'])
+
+    // Deselect all eligible
+    selectedIds = selectedIds.filter((id) => !eligibleIds.includes(id))
+    assert.deepStrictEqual(selectedIds, [])
+  })
+})

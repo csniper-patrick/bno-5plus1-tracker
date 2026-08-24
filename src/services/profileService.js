@@ -344,6 +344,7 @@ export async function syncSharedAbsenceProfiles(record, targetProfileIds) {
     createdAt: record.createdAt || new Date().toISOString(),
   }
 
+  let syncedCount = 0
   for (const profile of metaList) {
     if (profile.id === currentActiveId) continue
 
@@ -360,7 +361,10 @@ export async function syncSharedAbsenceProfiles(record, targetProfileIds) {
       targetPayload.absences = []
     }
 
-    if (selectedSet.has(profileId)) {
+    const vStart = targetPayload.visaStartDate || ''
+    const isEligible = Boolean(vStart) && (!record.startDate || record.startDate >= vStart)
+
+    if (selectedSet.has(profileId) && isEligible) {
       // Add or update record in selected profile
       const existingIdx = targetPayload.absences.findIndex((a) => a.id === clonedRecord.id)
       if (existingIdx !== -1) {
@@ -377,8 +381,9 @@ export async function syncSharedAbsenceProfiles(record, targetProfileIds) {
         if (startDiff !== 0) return startDiff
         return (a.endDate || '').localeCompare(b.endDate || '')
       })
+      syncedCount++
     } else {
-      // Remove record from unselected profile if present
+      // Remove record from unselected or ineligible profile if present
       targetPayload.absences = targetPayload.absences.filter((a) => a.id !== record.id)
     }
 
@@ -386,7 +391,7 @@ export async function syncSharedAbsenceProfiles(record, targetProfileIds) {
   }
 
   await dbService.setItem(PROFILES_DATA_KEY, profilesData)
-  return { success: true, count: validIds.length }
+  return { success: true, count: syncedCount }
 }
 
 /**

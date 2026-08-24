@@ -230,6 +230,21 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
       await page.waitForTimeout(600);
     }
 
+    // Configure Key Dates on active Spouse profile so it has a valid visa start date
+    await page.evaluate(async () => {
+      const appEl = document.querySelector('#app');
+      if (appEl?._vnode?.component?.proxy?.$pinia) {
+        const absentsStore = appEl._vnode.component.proxy.$pinia._s.get('absents');
+        if (absentsStore) {
+          absentsStore.setVisaAndArrivalDates({
+            visaStartDate: '2021-06-01',
+            visaExpiryDate: '2026-06-01',
+            ukArrivalDate: '2021-06-15',
+          });
+        }
+      }
+    });
+
     // Expand Profile Switcher section if collapsed
     const expandDown2 = page.locator('.v-navigation-drawer button:has(.mdi-chevron-down)').first();
     if (await expandDown2.isVisible()) {

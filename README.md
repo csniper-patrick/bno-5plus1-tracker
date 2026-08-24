@@ -53,6 +53,7 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 - **👥 Multi-Profile Management & Absence Sharing / Companion Sync**
   - Track multiple family members (e.g. Main Applicant, Spouse, Dependants) with independent key visa dates, travel records, continuous residence checklists, and document vaults in isolated profile environments.
   - **Shared Absence Journeys ("Shared With" / 「同行成員」)**: Conveniently share travel records across profiles using the "Shared With..." dialog with individual selection and select-all/clear capabilities.
+  - **Visa Start Date Eligibility Validation**: Automatically checks companion profiles' configured Visa Start Dates against absence departure dates, disabling ineligible profiles with high-contrast amber warnings (`Before visa start` / `Visa start date not set`) to prevent invalid cross-profile entries.
   - **Real-Time Cross-Profile Synchronization**: Edits made to a shared trip (dates, destinations, stops) automatically sync across all companion profiles sharing that record ID.
   - **Companion Avatar Chips & Dynamic Visibility**: The expanded table view displays profile avatar chips with initial letters and distinct colors for family members sharing each journey. The column automatically hides when only a single profile exists.
 - **🧭 Right Navigation Drawer & Consolidated Data Management**
@@ -178,6 +179,7 @@ bno-5plus1-tracker/
 │   └── main.js            # Vue app entrypoint with i18n plugin initialization
 ├── tests/                 # Automated unit test suite
 │   ├── tracker.test.js            # Core absence store, segment tree & backup unit tests
+│   ├── profiles.test.js           # Multi-profile isolation, swapping & companion sync tests
 │   ├── components_and_e2e.test.js # E2E user flows & binary file upload integration tests
 │   ├── indexeddb_emulation.test.js# IndexedDB app_state & files object store tests
 │   └── validation.test.js         # Strict YAML schema validation & date utility edge case tests
@@ -195,7 +197,7 @@ bno-5plus1-tracker/
 - **[date.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/date.js)**: Centralized UTC date parsing (`parseDateUTC`), formatting (`formatDateUTC`, `formatDisplayDate`), normalization (`normalizeDate`), day arithmetic (`calculateDays`, `getOneDayBefore`), and tree boundary calculations (`getMaxSegmentTreeReturnDate`).
 - **[dbService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/dbService.js)**: Database service managing IndexedDB open/upgrade transactions, supporting `app_state` (key-value) and `files` (file blobs with `folderId` index) object stores under DB Schema Version 2.
 - **[fileStorageService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/fileStorageService.js)**: Dedicated IndexedDB binary blob service handling file record persistence, on-demand blob retrieval, size formatting, object URL creation, and metadata queries.
-- **[profileService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/profileService.js)** & **[useProfilesStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/profiles.js)**: Multi-profile management engine supporting isolated tracking for multiple family members, active profile switching, data swapping, duplication, renaming, cross-profile absence journey sharing (`syncSharedAbsenceProfiles`), two-way real-time edit synchronization (`syncUpdatedAbsenceAcrossProfiles`), and companion lookup (`getProfilesSharingAbsence`).
+- **[profileService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/profileService.js)** & **[useProfilesStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/profiles.js)**: Multi-profile management engine supporting isolated tracking for multiple family members, active profile switching, data swapping, duplication, renaming, cross-profile absence journey sharing with visa start date eligibility validation (`syncSharedAbsenceProfiles`), two-way real-time edit synchronization (`syncUpdatedAbsenceAcrossProfiles`), and companion lookup (`getProfilesSharingAbsence`).
 - **[schemaValidationService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/schemaValidationService.js)**: Strict schema validation engine enforcing YAML backup structure and ZIP manifest integrity (`backup.yaml` and `files-manifest.yaml`).
 - **[backupService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/backupService.js)**: Consolidated YAML backup service for structured data exports/imports with node-level comments.
 - **[zipService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/zipService.js)**: ZIP archiving engine using `jszip` and `yaml` serialization to package `backup.yaml`, `files-manifest.yaml`, and document file blobs into `.zip` archives.

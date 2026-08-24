@@ -139,6 +139,7 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
 
     // Create a 2nd profile (Spouse)
     const spouseMeta = await profileService.createProfile('Spouse')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
 
     // Switch back to Main Applicant
     await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
@@ -183,7 +184,9 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
     await profileService.initProfiles()
 
     const spouseMeta = await profileService.createProfile('Spouse')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
     const childMeta = await profileService.createProfile('Child')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
 
     // Switch back to Main Applicant
     await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
@@ -231,7 +234,9 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
 
     // 1. Create family member profiles
     const spouse = await profileService.createProfile('Spouse', '#E91E63')
+    await dbService.setItem('bno_visa_start_date', '2021-06-01')
     const child1 = await profileService.createProfile('Child 1 (Teen)', '#4CAF50')
+    await dbService.setItem('bno_visa_start_date', '2021-06-01')
     const child2 = await profileService.createProfile('Child 2 (Infant)', '#FF9800')
 
     const metaList = await dbService.getItem(profileService.PROFILES_META_KEY)
@@ -345,8 +350,11 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
 
     // 1. Create multiple profiles: Spouse, Child 1, Child 2
     const spouse = await profileService.createProfile('Spouse')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
     const child1 = await profileService.createProfile('Child 1')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
     const child2 = await profileService.createProfile('Child 2')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
 
     // Switch back to Main Applicant
     await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
@@ -448,6 +456,7 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
 
     // Create Spouse profile
     const spouse = await profileService.createProfile('Spouse')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
 
     // Switch back to Main Applicant
     await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
@@ -488,8 +497,11 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
     await profileService.initProfiles()
 
     const spouse = await profileService.createProfile('Spouse', '#E91E63')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
     const child1 = await profileService.createProfile('Child 1', '#4CAF50')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
     const child2 = await profileService.createProfile('Child 2', '#FF9800')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
 
     // Switch back to Main Applicant
     await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
@@ -534,7 +546,9 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
     await profileService.initProfiles()
 
     const spouse = await profileService.createProfile('Spouse', '#E91E63')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
     const child = await profileService.createProfile('Child', '#4CAF50')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
 
     await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
 
@@ -589,6 +603,48 @@ describe('Multi-Profile Management & Data Swapping Service', () => {
 
     await profilesStore.syncSharedAbsenceProfiles(trip, [])
     assert.strictEqual(profilesStore.getProfilesSharingAbsence('trip_sync_clear_test').length, 0)
+  })
+
+  it('syncSharedAbsenceProfiles rejects sharing when target profile has no visa start date or starts after absence', async () => {
+    await profileService.initProfiles()
+
+    // Profile 1: Spouse with NO visa start date
+    const spouseNoVisa = await profileService.createProfile('Spouse No Visa')
+
+    // Profile 2: Child with visa start date later than the trip (2023-01-01)
+    const childLateVisa = await profileService.createProfile('Child Late Visa')
+    await dbService.setItem('bno_visa_start_date', '2023-01-01')
+
+    // Profile 3: Parent with visa start date earlier than the trip (2021-01-01)
+    const parentEarlyVisa = await profileService.createProfile('Parent Early Visa')
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
+
+    // Switch back to Main Applicant (visa start 2021-01-01)
+    await profileService.switchProfile(profileService.DEFAULT_PROFILE_ID)
+    await dbService.setItem('bno_visa_start_date', '2021-01-01')
+
+    // Early absence record (departed 2022-05-01)
+    const earlyTrip = {
+      id: 'early_trip_2022',
+      startDate: '2022-05-01',
+      endDate: '2022-05-15',
+      dest: 'Japan',
+    }
+
+    // Try sharing with all 3 profiles: only Parent Early Visa should be accepted
+    const res = await profileService.syncSharedAbsenceProfiles(earlyTrip, [
+      spouseNoVisa.id,
+      childLateVisa.id,
+      parentEarlyVisa.id,
+    ])
+
+    assert.strictEqual(res.success, true)
+    assert.strictEqual(res.count, 1) // Only Parent Early Visa succeeded
+
+    const data = await profileService.getProfilesData()
+    assert.strictEqual(data[spouseNoVisa.id].absences.some((a) => a.id === 'early_trip_2022'), false)
+    assert.strictEqual(data[childLateVisa.id].absences.some((a) => a.id === 'early_trip_2022'), false)
+    assert.strictEqual(data[parentEarlyVisa.id].absences.some((a) => a.id === 'early_trip_2022'), true)
   })
 })
 

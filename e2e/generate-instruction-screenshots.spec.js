@@ -165,7 +165,22 @@ test.describe('Generate InstructionView Screenshots', () => {
           await profilesStore.initStore()
           if (profilesStore.profilesList.length <= 1) {
             await profilesStore.createProfile('Spouse', '#E91E63')
+            const absentsStore = pinia._s.get('absents')
+            if (absentsStore) {
+              absentsStore.setVisaAndArrivalDates({
+                visaStartDate: '2021-06-01',
+                visaExpiryDate: '2026-06-01',
+                ukArrivalDate: '2021-06-15'
+              })
+            }
             await profilesStore.createProfile('Child (Teen)', '#4CAF50')
+            if (absentsStore) {
+              absentsStore.setVisaAndArrivalDates({
+                visaStartDate: '2021-06-01',
+                visaExpiryDate: '2026-06-01',
+                ukArrivalDate: '2021-06-15'
+              })
+            }
             await profilesStore.switchProfile('profile_default')
           }
         }

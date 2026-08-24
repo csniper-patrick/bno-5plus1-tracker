@@ -338,9 +338,9 @@ export async function syncSharedAbsenceProfiles(record, targetProfileIds) {
       Array.isArray(record.stops) && record.stops.length >= 2
         ? record.stops.map((s) => ({ date: s.date || '', dest: s.dest || '' }))
         : [
-          { date: record.startDate, dest: record.dest || '' },
-          { date: record.endDate, dest: '' },
-        ],
+            { date: record.startDate, dest: record.dest || '' },
+            { date: record.endDate, dest: '' },
+          ],
     createdAt: record.createdAt || new Date().toISOString(),
   }
 
@@ -449,9 +449,9 @@ export async function syncUpdatedAbsenceAcrossProfiles(updatedRecord) {
       Array.isArray(updatedRecord.stops) && updatedRecord.stops.length >= 2
         ? updatedRecord.stops.map((s) => ({ date: s.date || '', dest: s.dest || '' }))
         : [
-          { date: updatedRecord.startDate, dest: updatedRecord.dest || '' },
-          { date: updatedRecord.endDate, dest: '' },
-        ],
+            { date: updatedRecord.startDate, dest: updatedRecord.dest || '' },
+            { date: updatedRecord.endDate, dest: '' },
+          ],
   }
 
   for (const profileId of Object.keys(profilesData)) {

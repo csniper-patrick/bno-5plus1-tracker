@@ -146,9 +146,25 @@ bno-5plus1-tracker/
 ├── src/
 │   ├── assets/            # Global styles (main.css)
 │   ├── components/        # UI components
-│   │   ├── ProfileDrawerSection.vue      # Side drawer multi-profile selector & management
-│   │   ├── ProfileManagementDialog.vue   # Modal dialog for managing applicant profiles
-│   │   └── ReloadPrompt.vue              # PWA service worker update notification prompt
+│   │   ├── absence/       # Modular Absence Tracker subcomponents
+│   │   │   ├── AbsenceFormCard.vue           # Multi-stop graph timeline flow editor
+│   │   │   ├── AbsenceOverviewHeader.vue     # Title card & BNO Visa overview header
+│   │   │   ├── AbsenceRecordsTable.vue       # Absence list with full/compact timeline modes
+│   │   │   ├── AbsenceRuleStatusCards.vue    # ILR rolling 180-day & Citizenship 450/90-day status cards
+│   │   │   ├── AbsenceShareDialog.vue        # Companion profile journey sharing modal
+│   │   │   ├── DateRangeQueryCard.vue        # Segment Tree custom range query tool
+│   │   │   └── KeyDatesDialog.vue            # Key Visa start, expiry, arrival & ILR dates modal
+│   │   ├── document/      # Modular Document Readiness subcomponents
+│   │   │   ├── AddressHistorySection.vue     # UK address history table & add/edit/delete modals
+│   │   │   ├── DocumentHeaderCard.vue        # Readiness circular chart & requirement summaries
+│   │   │   ├── DocumentVaultSection.vue      # Document vault with dropzone, table & file modals
+│   │   │   ├── EnglishLanguageCard.vue       # English B1 requirement pathway, provider & status
+│   │   │   ├── LifeInUkCard.vue              # Life in the UK test status, date & URN
+│   │   │   ├── NationalInsuranceCard.vue     # NIN status toggle & auto-formatting input
+│   │   │   └── ResidenceChecklistSection.vue # 5-Year continuous residence accordion & custom items
+│   │   ├── ProfileDrawerSection.vue          # Side drawer multi-profile selector & management
+│   │   ├── ProfileManagementDialog.vue       # Modal dialog for managing applicant profiles
+│   │   └── ReloadPrompt.vue                  # PWA service worker update notification prompt
 │   ├── locales/           # i18n translation dictionaries
 │   │   ├── en.js          # English localization dictionary
 │   │   └── zh-HK.js       # Traditional Chinese (HK) localization dictionary
@@ -171,8 +187,8 @@ bno-5plus1-tracker/
 │   │   ├── format.js      # Text formatting helper utilities
 │   │   └── id.js          # Unique ID generator utility
 │   ├── views/             # Application views
-│   │   ├── AbsenceView.vue     # Absence tracker dashboard
-│   │   ├── DocumentView.vue    # Qualifications, Document Vault & Residence proof checklist
+│   │   ├── AbsenceView.vue     # Absence tracker dashboard (orchestrates absence/ subcomponents)
+│   │   ├── DocumentView.vue    # Qualifications & Document Vault (orchestrates document/ subcomponents)
 │   │   ├── ReferenceView.vue   # Useful links & official guidance page
 │   │   └── InstructionView.vue # User guide & operation manual with responsive screenshots
 │   ├── App.vue            # Root layout with right navigation drawer & language switcher

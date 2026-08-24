@@ -55,8 +55,8 @@ export default {
         dest: '',
       },
 
-      /** Copy record to other profiles dialog state */
-      copyDialog: {
+      /** Shared companion profiles dialog state */
+      shareDialog: {
         show: false,
         record: null,
         selectedProfileIds: [],
@@ -685,10 +685,10 @@ export default {
      * Opens the shared with dialog for the given item, initializing with current shared profiles.
      * @param {Object} item - Absence record object.
      */
-    openCopyDialog(item) {
+    openShareDialog(item) {
       if (item.isAutoArrival || item.id === 'auto_uk_arrival_record') return
       const currentShared = this.getSharedProfiles(item).map((p) => p.id)
-      this.copyDialog = {
+      this.shareDialog = {
         show: true,
         record: { ...item },
         selectedProfileIds: [...currentShared],
@@ -696,41 +696,41 @@ export default {
     },
 
     /**
-     * Toggles select-all for other profiles in copy dialog.
+     * Toggles select-all for other profiles in share dialog.
      */
     toggleSelectAllProfiles() {
-      if (this.copyDialog.selectedProfileIds.length === this.otherProfiles.length) {
-        this.copyDialog.selectedProfileIds = []
+      if (this.shareDialog.selectedProfileIds.length === this.otherProfiles.length) {
+        this.shareDialog.selectedProfileIds = []
       } else {
-        this.copyDialog.selectedProfileIds = this.otherProfiles.map((p) => p.id)
+        this.shareDialog.selectedProfileIds = this.otherProfiles.map((p) => p.id)
       }
     },
 
     /**
-     * Toggles a single profile selection in copy dialog.
+     * Toggles a single profile selection in share dialog.
      * @param {string} profileId
      */
     toggleProfileSelection(profileId) {
-      const idx = this.copyDialog.selectedProfileIds.indexOf(profileId)
+      const idx = this.shareDialog.selectedProfileIds.indexOf(profileId)
       if (idx !== -1) {
-        this.copyDialog.selectedProfileIds.splice(idx, 1)
+        this.shareDialog.selectedProfileIds.splice(idx, 1)
       } else {
-        this.copyDialog.selectedProfileIds.push(profileId)
+        this.shareDialog.selectedProfileIds.push(profileId)
       }
     },
 
     /**
      * Executes setting and syncing shared companion profiles for the absence record.
      */
-    async executeCopyRecord() {
-      if (!this.copyDialog.record) return
+    async saveSharedProfiles() {
+      if (!this.shareDialog.record) return
 
-      const targetIds = [...this.copyDialog.selectedProfileIds]
-      const recordToSync = this.copyDialog.record
+      const targetIds = [...this.shareDialog.selectedProfileIds]
+      const recordToSync = this.shareDialog.record
 
       const result = await this.profilesStore.syncSharedAbsenceProfiles(recordToSync, targetIds)
 
-      this.copyDialog.show = false
+      this.shareDialog.show = false
 
       if (result && result.success) {
         if (targetIds.length === 0) {
@@ -2208,7 +2208,7 @@ export default {
                             v-if="hasMultipleProfiles"
                             prepend-icon="mdi-share-variant-outline"
                             :title="$t('absence.copy_to_profile')"
-                            @click="openCopyDialog(item)"
+                            @click="openShareDialog(item)"
                           ></v-list-item>
                           <v-list-item
                             prepend-icon="mdi-delete-outline"
@@ -2285,8 +2285,8 @@ export default {
       </v-card>
     </v-dialog>
 
-    <!-- Copy Record to Other Profiles Dialog -->
-    <v-dialog v-model="copyDialog.show" max-width="500px">
+    <!-- Share Record with Other Profiles Dialog -->
+    <v-dialog v-model="shareDialog.show" max-width="500px">
       <v-card elevation="2" class="rounded-lg pa-3" color="surface">
         <v-card-title class="px-0 pt-0 font-weight-bold text-h6 d-flex align-center ga-2">
           <v-icon icon="mdi-share-variant-outline" color="primary"></v-icon>
@@ -2296,7 +2296,7 @@ export default {
         <v-card-text class="px-0 py-2">
           <!-- Record Summary Preview Card -->
           <v-card
-            v-if="copyDialog.record"
+            v-if="shareDialog.record"
             variant="tonal"
             color="primary"
             class="pa-3 rounded-lg mb-3"
@@ -2304,19 +2304,19 @@ export default {
             <div class="d-flex align-center justify-space-between mb-1">
               <span class="text-caption font-weight-bold">
                 <v-icon icon="mdi-airplane-takeoff" size="small" class="mr-1"></v-icon>
-                {{ formatDate(copyDialog.record.startDate) }}
+                {{ formatDate(shareDialog.record.startDate) }}
                 ➔
                 <v-icon icon="mdi-airplane-landing" size="small" class="mx-1"></v-icon>
-                {{ formatDate(copyDialog.record.endDate) }}
+                {{ formatDate(shareDialog.record.endDate) }}
               </span>
               <v-chip size="x-small" color="primary" variant="flat" class="font-weight-bold">
-                {{ calculateDays(copyDialog.record.startDate, copyDialog.record.endDate) }}
+                {{ calculateDays(shareDialog.record.startDate, shareDialog.record.endDate) }}
                 {{ $t('absence.full_days') }}
               </v-chip>
             </div>
             <div class="text-caption text-medium-emphasis text-truncate">
               <v-icon icon="mdi-map-marker-outline" size="12" class="mr-1"></v-icon>
-              {{ copyDialog.record.dest || $t('absence.unspecified') }}
+              {{ shareDialog.record.dest || $t('absence.unspecified') }}
             </div>
           </v-card>
 
@@ -2335,7 +2335,7 @@ export default {
               @click="toggleSelectAllProfiles"
             >
               {{
-                copyDialog.selectedProfileIds.length === otherProfiles.length
+                shareDialog.selectedProfileIds.length === otherProfiles.length
                   ? $t('absence.clear_all_profiles')
                   : $t('absence.select_all_profiles')
               }}
@@ -2350,7 +2350,7 @@ export default {
               variant="outlined"
               class="mb-2 pa-2 border-secondary-lighten cursor-pointer"
               :class="{
-                'bg-primary-lighten-5 border-primary': copyDialog.selectedProfileIds.includes(
+                'bg-primary-lighten-5 border-primary': shareDialog.selectedProfileIds.includes(
                   profile.id,
                 ),
               }"
@@ -2358,7 +2358,7 @@ export default {
             >
               <div class="d-flex align-center">
                 <v-checkbox-btn
-                  :model-value="copyDialog.selectedProfileIds.includes(profile.id)"
+                  :model-value="shareDialog.selectedProfileIds.includes(profile.id)"
                   density="compact"
                   color="primary"
                   class="mr-2"
@@ -2384,14 +2384,14 @@ export default {
         </v-card-text>
 
         <v-card-actions class="px-0 pb-0 justify-end ga-2">
-          <v-btn variant="text" @click="copyDialog.show = false">
+          <v-btn variant="text" @click="shareDialog.show = false">
             {{ $t('absence.cancel') }}
           </v-btn>
           <v-btn
             color="primary"
             variant="flat"
             prepend-icon="mdi-share-variant-outline"
-            @click="executeCopyRecord"
+            @click="saveSharedProfiles"
           >
             {{ $t('absence.copy_action') }}
           </v-btn>

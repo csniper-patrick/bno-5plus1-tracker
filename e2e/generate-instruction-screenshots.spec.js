@@ -295,26 +295,26 @@ test.describe('Generate InstructionView Screenshots', () => {
       await page.waitForTimeout(400)
     }
 
-    // 8. step5_copy_to_profile.png (Demo copying record to another profile)
+    // 8. step5_copy_to_profile.png (Demo sharing record with another profile)
     await page.goto('/')
     await page.waitForTimeout(400)
     const actionsBtn = page.locator('tbody tr button[title="Actions menu"]').first()
     if (await actionsBtn.isVisible()) {
       await actionsBtn.click()
       await page.waitForTimeout(300)
-      const copyMenuItem = page.locator('.v-menu .v-list-item:has-text("Shared With"), .v-menu .v-list-item:has-text("同行成員"), .v-menu .v-list-item:has-text("Share with"), .v-menu .v-list-item:has-text("與其他檔案共享"), .v-menu .v-list-item:has-text("Copy to Profile")').first()
-      if (await copyMenuItem.isVisible()) {
-        await copyMenuItem.click()
+      const shareMenuItem = page.locator('.v-menu .v-list-item:has-text("Shared With"), .v-menu .v-list-item:has-text("同行成員"), .v-menu .v-list-item:has-text("Share with"), .v-menu .v-list-item:has-text("與其他檔案共享"), .v-menu .v-list-item:has-text("Copy to Profile")').first()
+      if (await shareMenuItem.isVisible()) {
+        await shareMenuItem.click()
         await page.waitForTimeout(500)
-        const copyDialog = page.locator('.v-dialog').first()
-        if (await copyDialog.isVisible()) {
+        const shareDialog = page.locator('.v-dialog').first()
+        if (await shareDialog.isVisible()) {
           // Select target profiles
-          const profileCards = copyDialog.locator('.v-list .v-card')
+          const profileCards = shareDialog.locator('.v-list .v-card')
           if (await profileCards.count() > 0) {
             await profileCards.nth(0).click()
             await page.waitForTimeout(200)
           }
-          await copyDialog.screenshot({ path: path.join(outputDir, 'step5_copy_to_profile.png') })
+          await shareDialog.screenshot({ path: path.join(outputDir, 'step5_copy_to_profile.png') })
         }
         await page.keyboard.press('Escape')
         await page.waitForTimeout(300)
@@ -415,26 +415,26 @@ test.describe('Generate InstructionView Screenshots', () => {
       await page.waitForTimeout(400)
     }
 
-    // 8. narrow_step5_copy_to_profile.png (Demo copying record to another profile on mobile)
+    // 8. narrow_step5_copy_to_profile.png (Demo sharing record with another profile on mobile)
     await page.goto('/')
     await page.waitForTimeout(400)
     const mobileActionsBtn = page.locator('tbody tr button[title="Actions menu"]').first()
     if (await mobileActionsBtn.isVisible()) {
       await mobileActionsBtn.click()
       await page.waitForTimeout(300)
-      const mobileCopyMenuItem = page.locator('.v-menu .v-list-item:has-text("Shared With"), .v-menu .v-list-item:has-text("同行成員"), .v-menu .v-list-item:has-text("Share with"), .v-menu .v-list-item:has-text("與其他檔案共享"), .v-menu .v-list-item:has-text("Copy to Profile")').first()
-      if (await mobileCopyMenuItem.isVisible()) {
-        await mobileCopyMenuItem.click()
+      const mobileShareMenuItem = page.locator('.v-menu .v-list-item:has-text("Shared With"), .v-menu .v-list-item:has-text("同行成員"), .v-menu .v-list-item:has-text("Share with"), .v-menu .v-list-item:has-text("與其他檔案共享"), .v-menu .v-list-item:has-text("Copy to Profile")').first()
+      if (await mobileShareMenuItem.isVisible()) {
+        await mobileShareMenuItem.click()
         await page.waitForTimeout(500)
-        const copyDialog = page.locator('.v-dialog').first()
-        if (await copyDialog.isVisible()) {
+        const shareDialog = page.locator('.v-dialog').first()
+        if (await shareDialog.isVisible()) {
           // Select target profiles
-          const profileCards = copyDialog.locator('.v-list .v-card')
+          const profileCards = shareDialog.locator('.v-list .v-card')
           if (await profileCards.count() > 0) {
             await profileCards.nth(0).click()
             await page.waitForTimeout(200)
           }
-          await copyDialog.screenshot({ path: path.join(outputDir, 'narrow_step5_copy_to_profile.png') })
+          await shareDialog.screenshot({ path: path.join(outputDir, 'narrow_step5_copy_to_profile.png') })
         }
         await page.keyboard.press('Escape')
         await page.waitForTimeout(300)

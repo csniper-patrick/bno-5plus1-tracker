@@ -104,7 +104,11 @@ export default {
       const nextLocale = this.$i18n.locale === 'en' ? 'zh-HK' : 'en'
       this.$i18n.locale = nextLocale
       if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem('bno_tracker_locale', nextLocale)
+        try {
+          window.localStorage.setItem('bno_tracker_locale', nextLocale)
+        } catch (e) {
+          console.warn('Failed to persist locale preference:', e)
+        }
       }
     },
 

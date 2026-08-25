@@ -170,18 +170,18 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
     // Verify text updated to Traditional Chinese
     await expect(page.locator('header')).toContainText('BNO 5+1 追蹤工具');
 
+    // Verify localStorage preference saved as 'zh-HK'
+    const savedLocale = await page.evaluate(() => localStorage.getItem('bno_tracker_locale'));
+    expect(savedLocale).toBe('zh-HK');
+
     // Toggle Language back to English
     await langBtn.click();
     await page.waitForTimeout(400);
 
-    // Verify header restored to English & explicitly reset locale
+    // Verify header restored to English & preference saved as 'en'
     await expect(page.locator('header')).toContainText('BNO 5+1 Tracker');
-    await page.evaluate(() => {
-      localStorage.setItem('bno_tracker_locale', 'en');
-      if (window.__i18n__) {
-        window.__i18n__.global.locale.value = 'en';
-      }
-    });
+    const restoredLocale = await page.evaluate(() => localStorage.getItem('bno_tracker_locale'));
+    expect(restoredLocale).toBe('en');
 
     // Toggle Theme (Light <-> Dark)
     const themeBtn = page.locator('header button:has(.mdi-weather-sunny), header button:has(.mdi-weather-night)').first();
@@ -189,6 +189,57 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
       await themeBtn.click();
       await page.waitForTimeout(300);
     }
+  });
+
+  test('9. Chinese Browser Locale Auto-Detection', async ({ browser }) => {
+    // Create an isolated browser context with Chinese locale and no existing localStorage
+    const context = await browser.newContext({
+      locale: 'zh-HK',
+    });
+    const page = await context.newPage();
+    await page.goto('/');
+    await page.waitForTimeout(400);
+
+    // Verify app auto-detected Chinese locale from browser
+    await expect(page.locator('header')).toContainText('BNO 5+1 追蹤工具');
+    await context.close();
+  });
+
+  test('10. Language Switcher Persistence Across Page Reloads', async ({ browser }) => {
+    // Create an isolated browser context without any addInitScript overrides
+    const context = await browser.newContext({
+      locale: 'en-GB',
+    });
+    const page = await context.newPage();
+    await page.goto('/');
+    await page.waitForTimeout(400);
+
+    // Verify initial load defaults to English
+    await expect(page.locator('header')).toContainText('BNO 5+1 Tracker');
+
+    // Toggle to Traditional Chinese
+    const langBtn = page.locator('header button:has(.mdi-translate)').first();
+    await langBtn.click();
+    await page.waitForTimeout(400);
+    await expect(page.locator('header')).toContainText('BNO 5+1 追蹤工具');
+
+    // Reload page and verify Chinese choice was preserved via localStorage
+    await page.reload();
+    await page.waitForTimeout(400);
+    await expect(page.locator('header')).toContainText('BNO 5+1 追蹤工具');
+
+    // Toggle back to English
+    const langBtn2 = page.locator('header button:has(.mdi-translate)').first();
+    await langBtn2.click();
+    await page.waitForTimeout(400);
+    await expect(page.locator('header')).toContainText('BNO 5+1 Tracker');
+
+    // Reload again and verify English choice was preserved via localStorage
+    await page.reload();
+    await page.waitForTimeout(400);
+    await expect(page.locator('header')).toContainText('BNO 5+1 Tracker');
+
+    await context.close();
   });
 
   test('8. Multi-Profile Management & Copy Record to Profile', async ({ page }) => {

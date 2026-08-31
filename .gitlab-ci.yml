@@ -25,7 +25,7 @@ test:
     paths:
       - playwright-report/
       - test-results/
-    expire_in: 30 days
+    expire_in: 1 week
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
@@ -43,5 +43,6 @@ pages:
   artifacts:
     paths:
       - public
+    expire_in: 1 week
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

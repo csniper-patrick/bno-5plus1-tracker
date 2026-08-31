@@ -480,6 +480,19 @@ export default {
           '託管於 GitLab 的開源項目',
         ],
       },
+      bno_visa_overview: {
+        title: '香港 BNO 簽證總覽與續簽資訊',
+        category: '簽證續簽',
+        badge: '簽證總覽',
+        description:
+          '英國國民 (海外) 簽證官方總覽頁面，詳細列出申請費用、醫療附加費 (IHS)、2.5年與5年選項及續簽流程。',
+        highlights: [
+          '比較 2.5年續簽與 5年首次簽證途徑',
+          '醫療附加費 (IHS) 繳費細節',
+          '轉換簽證類別及新增受養家屬',
+          '賦予在英全職工作、就讀及滿 5 年後申請永久居留 (ILR) 的完整權利',
+        ],
+      },
       bno_visa_extend: {
         title: 'BNO 簽證：續簽指引 (30個月或5年)',
         category: '簽證續簽',
@@ -490,7 +503,7 @@ export default {
           '於現有簽證到期前在線提交申請 (審批期間受 Section 3C條款保障合法留英)',
           '可選擇 30個月 (2.5年) 續簽或一次過 5年續簽',
           '使用「UK Immigration: ID Check」流動應用程式或預約辦理生物特徵核實身分',
-          '建議於現有簽證到期前最多28天內申請，以確保連續合法居住',
+          '於現有簽證到期前提出申請 (建議於到期前 28 天內提交以善用簽證期) 以確保連續合法居留',
         ],
       },
       bno_extension_fees: {
@@ -502,7 +515,7 @@ export default {
         highlights: [
           '簽證申請費：30個月續簽每人 £206，5年續簽每人 £285',
           '醫療附加費 (IHS)：成人每年 £1,035，18歲以下兒童每年 £776',
-          '資金證明：如在英居住少於12個月，須提供足夠6個月生活開支的資金證明',
+          '資金證明：如在英居住少於12個月，須提供足夠6個月生活開支的資金證明 (居英滿12個月則自動豁免)',
           '滿5年申請永居 (ILR) 階段時無須再繳付 IHS 醫療附加費',
         ],
       },
@@ -538,7 +551,7 @@ export default {
         highlights: [
           '可從學生簽證 (Student)、技術工作簽證 (Skilled Worker)、畢業生簽證 (Graduate) 或 LOTR 轉簽',
           '必須於目前有效居留許可到期前提出申請',
-          '過往在合資格工作/學習簽證下的合法居住期或可計入 5 年連續居住期',
+          '過往在合資格定居途徑 (如技術工作簽證 Skilled Worker) 下的合法居留期可合併計入 5 年永居連續居住期',
         ],
       },
       bno_settle: {
@@ -552,6 +565,32 @@ export default {
           '離境限制：在任何連續 12 個月內離英不得超過 180 天',
           '必備條件：通過 Life in the UK 測試及達到 B1 英文語言水平',
           '遞交申請：可在滿 5 年前最多 28 天內提出申請',
+        ],
+      },
+      bno_ilr_overview: {
+        title: '申請英國永久居留 (ILR 永居申請門戶)',
+        category: 'BNO 永居定居',
+        badge: '永居申請門戶',
+        description:
+          '英國政府官方永久居留 (ILR) 指南與在線申請門戶，涵蓋標準永居申請費用、生物特徵核實及審批時間表。',
+        highlights: [
+          '官方永久居留 (ILR) 申請費用：每名申請人 £2,885',
+          'Super Priority 特急審批服務 (加收 £1,000) 最快可於 1 個工作天內獲得審批結果',
+          '須提供 5 年連續居留證明、通過 Life in the UK 考試及達 B1 英語水平',
+          '獲批後享有在英國永久居留、無限制工作及就讀之合法權利',
+        ],
+      },
+      appendix_continuous_residence: {
+        title: '英國移民條例附錄：連續居住專章 (Appendix Continuous Residence)',
+        category: 'BNO 永居定居',
+        badge: '法定條例',
+        description:
+          '英國國會法定移民條例，明確訂明 180 天離境上限、滾動週期計算方法及申請永居之法定離境豁免條款。',
+        highlights: [
+          '法定 180 天滾動離境限制編入 Appendix Continuous Residence (條款 CR 1.1–CR 6.1)',
+          '在 5 年合資格期內之任何 12 個月滾動視窗進行持續計算',
+          '因重大或人道理由 (如疫情交通中斷、重病) 導致之離境可申請法定豁免',
+          '嚴格規定離英當日及返英當日不計入離境天數',
         ],
       },
       bno_policy_statement: {
@@ -628,12 +667,62 @@ export default {
           '在獲取英國社會安全網資助的同時保障合法居留身分',
         ],
       },
+      hong_kong_watch: {
+        title: '香港監察 (Hong Kong Watch) 權利與政策簡報',
+        category: '政策與指引',
+        badge: '人權與政策 NGO',
+        description:
+          '總部位於英國的非政府組織 (NGO)，倡議 BNO 持有人權益、強積金 (MPF) 提領及大學本地生學費資格。',
+        highlights: [
+          '獨立倡議 NGO，保障 BNO 身份持有人權利及爭取強積金 (MPF) 提領權益',
+          '發布有關 BNO 簽證途徑、永居續簽及學生學費身份的政策簡報',
+          '與英國國會議員及民意代表合作，促進香港社群融入英國社會',
+        ],
+      },
+      migration_observatory_oxford: {
+        title: '牛津大學移民觀察站 (The Migration Observatory)',
+        category: '政策與指引',
+        badge: '獨立學術研究機構',
+        description:
+          '設於牛津大學的獨立非牟利學術研究單位，提供基於數據的英國移民政策及 BNO 人口數據權威分析。',
+        highlights: [
+          '來自牛津大學具權威性及數據支持的移民分析與研究',
+          '定期發表關於 BNO 簽證移民趨勢、就業率及房屋需求的客觀報告',
+          '完全不受政治、商業或移民中介利益干擾的客觀數據來源',
+        ],
+      },
+      apply_national_insurance_number: {
+        title: '申請國民保險號碼 (NI Number 官方申請)',
+        category: '稅務與居留身分',
+        badge: '官方申請',
+        description:
+          '英國政府官方在線申請國民保險號碼 (NI Number) 服務，在英工作、納稅及累積國家退休金年資之必備證明。',
+        highlights: [
+          '可於網上免費申請，透過 BNO 護照或 UKVI 電子簽證 (eVisa) Share Code 核實身分',
+          '確保正確扣繳 PAYE 薪俸稅率及記錄國民保險供款 (NICs) 紀錄之必備編號',
+          '只要已證明在英工作權利 (Right to Work)，在收到 NI 號碼前即可合法開始工作',
+          '專屬 NI 號碼終身適用，並列載於所有 HMRC P60/P45 報稅及工資單文件',
+        ],
+      },
+      tax_foreign_income: {
+        title: '海外收入與離岸資產稅務指引 (HMRC)',
+        category: '稅務與居留身分',
+        badge: '海外稅務',
+        description:
+          '英國皇家稅務與海關總署 (HMRC) 官方指引，說明英國稅務居民就海外收入及離岸資本利得之徵稅規則與匯款申報。',
+        highlights: [
+          '英國稅務居民通常須按全球收入及利得原則 (Arising Basis) 申報境外所得',
+          '詳細解釋雙重課稅協定 (Double Taxation Treaties)、外國稅額抵免及資金匯入申報',
+          '涵蓋申報海外物業租金收入、海外退休金、股息及物業轉讓資本利得',
+          '官方 Self Assessment 自我評估報稅指引，須於每年 1 月 31 日截止日前完成申報',
+        ],
+      },
       hmrc_statutory_residence_test: {
         title: 'HMRC 法定稅務居留身份測試指引 (SRT / RDR3)',
         category: '稅務與居留身分',
         badge: '稅務居留',
         description:
-          '英國皇家郵政及海關總署 (HMRC) 官方指引，說明如何判定英國稅務居留身分、在英日數計算 (午夜規則)、自動居留測試及分開稅務年度處理。',
+          '英國皇家稅務與海關總署 (HMRC) 官方指引，說明如何判定英國稅務居留身分、在英日數計算 (午夜規則)、自動居留測試及分開稅務年度處理。',
         highlights: [
           'BNO 持有人判定全球收入及資本利得是否須於英國納稅的必備官方指南',
           '詳細解釋自動海外測試、自動英國測試 (183 天規則) 及充分聯繫測試',
@@ -713,6 +802,42 @@ export default {
           '提供英格蘭、蘇格蘭、威爾斯及北愛爾蘭各地的學費標準指引',
         ],
       },
+      hkb_hongkongers_in_britain: {
+        title: '英國港僑協會 (Hongkongers in Britain) 移居支援平台',
+        category: '生活與權利',
+        badge: '慈善團體',
+        description:
+          '由居英港人創立的領先非牟利慈善團體，提供安頓指南、求職工作坊、履歷修改診所及心理健康支援。',
+        highlights: [
+          '為 BNO 持有人提供免費雙語安頓指南、CV 履歷診所及就業導師計劃',
+          '於全英主要地區提供廣東話心理健康輔導及社區融入支援',
+          '發表關於居英港人定居現狀的政策研究報告及統計調查',
+        ],
+      },
+      citizens_advice_uk: {
+        title: '英國公民諮詢局 (Citizens Advice) 獨立權益諮詢',
+        category: '生活與權利',
+        badge: '獨立諮詢慈善機構',
+        description:
+          '英國最大的獨立諮詢慈善機構，就租客權益、僱傭合約、債務管理及公共資助 (NRPF) 提供免費獨立諮詢。',
+        highlights: [
+          '於英格蘭、蘇格蘭及威爾斯提供免費、保密且獨立的法律及權益諮詢服務',
+          '就租房保障、工作權益、地方稅 (Council Tax) 及福利提供客觀指引',
+          '協助陷入財政困難的移英人士處理 NRPF 公共資助限制及尋求緊急社區援助',
+        ],
+      },
+      hong_kong_well_uk: {
+        title: '英國心泉 (Hong Kong Well UK) 學童情緒與家庭支援',
+        category: '生活與權利',
+        badge: '非牟利社區機構',
+        description:
+          '英國註冊非牟利社區興趣公司 (CIC)，為 BNO 家庭提供資助廣東話心理輔導及特殊教育需要 (SEN) 諮詢。',
+        highlights: [
+          '關注移英 BNO 家庭及學童心理健康的非牟利社區服務機構',
+          '提供廣東話心理輔導及特殊教育需要 (SEN) 家庭專業諮詢服務',
+          '舉辦社區工作坊，協助家長及學童適應英國學校教育體系',
+        ],
+      },
       life_in_uk_test: {
         title: 'Life in the UK 考試官方預約網站',
         category: '資格與考試',
@@ -744,7 +869,7 @@ export default {
         description:
           '英國政府指定的官方國家學歷評估機構，負責評估海外學歷可比性及為簽證與永居申請核實英語能力。',
         highlights: [
-          '為非英國大學學位提供官方可比性聲明 (Statement of Comparability)',
+          '為非英國大學學位提供官方學歷可比性聲明 (Statement of Comparability) 及英語能力核實',
           '滿足永居 (ILR) B1 英文要求的官方認可途徑，無須另外考取 SELT 英語考試',
           '獲內政部審查官、英國僱主及專業註冊機構全面採納',
         ],
@@ -785,78 +910,6 @@ export default {
           '所有成年人申請歸化英國公民 (Form AN) 時必須通過的審查標準',
           '詳細說明 HMRC 納稅紀錄、交通違例、罰款單及財務誠信對入籍申請的影響',
           '提供清晰指引以避免入籍申請因品格問題遭拒絕',
-        ],
-      },
-      hkb_hongkongers_in_britain: {
-        title: '英國港僑協會 (Hongkongers in Britain) 移居支援平台',
-        category: '生活與權利',
-        badge: '慈善團體',
-        description:
-          '由居英港人創立的領先非牟利慈善團體，提供安頓指南、求職工作坊、履歷修改診所及心理健康支援。',
-        highlights: [
-          '為 BNO 持有人提供免費雙語安頓指南、CV 履歷診所及就業導師計劃',
-          '於全英主要地區提供廣東話心理健康輔導及社區融入支援',
-          '發表關於居英港人定居現狀的政策研究報告及統計調查',
-        ],
-      },
-      hong_kong_watch: {
-        title: '香港監察 (Hong Kong Watch) 權利與政策簡報',
-        category: '政策與指引',
-        badge: '人權與政策 NGO',
-        description:
-          '總部位於英國的非政府組織 (NGO)，倡議 BNO 持有人權益、強積金 (MPF) 提領及大學本地生學費資格。',
-        highlights: [
-          '獨立倡議 NGO，保障 BNO 身份持有人權利及爭取強積金 (MPF) 提領權益',
-          '發布有關 BNO 簽證途徑、永居續簽及學生學費身份的政策簡報',
-          '與英國國會議員及民意代表合作，促進香港社群融入英國社會',
-        ],
-      },
-      citizens_advice_uk: {
-        title: '英國公民諮詢局 (Citizens Advice) 獨立權益諮詢',
-        category: '生活與權利',
-        badge: '獨立諮詢慈善機構',
-        description:
-          '英國最大的獨立諮詢慈善機構，就租客權益、僱傭合約、債務管理及公共資助 (NRPF) 提供免費獨立諮詢。',
-        highlights: [
-          '於英格蘭、蘇格蘭及威爾斯提供免費、保密且獨立的法律及權益諮詢服務',
-          '就租房保障、工作權益、地方稅 (Council Tax) 及福利提供客觀指引',
-          '協助陷入財政困難的移英人士處理 NRPF 公共資助限制及尋求緊急社區援助',
-        ],
-      },
-      hong_kong_well_uk: {
-        title: '英國心泉 (Hong Kong Well UK) 學童情緒與家庭支援',
-        category: '生活與權利',
-        badge: '非牟利社區機構',
-        description:
-          '英國註冊非牟利社區興趣公司 (CIC)，為 BNO 家庭提供資助廣東話心理輔導及特殊教育需要 (SEN) 諮詢。',
-        highlights: [
-          '關注移英 BNO 家庭及學童心理健康的非牟利社區服務機構',
-          '提供廣東話心理輔導及特殊教育需要 (SEN) 家庭專業諮詢服務',
-          '舉辦社區工作坊，協助家長及學童適應英國學校教育體系',
-        ],
-      },
-      migration_observatory_oxford: {
-        title: '牛津大學移民觀察站 (The Migration Observatory)',
-        category: '政策與指引',
-        badge: '獨立學術研究機構',
-        description:
-          '設於牛津大學的獨立非牟利學術研究單位，提供基於數據的英國移民政策及 BNO 人口數據權威分析。',
-        highlights: [
-          '來自牛津大學具權威性及數據支持的移民分析與研究',
-          '定期發表關於 BNO 簽證移民趨勢、就業率及房屋需求的客觀報告',
-          '完全不受政治、商業或移民中介利益干擾的客觀數據來源',
-        ],
-      },
-      bno_visa_overview: {
-        title: '香港 BNO 簽證總覽與續簽資訊',
-        category: '簽證續簽',
-        badge: '簽證總覽',
-        description:
-          '英國國民 (海外) 簽證官方總覽頁面，詳細列出申請費用、醫療附加費 (IHS)、2.5年與5年選項及續簽流程。',
-        highlights: [
-          '比較 2.5年續簽與 5年首次簽證途徑',
-          '醫療附加費 (IHS) 繳費細節',
-          '轉換簽證類別及新增受養家屬',
         ],
       },
       uk_eta_guidance: {

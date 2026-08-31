@@ -494,6 +494,19 @@ export default {
           'Community-supported open source project hosted on GitLab',
         ],
       },
+      bno_visa_overview: {
+        title: 'Hong Kong BNO Visa General Overview & Extensions',
+        category: 'Visa Extension',
+        badge: 'Visa Overview',
+        description:
+          'Official overview page for the British National (Overseas) visa, detailing application fees, Immigration Health Surcharge (IHS), 2.5-year vs 5-year visa options, and visa extension processes.',
+        highlights: [
+          'Compare 2.5-year extension vs 5-year initial visa paths',
+          'Immigration Health Surcharge (IHS) payment details',
+          'Switching visa categories and adding dependent family members',
+          'Provides full rights to work, study, and pathway to ILR settlement after 5 years',
+        ],
+      },
       bno_visa_extend: {
         title: 'BNO Visa: Extend Your Visa (30 Months or 5 Years)',
         category: 'Visa Extension',
@@ -504,7 +517,7 @@ export default {
           'Apply online before current visa expires (protected under Section 3C leave while decision is pending)',
           'Choose between a 30-month (2.5-year) extension or a full 5-year extension',
           'Identity verification via "UK Immigration: ID Check" smartphone app or biometric appointment',
-          'Apply up to 28 days before current visa expiry date to ensure continuous lawful residence',
+          'Apply before your current visa expires (recommended within 28 days of expiry) to ensure continuous lawful residence',
         ],
       },
       bno_extension_fees: {
@@ -516,7 +529,7 @@ export default {
         highlights: [
           'Visa Application Fee: £206 for 30-month extension, £285 for 5-year extension per applicant',
           'Immigration Health Surcharge (IHS): £1,035/year for adults, £776/year for children under 18',
-          'Financial proof: Must show adequate maintenance funds for 6 months if in the UK under 12 months',
+          'Financial proof: Must show adequate maintenance funds for 6 months if in the UK under 12 months (exempt if in the UK for 12+ months)',
           'No IHS required when applying for ILR / Settlement stage after 5 years',
         ],
       },
@@ -554,7 +567,7 @@ export default {
         highlights: [
           'Switch from Student, Skilled Worker, Graduate, or LOTR visa statuses',
           'Must apply before your current valid leave to remain expires',
-          'Previous lawful residence on eligible work/study visas may count towards 5-year continuous residence',
+          'Previous lawful residence on eligible settlement routes (e.g. Skilled Worker) can combine towards 5-year continuous residence',
         ],
       },
       bno_settle: {
@@ -568,6 +581,32 @@ export default {
           'Absence limit: Maximum 180 days absent in any continuous 12-month period',
           'Requirements: Life in the UK test & B1 English qualification',
           'Submitting application: Can apply up to 28 days before completing 5 years',
+        ],
+      },
+      bno_ilr_overview: {
+        title: 'Apply for Indefinite Leave to Remain (ILR Settlement Portal)',
+        category: 'BNO Settlement',
+        badge: 'Settlement Portal',
+        description:
+          'Official UK Government guide and online application portal for Indefinite Leave to Remain (ILR), covering standard settlement fees, biometric verification, and decision timelines.',
+        highlights: [
+          'Official ILR settlement application fee: £2,885 per applicant',
+          'Super Priority service (£1,000 extra) offers decisions within 1 working day',
+          'Requires proof of 5 years continuous residence, Life in the UK test, and B1 English',
+          'Provides permanent right to live, work, and study in the UK without time restrictions',
+        ],
+      },
+      appendix_continuous_residence: {
+        title: 'Immigration Rules Appendix Continuous Residence',
+        category: 'BNO Settlement',
+        badge: 'Statutory Rules',
+        description:
+          'Legally binding statutory Immigration Rules establishing the 180-day absence limits, rolling calculation methodology, and permitted absence exceptions for settlement.',
+        highlights: [
+          'Statutory 180-day rolling rule codified under Appendix Continuous Residence (CR 1.1–CR 6.1)',
+          'Absences are calculated across any 12-month rolling window throughout the 5-year qualifying period',
+          'Permits exceptions for compelling or compassionate circumstances (e.g. pandemic travel disruptions, life-threatening illness)',
+          'Strictly excludes departure day and return day from total absent day counts',
         ],
       },
       bno_policy_statement: {
@@ -642,6 +681,56 @@ export default {
           'Allows BNO holders facing extreme financial distress or destitution to apply to lift NRPF',
           'Detailed guidance on required income, housing, and financial evidence',
           'Protects lawful residence status while accessing the UK social safety net',
+        ],
+      },
+      hong_kong_watch: {
+        title: 'Hong Kong Watch Policy & Rights Briefings',
+        category: 'Policy & Guidance',
+        badge: 'Registered NGO',
+        description:
+          'UK-based non-governmental organization (NGO) advocating for the rights of Hongkongers, pension MPF withdrawal, and university home fee status.',
+        highlights: [
+          "Independent advocacy NGO protecting BNO status holders' rights and MPF pension withdrawal advocacy",
+          'Publishes policy briefings on BNO visa pathways, settlement extensions, and student fee status',
+          'Works directly with UK Parliamentarians and civil society to support Hong Kong community integration',
+        ],
+      },
+      migration_observatory_oxford: {
+        title: 'The Migration Observatory (University of Oxford)',
+        category: 'Policy & Guidance',
+        badge: 'Academic Research',
+        description:
+          'Independent, non-profit academic research unit based at the University of Oxford providing data-driven analysis of UK immigration policy and BNO population data.',
+        highlights: [
+          'Impartial, data-backed immigration analysis and research from the University of Oxford',
+          'Publishes objective reports on BNO visa migration trends, employment rates, and housing data',
+          '100% free of political, commercial, or immigration agent bias',
+        ],
+      },
+      apply_national_insurance_number: {
+        title: 'Apply for a National Insurance Number (NIN)',
+        category: 'Tax & Residence',
+        badge: 'Official Application',
+        description:
+          'Official UK Government service to apply for a National Insurance (NI) number online, essential for working, paying taxes, and recording state pension contributions.',
+        highlights: [
+          'Apply online for free with identity verification via BNO passport or UKVI eVisa share code',
+          'Essential for correct PAYE tax deduction codes and National Insurance contributions (NICs)',
+          'You can start working before receiving your NI number if you have proven your Right to Work',
+          'Unique NI number stays with you for life and is recorded on all HMRC P60/P45 tax documents',
+        ],
+      },
+      tax_foreign_income: {
+        title: 'Tax on Foreign Income & Overseas Assets (HMRC)',
+        category: 'Tax & Residence',
+        badge: 'Tax Guidance',
+        description:
+          'Official HMRC guide on how UK tax residents are taxed on foreign income and overseas capital gains, covering arising basis and remittance rules.',
+        highlights: [
+          'UK tax residents are normally taxed on worldwide income and gains on the arising basis',
+          'Explains double taxation treaties, foreign tax credit relief, and remittance rules',
+          'Covers reporting foreign rental income, overseas pensions, dividends, and property disposals',
+          'Official Self Assessment tax return guidelines for declaring foreign income before the annual 31 January deadline',
         ],
       },
       hmrc_statutory_residence_test: {
@@ -729,6 +818,42 @@ export default {
           'Provides clear guidance on tuition fee status in England, Scotland, Wales, and Northern Ireland',
         ],
       },
+      hkb_hongkongers_in_britain: {
+        title: 'Hongkongers in Britain (HKB) Resettlement Hub',
+        category: 'Living & Rights',
+        badge: 'Registered Charity',
+        description:
+          'Leading non-profit charity established by Hongkongers in the UK providing resettlement guides, employment workshops, CV clinics, and mental health support.',
+        highlights: [
+          'Provides free bilingual resettlement guides, CV clinics, and employment mentorship for BNO holders',
+          'Offers Cantonese-speaking mental health and community integration support across major UK regions',
+          'Publishes policy research and settlement surveys on Hong Kongers living in Britain',
+        ],
+      },
+      citizens_advice_uk: {
+        title: 'Citizens Advice UK Independent Guidance',
+        category: 'Living & Rights',
+        badge: 'Advice Charity',
+        description:
+          "UK's largest independent advice charity offering free, impartial guidance on tenancy rights, employment contracts, debt advice, and public funds access (NRPF).",
+        highlights: [
+          'Free, confidential, and independent legal/rights advisory service across England, Scotland & Wales',
+          'Provides impartial guidance on tenant rights, employment contracts, council tax, and benefits',
+          'Assists migrants in distress navigating NRPF conditions and local social support',
+        ],
+      },
+      hong_kong_well_uk: {
+        title: 'Hong Kong Well UK Children & Family Support',
+        category: 'Living & Rights',
+        badge: 'Community Service',
+        description:
+          'Registered UK non-profit Community Interest Company (CIC) providing subsidized Cantonese mental health counseling and SEN educational advice for BNO families.',
+        highlights: [
+          'Non-profit community service supporting mental well-being of BNO families in the UK',
+          'Offers Cantonese-speaking psychological support and SEN (Special Educational Needs) family advisory',
+          'Conducts community workshops for parents and children adapting to the UK school system',
+        ],
+      },
       life_in_uk_test: {
         title: 'Life in the UK Test Official Portal',
         category: 'Qualifications & Tests',
@@ -761,7 +886,7 @@ export default {
         description:
           'Official UK national agency designated by the UK Government for recognizing foreign qualifications and verifying English language proficiency for visa & ILR applications.',
         highlights: [
-          'Provides official Statements of Comparability for non-UK university degrees',
+          'Provides official Statements of Comparability and English Proficiency Verification for non-UK university degrees',
           'Alternative official pathway to satisfy the B1 English language requirement for ILR settlement without SELT exams',
           'Recognized across Home Office caseworkers, UK employers, and professional registration bodies',
         ],
@@ -802,78 +927,6 @@ export default {
           'Mandatory assessment criteria for all adult applicants applying for British Citizenship (Form AN)',
           'Details how HMRC tax compliance, driving offences, fixed penalty notices, and financial conduct affect applications',
           'Provides clear guidelines to prevent citizenship application refusals',
-        ],
-      },
-      hkb_hongkongers_in_britain: {
-        title: 'Hongkongers in Britain (HKB) Resettlement Hub',
-        category: 'Living & Rights',
-        badge: 'Registered Charity',
-        description:
-          'Leading non-profit charity established by Hongkongers in the UK providing resettlement guides, employment workshops, CV clinics, and mental health support.',
-        highlights: [
-          'Provides free bilingual resettlement guides, CV clinics, and employment mentorship for BNO holders',
-          'Offers Cantonese-speaking mental health and community integration support across major UK regions',
-          'Publishes policy research and settlement surveys on Hong Kongers living in Britain',
-        ],
-      },
-      hong_kong_watch: {
-        title: 'Hong Kong Watch Policy & Rights Briefings',
-        category: 'Policy & Guidance',
-        badge: 'Registered NGO',
-        description:
-          'UK-based non-governmental organization (NGO) advocating for the rights of Hongkongers, pension MPF withdrawal, and university home fee status.',
-        highlights: [
-          "Independent advocacy NGO protecting BNO status holders' rights and MPF pension withdrawal advocacy",
-          'Publishes policy briefings on BNO visa pathways, settlement extensions, and student fee status',
-          'Works directly with UK Parliamentarians and civil society to support Hong Kong community integration',
-        ],
-      },
-      citizens_advice_uk: {
-        title: 'Citizens Advice UK Independent Guidance',
-        category: 'Living & Rights',
-        badge: 'Advice Charity',
-        description:
-          "UK's largest independent advice charity offering free, impartial guidance on tenancy rights, employment contracts, debt advice, and public funds access (NRPF).",
-        highlights: [
-          'Free, confidential, and independent legal/rights advisory service across England, Scotland & Wales',
-          'Provides impartial guidance on tenant rights, employment contracts, council tax, and benefits',
-          'Assists migrants in distress navigating NRPF conditions and local social support',
-        ],
-      },
-      hong_kong_well_uk: {
-        title: 'Hong Kong Well UK Children & Family Support',
-        category: 'Living & Rights',
-        badge: 'Community Service',
-        description:
-          'Registered UK non-profit Community Interest Company (CIC) providing subsidized Cantonese mental health counseling and SEN educational advice for BNO families.',
-        highlights: [
-          'Non-profit community service supporting mental well-being of BNO families in the UK',
-          'Offers Cantonese-speaking psychological support and SEN (Special Educational Needs) family advisory',
-          'Conducts community workshops for parents and children adapting to the UK school system',
-        ],
-      },
-      migration_observatory_oxford: {
-        title: 'The Migration Observatory (University of Oxford)',
-        category: 'Policy & Guidance',
-        badge: 'Academic Research',
-        description:
-          'Independent, non-profit academic research unit based at the University of Oxford providing data-driven analysis of UK immigration policy and BNO population data.',
-        highlights: [
-          'Impartial, data-backed immigration analysis and research from the University of Oxford',
-          'Publishes objective reports on BNO visa migration trends, employment rates, and housing data',
-          '100% free of political, commercial, or immigration agent bias',
-        ],
-      },
-      bno_visa_overview: {
-        title: 'Hong Kong BNO Visa General Overview & Extensions',
-        category: 'Visa Extension',
-        badge: 'Visa Overview',
-        description:
-          'Official overview page for the British National (Overseas) visa, detailing application fees, Immigration Health Surcharge (IHS), 2.5-year vs 5-year visa options, and visa extension processes.',
-        highlights: [
-          'Compare 2.5-year extension vs 5-year initial visa paths',
-          'Immigration Health Surcharge (IHS) payment details',
-          'Switching visa categories and adding dependent family members',
         ],
       },
       uk_eta_guidance: {

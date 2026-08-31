@@ -1,4 +1,4 @@
-# Antigravity Workspace Guidelines - BNO 5+1 Tracker
+# Agent Workspace Guidelines - BNO 5+1 Tracker
 
 ## Project Overview
 
@@ -55,7 +55,7 @@ _Note: This application is an independent 3rd-party tool provided for personal t
 
 ```
 bno-5plus1-tracker/
-├── .antigravity.md        # AI Agent context & workspace guidelines
+├── AGENTS.md              # AI Agent context & workspace guidelines
 ├── .gitlab-ci.yml         # GitLab CI/CD pipeline for GitLab Pages deployment
 ├── .devcontainer/         # Dev container settings
 ├── .vscode/               # VS Code workspace settings
@@ -258,7 +258,7 @@ To maintain visual screenshot parity across desktop and mobile devices for the i
    - Navigation drawer menu entry under "Trackers" in [src/App.vue](file:///Users/csniper/Projects/bno-5plus1-tracker/src/App.vue) with `mdi-book-open-page-variant` icon.
    - Dual-language dictionary keys synchronized under `instruction` namespace in [src/locales/en.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/locales/en.js) and [src/locales/zh-HK.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/locales/zh-HK.js).
 
-### 7. Automatic Documentation Maintenance Routine (`README.md` & `.antigravity.md`)
+### 7. Automatic Documentation Maintenance Routine (`README.md` & `AGENTS.md`)
 
 Whenever completing tasks that introduce architectural updates, dependency changes (e.g. adding or removing packages), new feature workflows, UI/UX changes, file structure modifications, or route updates:
 
@@ -270,7 +270,7 @@ Whenever completing tasks that introduce architectural updates, dependency chang
    - Update Quick Start installation commands and the NPM Scripts table (including `capture:screenshots`, `test:unit`, `test:e2e`).
    - Keep the Project Architecture tree diagram and module deep-dives accurate.
    - Verify official link references and disclaimers.
-4. **Synchronize `.antigravity.md`**:
+4. **Synchronize `AGENTS.md`**:
    - Maintain absolute alignment across project overview, key regulations tracked, tech stack specifications, workspace directory tree, and module technical architecture.
    - Keep developer guidelines, screen capture procedures, documentation routines, and global styling standards up to date.
 5. **Formatting & Parity Verification**: Run `npm run format` and verify that all relative file links and symbols use markdown link syntax.
@@ -387,7 +387,7 @@ The following official UK Government policy publications, statutory rules, tax r
 4. **Theme Support**: Ensure dark/light themes are respected using Vuetify's `useTheme()` hook and Union Jack palettes defined in `src/plugins/vuetify.js`.
 5. **No Direct State Mutation outside Store**: Components should interact with data exclusively through store methods and computed properties.
 6. **3rd-Party App Designation & Phrasing**: Maintain clear designation that this is an unofficial 3rd-party application. Avoid using "Home Office Compliant" or official certification wording; use "Rules-Aligned" or "Within Limit" terminology. Keep drawer navigation titles concise ("Absence", "Document") under the "Trackers" section.
-7. **Automatic Documentation Maintenance**: Automatically review and update `README.md` and `.antigravity.md` whenever architectural changes, feature additions/modifications, or dependency changes occur during a task.
+7. **Automatic Documentation Maintenance**: Automatically review and update `README.md` and `AGENTS.md` whenever architectural changes, feature additions/modifications, or dependency changes occur during a task.
 8. **Git Commit Policy**: Do not commit changes (`git commit`) unless explicitly told to do so by the user.
 
 ---
@@ -448,7 +448,7 @@ All AI agents and developers modifying or creating UI components in **bno-5plus1
 
 ---
 
-## Antigravity Coding Rules
+## Agent Coding Rules
 
 These rules apply to every task in this project unless explicitly overridden.
 **Bias**: Caution over speed on non-trivial work. Use judgment on trivial tasks.

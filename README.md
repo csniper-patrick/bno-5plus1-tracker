@@ -208,7 +208,7 @@ bno-5plus1-tracker/
 │   ├── indexeddb_emulation.test.js# IndexedDB app_state & files object store tests
 │   ├── seo.test.js                # SEO metadata, dynamic CI_PAGES_URL, sitemap.xml & Schema.org JSON-LD tests
 │   └── validation.test.js         # Strict YAML schema validation & date utility edge case tests
-├── .antigravity.md        # AI Agent workspace context & guidelines
+├── AGENTS.md              # AI Agent workspace context & guidelines
 ├── .gitlab-ci.yml         # GitLab CI/CD pipeline for GitLab Pages
 ├── index.html             # HTML entry template
 ├── package.json           # App manifest and dependencies
@@ -240,7 +240,7 @@ bno-5plus1-tracker/
   - `InstructionView.vue` dynamically switches between desktop and mobile screenshot sets (`imgPrefix`) using Vuetify's `$vuetify.display.smAndDown` breakpoint while offering manual `Desktop View` / `Mobile View` toggle overrides.
 - **Automatic Documentation Maintenance Routine**:
   - Automatically triggered upon completing tasks that introduce architectural updates, store schema changes, new UI features, package dependency updates, or workflow/script edits.
-  - Synchronizes feature descriptions, rules tables, script options, directory tree diagrams, module explanations, and developer guidelines across [README.md](file:///Users/csniper/Projects/bno-5plus1-tracker/README.md) and [.antigravity.md](file:///Users/csniper/Projects/bno-5plus1-tracker/.antigravity.md).
+  - Synchronizes feature descriptions, rules tables, script options, directory tree diagrams, module explanations, and developer guidelines across [README.md](file:///Users/csniper/Projects/bno-5plus1-tracker/README.md) and [AGENTS.md](file:///Users/csniper/Projects/bno-5plus1-tracker/AGENTS.md).
 
 ---
 

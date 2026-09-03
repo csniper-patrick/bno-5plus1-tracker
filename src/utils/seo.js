@@ -149,6 +149,14 @@ export function getSeoConfigBuilder(baseUrl = getBaseUrl()) {
               text: 'For British Citizenship naturalisation under the British Nationality Act 1981, you must not exceed 450 days absent across the 5-year qualifying period, and no more than 90 days absent in the final 12 months immediately preceding your application date.',
             },
           },
+          {
+            '@type': 'Question',
+            name: 'Do dependent children under 18 have to meet the 5-year continuous residence requirement for BNO settlement?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Under Statement of Changes HC 584 (effective 8 October 2026), paragraph HK 62.1 of Appendix Hong Kong British National (Overseas) exempts dependent children aged under 18 at the date of application from the 5-year continuous residence requirement, allowing them to settle alongside qualifying parents.',
+            },
+          },
         ],
       },
     },

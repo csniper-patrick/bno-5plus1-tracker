@@ -543,7 +543,7 @@ export default {
           "Family members submit separate online applications linked via main applicant's UAN / GWF reference",
           'Dependants can apply to extend at any time before their current individual visa expires',
           'Children turning 18 during current visa retain dependant extension eligibility',
-          'Provides options to align visa expiration dates across family household members',
+          'Under HC 584 (effective 8 Oct 2026), dependent children under 18 can settle with parents without separate 5-year continuous residence',
         ],
       },
       uk_immigration_id_app: {
@@ -577,7 +577,7 @@ export default {
         description:
           'Official UK Government guide on how to apply for Indefinite Leave to Remain (ILR) / UK Settlement under the BNO visa route after 5 years of continuous residence.',
         highlights: [
-          'Qualifying period: 5 years continuous residence in the UK',
+          'Qualifying period: 5 years continuous residence in the UK (children under 18 exempt under HC 584 HK 62.1)',
           'Absence limit: Maximum 180 days absent in any continuous 12-month period',
           'Requirements: Life in the UK test & B1 English qualification',
           'Submitting application: Can apply up to 28 days before completing 5 years',
@@ -655,8 +655,24 @@ export default {
           'Legally binding UK Parliament statutory immigration code establishing the BNO visa route, validity, suitability, and settlement criteria.',
         highlights: [
           'Statutory rules governing BNO status holders and dependent family members',
+          'Amended by HC 584 (HK 62.1): dependent children under 18 exempt from 5-year continuous residence for settlement',
           'Exact legal definitions of validity, suitability, continuous residence, and settlement eligibility (HK 51.1–HK 64.1)',
           'Authoritative reference for legal requirements without relying on commercial legal advice',
+        ],
+      },
+      statement_of_changes_hc584: {
+        title:
+          'Statement of Changes to the Immigration Rules: HC 584 (BNO Child Settlement Exemption)',
+        category: 'Policy & Guidance',
+        badge: 'HC 584 (Sep 2026)',
+        description:
+          'Official Statement of Changes HC 584 (published 3 September 2026). Amends Appendix Hong Kong BN(O) (HK 62.1) to exempt dependent children aged under 18 from the 5-year continuous residence requirement for settlement, updates the BN(O) Adult Child definition, and extends domestic abuse protections (Appendix VDA).',
+        highlights: [
+          'Exempts dependent children under 18 from 5-year continuous residence requirement for ILR settlement (HK 62.1)',
+          'Enables eligible dependent children to settle alongside parents when parents meet settlement criteria',
+          'Takes effect on 8 October 2026 for immigration and settlement applications',
+          'Formally replaces the definition of "BN(O) Household Member" with "BN(O) Adult Child" (INTRO1/INTRO2)',
+          'Extends Appendix Victims of Domestic Abuse (VDA) settlement protections to adult child dependants',
         ],
       },
       parliament_bno_briefing: {

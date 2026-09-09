@@ -93,11 +93,11 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
       await expect(page.locator('.v-main')).toContainText('Hong Kong - Summer Family Visit');
 
       // Verify Shared With column is hidden when only 1 profile exists
-      const fullViewBtn = page.locator('button:has-text("Full")').first();
+      const fullViewBtn = page.locator('button[value="full"], button:has-text("Full"), button:has-text("完整")').first();
       if (await fullViewBtn.isVisible()) {
         await fullViewBtn.click();
         await page.waitForTimeout(300);
-        await expect(page.locator('th:has-text("Shared With")')).toHaveCount(0);
+        await expect(page.locator('th:has-text("Shared With"), th:has-text("同行成員")')).toHaveCount(0);
       }
     }
   });
@@ -110,6 +110,68 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
     await expect(page.locator('.v-main')).toContainText('Life in the UK Test');
     await expect(page.locator('.v-main')).toContainText('English Language Requirement');
     await expect(page.locator('.v-main')).toContainText('Continuous Residence Checklist');
+  });
+
+  test('4b. Add Address Modal & Housing Status Dropdown Verification', async ({ page }) => {
+    await page.goto('/documents');
+    await page.waitForLoadState('networkidle');
+
+    // Click "+ Add Address" button
+    const addAddressBtn = page.locator('button:has-text("Add Address")').first();
+    await expect(addAddressBtn).toBeVisible();
+    await addAddressBtn.click();
+    await page.waitForTimeout(400);
+
+    // Verify Address Form Dialog appears
+    const dialog = page.locator('.v-dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator('.v-card-title')).toContainText('Add Address');
+
+    // Verify Housing Status field is present and displays translated text (not raw placeholder)
+    const housingSelect = dialog.locator('.v-select').filter({ hasText: /Housing Status/i });
+    await expect(housingSelect).toBeVisible();
+
+    // Check that neither the select nor dialog contains raw translation keys like document.housing_
+    await expect(dialog).not.toContainText('document.housing_rented');
+    await expect(dialog).not.toContainText('document.housing_owned');
+
+    // The default selection should be "Rented (Private / Social)"
+    await expect(housingSelect).toContainText('Rented (Private / Social)');
+
+    // Click on the Housing Status select to open options menu
+    await housingSelect.click();
+    await page.waitForTimeout(300);
+
+    // Verify overlay / menu options are visible and localized
+    const menuOverlay = page.locator('.v-overlay:visible .v-list');
+    await expect(menuOverlay).toBeVisible();
+    await expect(menuOverlay).toContainText('Rented (Private / Social)');
+    await expect(menuOverlay).toContainText('Owned / Mortgage');
+    await expect(menuOverlay).toContainText('Living with Family / Friends');
+    await expect(menuOverlay).toContainText('Other (Student Accommodation / Temporary)');
+
+    // Select "Owned / Mortgage"
+    const ownedOption = menuOverlay.locator('.v-list-item:has-text("Owned / Mortgage")').first();
+    await ownedOption.click();
+    await page.waitForTimeout(300);
+
+    // Verify select value updated
+    await expect(housingSelect).toContainText('Owned / Mortgage');
+
+    // Fill in required addressLine1 and startDate
+    const addressInput = dialog.locator('input[placeholder*="10 Downing Street"]');
+    await addressInput.fill('221B Baker Street');
+
+    const startDateInput = dialog.locator('input[type="date"]').first();
+    await startDateInput.fill('2022-01-01');
+
+    // Save Address
+    const saveBtn = dialog.locator('button:has-text("Save")').first();
+    await saveBtn.click();
+    await page.waitForTimeout(500);
+
+    // Verify address record added to the table
+    await expect(page.locator('.v-main')).toContainText('221B Baker Street');
   });
 
   test('5. Reference Guidance View & Search Filter', async ({ page }) => {
@@ -384,13 +446,13 @@ test.describe('BNO 5+1 Tracker UI E2E Test Suite', () => {
       await expect(page.locator('.v-main')).toContainText('Paris Family Holiday');
 
       // Toggle to Full View Mode and verify Shared With column & avatar
-      const fullViewBtn = page.locator('button:has-text("Full")').first();
+      const fullViewBtn = page.locator('button[value="full"], button:has-text("Full"), button:has-text("完整")').first();
       if (await fullViewBtn.isVisible()) {
         await fullViewBtn.click();
         await page.waitForTimeout(400);
 
         // Verify Shared With column header
-        await expect(page.locator('th:has-text("Shared With")')).toBeVisible();
+        await expect(page.locator('th:has-text("Shared With"), th:has-text("同行成員")')).toBeVisible();
 
         // Verify Main Applicant avatar initial 'M' is displayed for shared trip
         const sharedAvatar = page.locator('tbody tr:has-text("Paris Family Holiday") .v-avatar:has-text("M")');

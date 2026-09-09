@@ -14,6 +14,8 @@ import { useDocumentsStore, sanitizeResidenceChecklist } from '../src/stores/doc
 import { exportFullBackup, importBackup } from '../src/services/backupService.js'
 import { calculateDays, getMaxSegmentTreeReturnDate } from '../src/utils/date.js'
 import * as dbService from '../src/services/dbService.js'
+import en from '../src/locales/en.js'
+import zhHK from '../src/locales/zh-HK.js'
 
 describe('Component Logic & Reference Links Filtering', () => {
   const sampleLinks = [
@@ -479,5 +481,88 @@ describe('Companion Profile Share Eligibility Validation', () => {
     // Deselect all eligible
     selectedIds = selectedIds.filter((id) => !eligibleIds.includes(id))
     assert.deepStrictEqual(selectedIds, [])
+  })
+})
+
+describe('Address History Housing Status Options & Localization', () => {
+  it('should have localized strings for all housing statuses in en and zh-HK locales', () => {
+    const expectedKeys = [
+      'housing_status',
+      'housing_rented',
+      'housing_owned',
+      'housing_with_family',
+      'housing_other',
+    ]
+
+    for (const key of expectedKeys) {
+      assert.ok(en.document[key], `en.document.${key} must be defined`)
+      assert.ok(typeof en.document[key] === 'string' && en.document[key].trim().length > 0)
+      assert.ok(!en.document[key].startsWith('document.'), `en.document.${key} should not be a raw placeholder`)
+
+      assert.ok(zhHK.document[key], `zhHK.document.${key} must be defined`)
+      assert.ok(typeof zhHK.document[key] === 'string' && zhHK.document[key].trim().length > 0)
+      assert.ok(!zhHK.document[key].startsWith('document.'), `zhHK.document.${key} should not be a raw placeholder`)
+    }
+  })
+
+  it('should generate valid housingStatusOptions with translated titles and values without placeholders', () => {
+    const mockTEn = (key) => {
+      const parts = key.split('.')
+      return en[parts[0]]?.[parts[1]] || key
+    }
+
+    const housingStatusOptionsEn = [
+      { title: mockTEn('document.housing_rented'), value: 'rented' },
+      { title: mockTEn('document.housing_owned'), value: 'owned' },
+      { title: mockTEn('document.housing_with_family'), value: 'with_family' },
+      { title: mockTEn('document.housing_other'), value: 'other' },
+    ]
+
+    assert.strictEqual(housingStatusOptionsEn.length, 4)
+    for (const opt of housingStatusOptionsEn) {
+      assert.ok(['rented', 'owned', 'with_family', 'other'].includes(opt.value))
+      assert.ok(opt.title && !opt.title.startsWith('document.'), `Option ${opt.value} should have valid title`)
+    }
+    assert.strictEqual(housingStatusOptionsEn[0].title, 'Rented (Private / Social)')
+    assert.strictEqual(housingStatusOptionsEn[1].title, 'Owned / Mortgage')
+    assert.strictEqual(housingStatusOptionsEn[2].title, 'Living with Family / Friends')
+    assert.strictEqual(housingStatusOptionsEn[3].title, 'Other (Student Accommodation / Temporary)')
+
+    const mockTZh = (key) => {
+      const parts = key.split('.')
+      return zhHK[parts[0]]?.[parts[1]] || key
+    }
+
+    const housingStatusOptionsZh = [
+      { title: mockTZh('document.housing_rented'), value: 'rented' },
+      { title: mockTZh('document.housing_owned'), value: 'owned' },
+      { title: mockTZh('document.housing_with_family'), value: 'with_family' },
+      { title: mockTZh('document.housing_other'), value: 'other' },
+    ]
+
+    assert.strictEqual(housingStatusOptionsZh[0].title, '租屋 (私人租賃 / 公屋)')
+    assert.strictEqual(housingStatusOptionsZh[1].title, '自置物業 / 按揭')
+    assert.strictEqual(housingStatusOptionsZh[2].title, '與家人/朋友同住')
+    assert.strictEqual(housingStatusOptionsZh[3].title, '其他 (學生宿舍 / 暫住)')
+  })
+
+  it('should properly store address entries with all valid housing statuses', () => {
+    setActivePinia(createPinia())
+    const docStore = useDocumentsStore()
+    const statuses = ['rented', 'owned', 'with_family', 'other']
+
+    for (let i = 0; i < statuses.length; i++) {
+      const status = statuses[i]
+      const addr = docStore.addAddress({
+        addressLine1: `${i + 1} High Street`,
+        city: 'London',
+        postcode: 'SW1A 1AA',
+        startDate: `202${i}-01-01`,
+        housingStatus: status,
+      })
+      assert.strictEqual(addr.housingStatus, status)
+    }
+
+    assert.strictEqual(docStore.addressHistory.length, 4)
   })
 })

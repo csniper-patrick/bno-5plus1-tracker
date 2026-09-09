@@ -368,6 +368,8 @@ export default {
               <v-select
                 v-model="addressDialog.form.housingStatus"
                 :items="housingStatusOptions"
+                item-title="title"
+                item-value="value"
                 :label="$t('document.housing_status')"
                 variant="outlined"
                 density="compact"

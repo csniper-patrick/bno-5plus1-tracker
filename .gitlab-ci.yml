@@ -2,6 +2,7 @@
 image: docker.io/library/node:lts
 
 stages:
+  - review
   - test
   - deploy
 
@@ -11,6 +12,11 @@ cache:
       - package-lock.json
   paths:
     - .npm/
+
+include:
+  - project: "$CI_PROJECT_NAMESPACE/ci-mgmt"
+    file: "code-review.yml"
+    ref: "main"
 
 test:
   stage: test

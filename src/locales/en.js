@@ -880,6 +880,18 @@ export default {
           'Conducts community workshops for parents and children adapting to the UK school system',
         ],
       },
+      hong_kong_aid: {
+        title: 'Hong Kong Aid (HKAID) Regulated Advice & Community Support',
+        category: 'Living & Rights',
+        badge: 'Community Support',
+        description:
+          'UK-registered Community Interest Company (CIC) providing regulated immigration advice (OISC Level 3), emergency crisis support, and mental health counselling for Hong Kongers settling in the UK.',
+        highlights: [
+          'OISC Level 3 regulated professional immigration casework and settlement guidance for Hong Kongers and BNO visa holders',
+          'Emergency crisis intervention and short-term accommodation assistance for individuals facing urgent hardship or homelessness',
+          'Community integration resources, educational workshops, and subsidized Cantonese counselling partnerships (Hearth Talk)',
+        ],
+      },
       life_in_uk_test: {
         title: 'Life in the UK Test Official Portal',
         category: 'Qualifications & Tests',

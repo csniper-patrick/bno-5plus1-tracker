@@ -471,6 +471,7 @@ export default {
     copy_link: '複製連結',
     visit_official: '前往官方頁面',
     visit_repo: '前往專案',
+    visit_website: '前往網站',
     no_results_title: '未有符合搜尋條件的連結',
     no_results_desc: '請嘗試調整搜尋字詞或選擇「全部」類別。',
     reset_filters: '重設篩選條件',

@@ -484,6 +484,7 @@ export default {
     copy_link: 'Copy Link',
     visit_official: 'Visit Official Page',
     visit_repo: 'Visit Repository',
+    visit_website: 'Visit Website',
     no_results_title: 'No links matched your search',
     no_results_desc: 'Try adjusting your search query or selecting "All" categories.',
     reset_filters: 'Reset Filters',

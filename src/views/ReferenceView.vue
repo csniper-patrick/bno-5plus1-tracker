@@ -1,6 +1,7 @@
 <script>
 import { useHead } from '@unhead/vue'
 import { getSeoMeta } from '../utils/seo'
+import { getSocialPlatformConfig } from '../constants/social'
 
 /**
  * ReferenceView Component
@@ -364,6 +365,14 @@ export default {
             'Publishes policy briefings on BNO visa pathways, settlement extensions, and student fee status',
             'Works directly with UK Parliamentarians and civil society to support Hong Kong community integration',
           ],
+          socials: [
+            { platform: 'facebook', url: 'https://www.facebook.com/HongKongWatchOrg' },
+            { platform: 'instagram', url: 'https://www.instagram.com/hongkongwatchorg/' },
+            { platform: 'threads', url: 'https://www.threads.net/@hongkongwatchorg' },
+            { platform: 'x', url: 'https://x.com/hk_watch' },
+            { platform: 'youtube', url: 'https://youtube.com/c/hongkongwatch' },
+            { platform: 'linkedin', url: 'https://www.linkedin.com/company/hong-kong-watch/' },
+          ],
         },
         {
           id: 'migration-observatory-oxford',
@@ -380,6 +389,14 @@ export default {
             'Impartial, data-backed immigration analysis and research from the University of Oxford',
             'Publishes objective reports on BNO visa migration trends, employment rates, and housing data',
             '100% free of political, commercial, or immigration agent bias',
+          ],
+          socials: [
+            { platform: 'x', url: 'https://x.com/migobs' },
+            { platform: 'youtube', url: 'https://www.youtube.com/@MigrationObservatory' },
+            {
+              platform: 'linkedin',
+              url: 'https://www.linkedin.com/company/the-migration-observatory/',
+            },
           ],
         },
         {
@@ -537,6 +554,13 @@ export default {
             'Maintained by the UK Council for International Student Affairs (UKCISA), an official UK educational advisory body',
             'Provides clear guidance on tuition fee status in England, Scotland, Wales, and Northern Ireland',
           ],
+          socials: [
+            { platform: 'facebook', url: 'https://www.facebook.com/UKCISA' },
+            { platform: 'instagram', url: 'https://www.instagram.com/ukcisa_/' },
+            { platform: 'threads', url: 'https://www.threads.net/@ukcisa_' },
+            { platform: 'x', url: 'https://x.com/ukcisa' },
+            { platform: 'linkedin', url: 'https://www.linkedin.com/company/ukcisa/' },
+          ],
         },
         {
           id: 'hkb-hongkongers-in-britain',
@@ -553,6 +577,12 @@ export default {
             'Provides free bilingual resettlement guides, CV clinics, and employment mentorship for BNO holders',
             'Offers Cantonese-speaking mental health and community integration support across major UK regions',
             'Publishes policy research and settlement surveys on Hong Kongers living in Britain',
+          ],
+          socials: [
+            { platform: 'facebook', url: 'https://www.facebook.com/HongkongersUK/' },
+            { platform: 'instagram', url: 'https://www.instagram.com/hongkongersuk/' },
+            { platform: 'threads', url: 'https://www.threads.net/@hongkongersuk' },
+            { platform: 'x', url: 'https://x.com/HongkongersUK' },
           ],
         },
         {
@@ -571,6 +601,12 @@ export default {
             'Provides impartial guidance on tenant rights, employment contracts, council tax, and benefits',
             'Assists migrants in distress navigating NRPF conditions and local social support',
           ],
+          socials: [
+            { platform: 'facebook', url: 'https://www.facebook.com/citizensadvice' },
+            { platform: 'x', url: 'https://x.com/CitizensAdvice' },
+            { platform: 'youtube', url: 'https://www.youtube.com/@CitizensAdvice' },
+            { platform: 'linkedin', url: 'https://www.linkedin.com/company/citizens-advice/' },
+          ],
         },
         {
           id: 'hong-kong-well-uk',
@@ -588,6 +624,10 @@ export default {
             'Offers Cantonese-speaking psychological support and SEN (Special Educational Needs) family advisory',
             'Conducts community workshops for parents and children adapting to the UK school system',
           ],
+          socials: [
+            { platform: 'facebook', url: 'https://www.facebook.com/hongkongwelluk' },
+            { platform: 'instagram', url: 'https://www.instagram.com/hongkongwelluk/' },
+          ],
         },
         {
           id: 'hong-kong-aid',
@@ -604,6 +644,13 @@ export default {
             'OISC Level 3 regulated professional immigration casework and settlement guidance for Hong Kongers and BNO visa holders',
             'Emergency crisis intervention and short-term accommodation assistance for individuals facing urgent hardship or homelessness',
             'Community integration resources, educational workshops, and subsidized Cantonese counselling partnerships (Hearth Talk)',
+          ],
+          socials: [
+            { platform: 'facebook', url: 'https://www.facebook.com/hkaiduk' },
+            { platform: 'instagram', url: 'https://www.instagram.com/hkaiduk/' },
+            { platform: 'threads', url: 'https://www.threads.net/@hkaiduk' },
+            { platform: 'x', url: 'https://x.com/hkaiduk' },
+            { platform: 'linkedin', url: 'https://www.linkedin.com/company/hkaiduk/' },
           ],
         },
         {
@@ -657,6 +704,7 @@ export default {
             'Alternative official pathway to satisfy the B1 English language requirement for ILR settlement without SELT exams',
             'Recognized across Home Office caseworkers, UK employers, and professional registration bodies',
           ],
+          socials: [{ platform: 'linkedin', url: 'https://www.linkedin.com/company/ecctis' }],
         },
         {
           id: 'register-citizenship-bno',
@@ -1030,6 +1078,60 @@ export default {
         color,
       }
     },
+
+    /**
+     * Returns unified configuration for a given social platform.
+     * @param {string} platform - Social platform name.
+     * @returns {object} Platform configuration object.
+     */
+    getSocialConfig(platform) {
+      return getSocialPlatformConfig(platform)
+    },
+
+    /**
+     * Returns the Material Design icon for a given social platform.
+     * @param {string} platform - Social platform name.
+     * @returns {string|undefined} MDI icon class.
+     */
+    getSocialIcon(platform) {
+      return this.getSocialConfig(platform).icon
+    },
+
+    /**
+     * Returns the brand color for a given social platform,
+     * dynamically optimized for light and dark theme contrast (WCAG AA).
+     * @param {string} platform - Social platform name.
+     * @returns {string|undefined} Brand color string or undefined for currentColor.
+     */
+    getSocialColor(platform) {
+      const isDark = Boolean(this.$vuetify?.theme?.global?.current?.dark)
+      const config = this.getSocialConfig(platform)
+      return isDark ? config.colorDark : config.colorLight
+    },
+
+    /**
+     * Returns the user-facing label for a given social platform.
+     * @param {string} platform - Social platform name.
+     * @returns {string} Platform label.
+     */
+    getSocialLabel(platform) {
+      return this.getSocialConfig(platform).label
+    },
+
+    /**
+     * Returns the action button label depending on resource type.
+     * @param {Object} item - Reference link item.
+     * @returns {string} Button label.
+     */
+    getActionBtnLabel(item) {
+      if (item.isOfficial) {
+        return this.$t('reference.visit_official')
+      }
+      if (item.id === 'gitlab-repository') {
+        return this.$t('reference.visit_repo')
+      }
+      return this.$t('reference.visit_website')
+    },
   },
 }
 </script>
@@ -1312,7 +1414,9 @@ export default {
           <v-divider></v-divider>
 
           <!-- Card Actions -->
-          <v-card-actions class="px-4 py-3 bg-surface justify-space-between align-center">
+          <v-card-actions
+            class="px-4 py-3 bg-surface d-flex justify-space-between align-center flex-wrap ga-2"
+          >
             <v-btn
               size="small"
               variant="text"
@@ -1323,18 +1427,56 @@ export default {
               {{ $t('reference.copy_link') }}
             </v-btn>
 
-            <v-btn
-              :href="item.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              color="primary"
-              variant="flat"
-              size="small"
-              append-icon="mdi-open-in-new"
-              class="font-weight-bold"
-            >
-              {{ item.isOfficial ? $t('reference.visit_official') : $t('reference.visit_repo') }}
-            </v-btn>
+            <div class="d-flex align-center ga-1 flex-wrap">
+              <!-- Social Media Channels for NGOs & Organizations -->
+              <template v-if="item.socials && item.socials.length">
+                <v-tooltip v-for="social in item.socials" :key="social.platform" location="top">
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      :href="social.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      icon
+                      size="small"
+                      variant="text"
+                      :color="getSocialColor(social.platform)"
+                      :aria-label="getSocialLabel(social.platform)"
+                      class="social-btn"
+                    >
+                      <v-icon v-if="getSocialConfig(social.platform).icon" size="20">
+                        {{ getSocialConfig(social.platform).icon }}
+                      </v-icon>
+                      <svg
+                        v-else-if="getSocialConfig(social.platform).svgPath"
+                        viewBox="0 0 24 24"
+                        width="20"
+                        height="20"
+                        fill="currentColor"
+                        class="d-block"
+                        aria-hidden="true"
+                      >
+                        <path :d="getSocialConfig(social.platform).svgPath" />
+                      </svg>
+                    </v-btn>
+                  </template>
+                  <span>{{ getSocialLabel(social.platform) }}</span>
+                </v-tooltip>
+              </template>
+
+              <v-btn
+                :href="item.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                color="primary"
+                variant="flat"
+                size="small"
+                append-icon="mdi-open-in-new"
+                class="font-weight-bold"
+              >
+                {{ getActionBtnLabel(item) }}
+              </v-btn>
+            </div>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -1384,5 +1526,10 @@ export default {
 }
 .min-height-0 {
   min-height: 0 !important;
+}
+.social-btn {
+  min-width: 32px !important;
+  width: 32px !important;
+  height: 32px !important;
 }
 </style>

@@ -47,7 +47,8 @@ An unofficial, 3rd-party web application designed for **British National (Overse
 - **📖 User Guide & Operation Manual (`InstructionView`)**
   - Interactive step-by-step tutorial with visual screen demonstrations, viewport mode switching (Desktop / Mobile), key dates configuration guidance, rolling 180-day rules explanation, document vault workflow, and an offline privacy & operation FAQ.
 - **🔗 Reference & Official Guidance Page (`ReferenceView`)**
-  - **Curated Official & NGO Resources**: Quick reference page presenting 30 curated official UK Home Office publications, statutory immigration rules (Appendix HK), HMRC tax residence guides, digital share codes, higher education rules, and verified non-commercial registered charities/NGOs in structured cards with search and category filtering.
+  - **Curated Official & NGO Resources**: Quick reference page presenting 40+ curated official UK Home Office publications, statutory immigration rules (Appendix HK), HMRC tax residence guides, digital share codes, higher education rules, and verified non-commercial registered charities/NGOs in structured cards with search and category filtering.
+  - **Verified NGO Social Channels**: Direct access to verified social media handles and channels (Facebook, Instagram, Threads, X/Twitter, YouTube, LinkedIn) for non-government organizations and community support groups.
   - **Category & Search Filters**: Instantly filter official resources by category (BNO Settlement, Policy & Guidance, Qualifications & Tests, Citizenship) or text search.
   - **Direct Links & One-Click Copy**: Convenient action buttons to visit official GOV.UK pages or copy URLs.
 - **👥 Multi-Profile Management & Absence Sharing / Companion Sync**
@@ -271,23 +272,23 @@ Below are key official UK Government (GOV.UK), UK Parliament, and verified non-c
 - **[Prove Your Knowledge of English (B1 Level)](https://www.gov.uk/english-language)**  
   Official requirements and recognized SELT test providers (Trinity, IELTS SELT, PSI) for demonstrating B1 level English.
 - **[Ecctis Qualification Recognition & English Verification](https://www.ecctis.com/)**  
-  Official UK national agency designated for recognizing foreign university degrees and satisfying English requirements without SELT exams.
+  Official UK national agency designated for recognizing foreign university degrees and satisfying English requirements without SELT exams. Verified channel: LinkedIn.
 - **[Apply for British Citizenship by Naturalisation (Form AN)](https://www.gov.uk/apply-citizenship-indefinite-leave-to-remain)**  
   Official guidance and requirements for naturalisation after obtaining ILR, including the 450-day 5-year limit and 90-day final 12-month limit.
 - **[Good Character Caseworker Guidance](https://www.gov.uk/government/publications/good-character-guidance)**  
   Home Office caseworker criteria for assessing character requirements (tax compliance, fines, legal conduct) during citizenship applications.
 - **[Hongkongers in Britain (HKB)](https://www.hongkongers.org.uk/)**  
-  Leading registered charity established by Hongkongers in the UK providing resettlement guides, employment workshops, CV clinics, and mental health support.
+  Leading registered charity established by Hongkongers in the UK providing resettlement guides, employment workshops, CV clinics, and mental health support. Verified channels: Facebook, Instagram, Threads, X (`@HongkongersUK`).
 - **[Hong Kong Watch](https://www.hongkongwatch.org/)**  
-  Registered non-governmental organization (NGO) advocating for BNO holders' rights, MPF pension withdrawal policy briefs, and student fee status.
+  Registered non-governmental organization (NGO) advocating for BNO holders' rights, MPF pension withdrawal policy briefs, and student fee status. Verified channels: Facebook, Instagram, Threads, X (`@hk_watch`), YouTube, LinkedIn.
 - **[Citizens Advice UK](https://www.citizensadvice.org.uk/)**  
-  UK's largest independent advice charity offering free, confidential advice on tenant rights, employment contracts, council tax, and NRPF support.
+  UK's largest independent advice charity offering free, confidential advice on tenant rights, employment contracts, council tax, and NRPF support. Verified channels: Facebook, X (`@CitizensAdvice`), YouTube, LinkedIn.
 - **[Hong Kong Well UK](https://www.hongkongwell.uk/)**  
-  Registered non-profit Community Interest Company (CIC) providing subsidized Cantonese mental health counseling and SEN educational advice for BNO families.
+  Registered non-profit Community Interest Company (CIC) providing subsidized Cantonese mental health counseling and SEN educational advice for BNO families. Verified channels: Facebook, Instagram.
 - **[Hong Kong Aid (HKAID)](https://www.hkaid.org.uk/)**  
-  UK-registered Community Interest Company (CIC) providing regulated immigration advice (OISC Level 3), emergency crisis intervention, temporary accommodation support, and Cantonese mental health counselling for Hong Kongers in the UK.
+  UK-registered Community Interest Company (CIC) providing regulated immigration advice (OISC Level 3), emergency crisis intervention, temporary accommodation support, and Cantonese mental health counselling for Hong Kongers in the UK. Verified channels: Facebook, Instagram, Threads, X (`@hkaiduk`), LinkedIn.
 - **[The Migration Observatory (University of Oxford)](https://migrationobservatory.ox.ac.uk/)**  
-  Independent, non-profit academic research unit based at Oxford University providing data-driven analysis of UK migration policy and BNO population trends.
+  Independent, non-profit academic research unit based at Oxford University providing data-driven analysis of UK migration policy and BNO population trends. Verified channels: X (`@migobs`), YouTube (`@MigrationObservatory`), LinkedIn.
 
 ---
 

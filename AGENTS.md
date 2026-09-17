@@ -27,11 +27,15 @@ _Note: This application is an independent 3rd-party tool provided for personal t
 13. **Unified ZIP Backup & Flexible Import**: One-click export packaging structured data (`backup.yaml`), file manifest index (`files-manifest.yaml`), and binary document files in a folder hierarchy (`files/<folderId>/<filename>`). Import handles both `.zip` archives and standalone `.yaml` files.
 14. **Multi-Profile Management & Companion Absence Sharing**: Independent data environments per family member with cross-profile travel sharing (`syncSharedAbsenceProfiles`), Visa Start & UK Arrival Date eligibility validation (`isProfileShareable`), two-way real-time edit synchronization (`syncUpdatedAbsenceAcrossProfiles`), and companion avatar chip indicators in the expanded records table with dynamic column visibility.
 15. **Search Engine Optimization (SEO) & Social Sharing Cards**:
-
-- Route-level metadata (`<title>`, `<meta name="description">`, keywords, canonical `<link>`) injected via `@unhead/vue` and static site generation (`vite-ssg`).
-- 1200×630px high-resolution Open Graph social preview banner (`og-image.png` / `og-image.svg`) featuring the official app favicon and Union Jack branding.
-- Schema.org JSON-LD structured data: `WebApplication` on `/`, `BreadcrumbList` on `/documents`, `FAQPage` on `/reference`, and `HowTo` + `FAQPage` on `/instruction`.
-- Dynamic `CI_PAGES_URL` integration: Automatically resolves deployment URLs from GitLab CI environment variables, dynamically generating XML sitemaps (`sitemap.xml`) and crawler rules (`robots.txt`) at build time.
+    - Route-level metadata (`<title>`, `<meta name="description">`, keywords, canonical `<link>`) injected via `@unhead/vue` and static site generation (`vite-ssg`).
+    - 1200×630px high-resolution Open Graph social preview banner (`og-image.png` / `og-image.svg`) featuring the official app favicon and Union Jack branding.
+    - Schema.org JSON-LD structured data: `WebApplication` on `/`, `BreadcrumbList` on `/documents`, `FAQPage` on `/reference`, and `HowTo` + `FAQPage` on `/instruction`.
+    - Dynamic `CI_PAGES_URL` integration: Automatically resolves deployment URLs from GitLab CI environment variables, dynamically generating XML sitemaps (`sitemap.xml`) and crawler rules (`robots.txt`) at build time.
+16. **Curated Official Guidance & Verified NGO Social Channels (`ReferenceView.vue`)**:
+    - Curated repository of 40+ official UK Government immigration guidance rules, caseworker decision manuals, statutory residence tax publications, and verified non-profit NGO resources.
+    - **Verified NGO Social Channels**: Direct access to verified social media handles and channels (Facebook, Instagram, Threads, X/Twitter, YouTube, LinkedIn) for non-government organizations and community support groups.
+    - Dynamic responsive icon buttons with theme-adaptive WCAG AA contrast colors and hover tooltips.
+    - Centralized platform configuration (`SOCIAL_PLATFORM_CONFIG` in `src/constants/social.js`) and instant keyword search and category filtering.
 
 ---
 
@@ -361,23 +365,23 @@ The following official UK Government policy publications, statutory rules, tax r
 - **[Prove Your Knowledge of English (B1 Level)](https://www.gov.uk/english-language)**  
   Official guidance on B1 CEFR level English language requirements, recognized SELT test providers (Trinity, IELTS SELT, PSI), UK degree equivalence, and exemptions.
 - **[Ecctis Qualification Recognition & English Verification](https://www.ecctis.com/)**  
-  Official UK national agency designated for recognizing foreign university degrees and satisfying English requirements without SELT exams.
+  Official UK national agency designated for recognizing foreign university degrees and satisfying English requirements without SELT exams. Verified channel: LinkedIn.
 - **[Apply for British Citizenship by Naturalisation (Form AN)](https://www.gov.uk/apply-citizenship-indefinite-leave-to-remain)**  
   Official guidance for British citizenship naturalisation requirements (450-day 5-year limit, 90-day final 12-month limit, and exact 5-year physical presence rule).
 - **[Good Character Caseworker Guidance](https://www.gov.uk/government/publications/good-character-guidance)**  
   Home Office caseworker criteria for assessing character requirements (tax compliance, fines, legal conduct) during citizenship applications.
 - **[Hongkongers in Britain (HKB)](https://www.hongkongers.org.uk/)**  
-  Registered non-profit charity established by Hongkongers in the UK providing resettlement guides, employment workshops, CV clinics, and mental health support.
+  Registered non-profit charity established by Hongkongers in the UK providing resettlement guides, employment workshops, CV clinics, and mental health support. Verified channels: Facebook, Instagram, Threads, X (`@HongkongersUK`).
 - **[Hong Kong Watch](https://www.hongkongwatch.org/)**  
-  Registered non-governmental organization (NGO) advocating for BNO holders' rights, MPF pension withdrawal policy briefs, and student fee status.
+  Registered non-governmental organization (NGO) advocating for BNO holders' rights, MPF pension withdrawal policy briefs, and student fee status. Verified channels: Facebook, Instagram, Threads, X (`@hk_watch`), YouTube, LinkedIn.
 - **[Citizens Advice UK](https://www.citizensadvice.org.uk/)**  
-  UK's largest independent advice charity offering free, confidential advice on tenant rights, employment contracts, council tax, and NRPF support.
+  UK's largest independent advice charity offering free, confidential advice on tenant rights, employment contracts, council tax, and NRPF support. Verified channels: Facebook, X (`@CitizensAdvice`), YouTube, LinkedIn.
 - **[Hong Kong Well UK](https://www.hongkongwell.uk/)**  
-  Registered non-profit Community Interest Company (CIC) providing subsidized Cantonese mental health counseling and SEN educational advice for BNO families.
+  Registered non-profit Community Interest Company (CIC) providing subsidized Cantonese mental health counseling and SEN educational advice for BNO families. Verified channels: Facebook, Instagram.
 - **[Hong Kong Aid (HKAID)](https://www.hkaid.org.uk/)**  
-  UK-registered Community Interest Company (CIC) providing regulated immigration advice (OISC Level 3), emergency crisis intervention, temporary accommodation support, and Cantonese mental health counselling for Hong Kongers in the UK.
+  UK-registered Community Interest Company (CIC) providing regulated immigration advice (OISC Level 3), emergency crisis intervention, temporary accommodation support, and Cantonese mental health counselling for Hong Kongers in the UK. Verified channels: Facebook, Instagram, Threads, X (`@hkaiduk`), LinkedIn.
 - **[The Migration Observatory (University of Oxford)](https://migrationobservatory.ox.ac.uk/)**  
-  Independent, non-profit academic research unit based at Oxford University providing data-driven analysis of UK migration policy and BNO population trends.
+  Independent, non-profit academic research unit based at Oxford University providing data-driven analysis of UK migration policy and BNO population trends. Verified channels: X (`@migobs`), YouTube (`@MigrationObservatory`), LinkedIn.
 
 ---
 

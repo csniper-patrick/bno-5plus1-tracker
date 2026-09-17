@@ -374,6 +374,8 @@ The following official UK Government policy publications, statutory rules, tax r
   UK's largest independent advice charity offering free, confidential advice on tenant rights, employment contracts, council tax, and NRPF support.
 - **[Hong Kong Well UK](https://www.hongkongwell.uk/)**  
   Registered non-profit Community Interest Company (CIC) providing subsidized Cantonese mental health counseling and SEN educational advice for BNO families.
+- **[Hong Kong Aid (HKAID)](https://www.hkaid.org.uk/)**  
+  UK-registered Community Interest Company (CIC) providing regulated immigration advice (OISC Level 3), emergency crisis intervention, temporary accommodation support, and Cantonese mental health counselling for Hong Kongers in the UK.
 - **[The Migration Observatory (University of Oxford)](https://migrationobservatory.ox.ac.uk/)**  
   Independent, non-profit academic research unit based at Oxford University providing data-driven analysis of UK migration policy and BNO population trends.
 

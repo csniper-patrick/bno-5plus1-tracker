@@ -1,4 +1,4 @@
-# BNO 5+1 Tracker (Unofficial 3rd-Party App) 🇬🇧✈️
+# BNO 5+1 Tracker
 
 [![Vue 3](https://img.shields.io/badge/Vue-3.5-4fc08d.svg?logo=vuedotjs)](https://vuejs.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.2-646cff.svg?logo=vite)](https://vite.dev/)
@@ -9,295 +9,246 @@
 [![PWA](https://img.shields.io/badge/PWA-Ready-5A0FC8.svg?logo=pwa)](https://github.com/vite-pwa/vite-plugin-pwa)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-An unofficial, 3rd-party web application designed for **British National (Overseas) (BNO) visa holders** to track, calculate, and manage travel absences, qualifications, supporting documents, and address history from the United Kingdom on the "5+1" route toward **Indefinite Leave to Remain (ILR / UK Settlement)** and **British Citizenship (Naturalisation)**.
+BNO 5+1 Tracker is an unofficial web application for British National (Overseas) visa holders. You can track travel absences, test certificates, residence documents, and address history in the United Kingdom. The application calculates qualifying timelines for Indefinite Leave to Remain (ILR) and British Citizenship.
 
-*Note: This is an independent 3rd-party utility and is NOT affiliated with, endorsed by, or connected to the UK Home Office or the UK Government.*
-
----
-
-## 🌟 Key Features
-
-- **🌐 Full Internationalization (i18n) Support**
-  - Complete dual-language support for **English (`en`)** and **Traditional Chinese (Hong Kong) (`zh-HK`)** across all UI views, forms, modals, tables, badges, and official guidance pages powered by `vue-i18n`.
-  - Convenient top app bar language switcher button (`EN` / `繁`) with automatic `localStorage` (`bno_tracker_locale`) user preference persistence.
-- **✈️ UK Home Office Rules-Aligned Absence Calculation**
-  - Automatically excludes departure (start) and return (end) dates from full-day absence counts, matching UK Home Office guidance (days where part of the 24 hours is spent in the UK do not count as full days absent).
-- **📅 Visa & Arrival Date Synchronization & Optional Visa Expiry**
-  - Track your **BNO Visa Start Date**, optional **Visa Expiry Date** (defaults to 5 years after visa start), **UK Arrival Date**, and optional **ILR Approved Date**.
-  - Supports users starting with a 30-month visa or custom visa extensions.
-  - Automatically generates and syncs initial pre-arrival absence records if your UK arrival date differs from your visa start date.
-- **🛡️ 5-Year Sliding Window ILR Limit Monitoring & Period Delay**
-  - Evaluates absences across all continuous rolling 365-day windows during your 5-year qualifying period to ensure alignment with the **180-day maximum limit** for ILR.
-  - If the 180-day rule cannot be satisfied within the baseline 5 years, the qualifying period automatically shifts/delays forward to the earliest subsequent compliant 5-year window, highlighted with yellow **"Delayed"** warnings and active peak absence scanning.
-- **🇬🇧 British Citizenship (Naturalisation) Absence Limits & Chaining**
-  - **Inherited ILR Chaining**: When ILR is delayed, the Naturalisation qualifying period baseline target date automatically inherits `ilrTargetDate + 1 year`.
-  - Checks **5-Year Naturalisation Limit** (maximum **450 days** absent in the 5 years prior to application).
-  - Checks **Final 12-Month Limit** (maximum **90 days** absent in the final year post-ILR).
-  - Enforces physical presence requirement: Automatically checks if the applicant was present in the UK 5 years prior to application, advancing the window start date if it falls on an absent day.
-- **🪪 BNO Visa Overview Card**
-  - Summarizes Visa Start Date, Visa Expiry Date (with Default 5-Year / Custom badges and dynamic countdowns when in the future), Earliest ILR Settlement Date, and displays prominent yellow extension warning alerts if visa extension is needed before ILR qualification.
-- **📋 Document & Qualification Tracker & Document Vault (`DocumentView`)**
-  - **National Insurance Number (NI)**: Track your NIN format in standard UK space-delimited format (e.g., `QQ 12 34 56 A`), application status (auto-promoted to "Received" upon entering an NI number), and official HMRC confirmation letters.
-  - **Life in the UK Test**: Track status (Not Started / Scheduled / Passed), test date, Unique Reference Number (URN), test center location, and notes.
-  - **English Language Requirement (B1)**: Track pathway (B1 SELT Test, UK Degree, Ecctis/ENIC Statement, Exemption), provider, test date, and certificate reference.
-  - **Adaptive 3-Tier Responsive Card Arrangement**: Layout automatically adapts across viewports (Wide: Title banner above 3 side-by-side cards with NI on left; Medium: Title + NI on top row, Life in UK + B1 English on second row; Mobile: vertically stacked single column).
-  - **5-Year Continuous Residence Evidence Checklist**: Year-by-year checklist (Years 1 to 5) covering Council Tax, P60/Tax, Bank Statements, Housing proof, Utility Bills, and custom evidence items.
-  - **UK Address History Log**: Log residential addresses lived at during your 5-year qualifying period (Move-in/out dates, postcode, tenure type) required for Home Office SET(O) and Naturalisation AN application forms.
-  - **📁 Document Vault**: Drag-and-drop file upload zone supporting PDFs, images (JPG, PNG, WebP, HEIC), and text files up to 10 MB. Organize files into folders (`Year 1-5`, `Life in UK`, `English B1`, `Addresses`, `Other`), open files directly in a new browser tab (`window.open`), edit file notes, rename/move files, and link files directly to specific residence checklist items with paperclip count indicators.
-- **📖 User Guide & Operation Manual (`InstructionView`)**
-  - Interactive step-by-step tutorial with visual screen demonstrations, viewport mode switching (Desktop / Mobile), key dates configuration guidance, rolling 180-day rules explanation, document vault workflow, and an offline privacy & operation FAQ.
-- **🔗 Reference & Official Guidance Page (`ReferenceView`)**
-  - **Curated Official & NGO Resources**: Quick reference page presenting 40+ curated official UK Home Office publications, statutory immigration rules (Appendix HK), HMRC tax residence guides, digital share codes, higher education rules, and verified non-commercial registered charities/NGOs in structured cards with search and category filtering.
-  - **Verified NGO Social Channels**: Direct access to verified social media handles and channels (Facebook, Instagram, Threads, X/Twitter, YouTube, LinkedIn) for non-government organizations and community support groups.
-  - **Category & Search Filters**: Instantly filter official resources by category (BNO Settlement, Policy & Guidance, Qualifications & Tests, Citizenship) or text search.
-  - **Direct Links & One-Click Copy**: Convenient action buttons to visit official GOV.UK pages or copy URLs.
-- **👥 Multi-Profile Management & Absence Sharing / Companion Sync**
-  - Track multiple family members (e.g. Main Applicant, Spouse, Dependants) with independent key visa dates, travel records, continuous residence checklists, and document vaults in isolated profile environments.
-  - **Shared Absence Journeys ("Shared With" / 「同行成員」)**: Conveniently share travel records across profiles using the "Shared With..." dialog with individual selection and select-all/clear capabilities.
-  - **Visa Start & UK Arrival Date Eligibility Validation**: Automatically checks companion profiles' configured Visa Start Dates and UK Arrival Dates against absence departure dates, disabling ineligible profiles with high-contrast amber warnings (`Before visa start` / `Before UK arrival` / `Visa start date not set`) to prevent invalid cross-profile entries.
-  - **Real-Time Cross-Profile Synchronization**: Edits made to a shared trip (dates, destinations, stops) automatically sync across all companion profiles sharing that record ID.
-  - **Companion Avatar Chips & Dynamic Visibility**: The expanded table view displays profile avatar chips with initial letters and distinct colors for family members sharing each journey. The column automatically hides when only a single profile exists.
-- **🧭 Right Navigation Drawer & Consolidated Data Management**
-  - Quick-switch side drawer toggled via top bar hamburger menu (`mdi-menu`).
-  - Unified **ZIP Backup Export & Flexible Import**: One-click export producing a `.zip` archive bundling structured data (`backup.yaml`), a YAML metadata index (`files-manifest.yaml`), and binary document files in a folder tree (`files/<folderId>/<filename>`). Import auto-detects both `.zip` archives and standalone `.yaml` files.
-  - Global **Clear All Data** modal with safety confirmation.
-- **⚡ High-Performance Segment Tree Engine (`AbsenceSegmentTree`)**
-  - Utilizes a custom $O(\log N)$ **Segment Tree** data structure over a 10-year day-by-day array to deliver lightning-fast custom date range queries, $O(1)$ point queries (`queryPoint`), and real-time sliding window calculations.
-- **📊 Settlement & Naturalisation Timeline**
-  - Calculates your exact **Earliest ILR Settlement Date**, **Earliest ILR Application Date** (28 days prior), and **Target Naturalisation Date**, displaying dynamic countdowns in brackets (e.g., `2 yrs to go`, `3 mos to go`, `12 days to go`) for future dates.
-- **🎨 Modern Responsive Vuetify 3 UI**
-  - Features Union Jack Dark/Light theme toggling, 3-dots vertical action menus for table rows, context-aware form controls, status chips, and intuitive 2-line Key Dates modal forms.
-- **🔍 Search Engine Optimization (SEO) & Social Sharing Cards**
-  - Route-specific titles, meta descriptions, bilingual keywords (EN / 繁體中文), canonical links, and Open Graph / Twitter Card social previews managed via `@unhead/vue` and pre-rendered with `vite-ssg`.
-  - 1200×630px high-resolution Open Graph social preview banner (`og-image.png`) embedding the official app favicon and Union Jack branding.
-  - Schema.org JSON-LD structured data for rich search engine snippets: `WebApplication` on `/`, `BreadcrumbList` on `/documents`, `FAQPage` on `/reference`, and `HowTo` + `FAQPage` on `/instruction`.
-  - Dynamic `CI_PAGES_URL` integration with automated build-time XML sitemap (`sitemap.xml`) and crawler directives (`robots.txt`) generation for GitLab Pages.
-- **💾 Local Device Storage & Data Privacy (IndexedDB Schema v2)**
-  - All data input (travel dates, visa details, test certificates, continuous residence checklists, address history, and uploaded document blobs) is stored strictly locally on your device in browser `IndexedDB` (using `app_state` and `files` object stores). No data is uploaded, collected, or transmitted to any external server.
-- **⚡ PWA Offline Support**
-  - Progressive Web App capability via `vite-plugin-pwa` allowing full offline usage on mobile and desktop devices.
+This application is an independent third-party tool. The application is not affiliated with, endorsed by, or connected to the UK Home Office or the UK Government.
 
 ---
 
-## 📐 UK Home Office Rules Overview
+## Key Features
 
-| Stage | Rule | Requirement / Limit | Description |
-| :--- | :--- | :--- | :--- |
-| **General** | **Full Day Absence** | Departure & Return Excluded | Only full 24-hour days spent entirely outside the UK count as days absent. Departure and arrival dates are excluded. |
-| **ILR** | **Rolling 12-Month Limit** | Max **180 days** | No more than 180 days absent in any continuous rolling 365-day period across the qualifying period. |
-| **ILR** | **Qualifying Period** | **5-Year Sliding Window** | 5 years continuous residence starting from BNO Visa Start / UK Arrival Date. Automatically delays forward if the 180-day rule is violated. |
-| **ILR** | **Visa Validity & Extension** | Variable Expiry | Default 5-year valid period with optional custom expiry date. Displays yellow alert if extension is needed prior to earliest ILR settlement date. |
-| **ILR** | **Earliest Application** | **28 Days Prior** | ILR application can be submitted up to 28 days before completing the 5-year qualifying period. |
-| **Qualifications** | **Life in the UK & B1** | Mandatory Tests | Pass certificate / URN required for ILR (SET(O)) and Naturalisation (AN). |
-| **Residence** | **Address History & Proof** | Full 5-Year History | Official evidence of address (Council tax, P60s, utilities) and complete address log required. |
-| **Citizenship** | **5-Year Absence Limit** | Max **450 days** | Total absent days in the 5 years immediately preceding application date must not exceed 450 days. |
-| **Citizenship** | **Final 12-Month Limit** | Max **90 days** | Total absent days in the 12 months immediately preceding application date must not exceed 90 days. |
-| **Citizenship** | **Presence Requirement** | Physical presence in UK | Must have been physically present in the UK on the exact day 5 years prior to application. |
+- Internationalization: The user interface supports English (`en`) and Traditional Chinese (`zh-HK`). You can switch the language in the top bar. The application saves your language preference to local storage.
+- Day-count calculations: Departure and return dates are excluded from absent day counts. The Home Office counts only full 24-hour days outside the UK as absences.
+- Key date tracking: You can record your visa start date, your UK arrival date, your visa expiration date, and your approved settlement date. If your arrival date differs from your visa start date, the application creates an initial absence record.
+- Settlement absence monitoring: The application calculates absent days in each rolling 365-day period. If absences exceed 180 days in a period, the application delays the 5-year qualifying window forward to the earliest compliant date.
+- Citizenship absence monitoring: The application evaluates the 450-day limit for the 5-year period and the 90-day limit for the final 12 months. The application makes sure that you were physically present in the UK exactly 5 years before the application date.
+- Visa summary card: The card shows your visa start date, your visa expiration date, and your earliest settlement date. If your visa expires before your settlement date, the card shows a warning.
+- Qualification tracking: You can record your National Insurance number, your Life in the UK test details, and your English B1 qualification pathway.
+- Continuous residence checklist: You can track residence evidence across years 1 through 5, including council tax, tax records, bank statements, and utility bills.
+- Address history log: You can record past UK residential addresses with move-in dates, move-out dates, postal codes, and tenancy types.
+- Document vault: You can store files up to 10 MB in the browser. You can organize files into folders, view files in a new tab, and link files to checklist items.
+- User guide: An interactive guide shows desktop and mobile screen captures, feature steps, and answers to common operational questions.
+- Guidance and community links: The reference page lists official UK Government guidance documents, statutory rules, tax guides, and verified non-government organization channels.
+- Multi-profile management: You can track records for multiple family members in isolated profiles. You can share travel journeys across profiles that meet visa date requirements. Edits to shared journeys update across all linked profiles.
+- Data export and import: You can export your data as a `.zip` archive that contains a YAML backup, a file manifest, and stored documents. You can import `.zip` archives or standalone `.yaml` files.
+- Segment tree calculations: The calculation engine uses a segment tree data structure to compute range queries and sliding window counts in constant time.
+- Search engine optimization: Pre-rendered static pages include metadata tags, social preview images, and Schema.org structured data.
+- Local storage and privacy: The application stores your data only in browser IndexedDB storage on your device. The application does not send data to external servers.
+- Offline support: The progressive web application runs offline on desktop and mobile browsers.
 
 ---
 
-## 🚀 Quick Start
+## UK Home Office Rules Summary
+
+| Stage          | Rule                   | Limit or requirement                | Description                                                                                                                             |
+| :------------- | :--------------------- | :---------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| General        | Full day absence       | Departure and return dates excluded | Only full 24-hour days outside the UK count as absences. Departure and arrival dates do not count as absences.                          |
+| ILR            | Rolling 12-month limit | Maximum 180 days                    | Absences must not exceed 180 days in any rolling 365-day period during the qualifying period.                                           |
+| ILR            | Qualifying period      | 5-year sliding window               | Continuous residence lasts 5 years from your visa start date or UK arrival date. The window shifts forward if absences exceed 180 days. |
+| ILR            | Visa expiration        | Set by visa                         | Visas last 5 years by default. The application shows an alert if your visa expires before your earliest settlement date.                |
+| ILR            | Earliest application   | 28 days before                      | You can submit your settlement application up to 28 days before you complete 5 years of continuous residence.                           |
+| Qualifications | Mandatory tests        | Life in the UK and English B1       | You must pass the Life in the UK test and meet the English B1 requirement for settlement and citizenship.                               |
+| Residence      | Address proof          | 5-year history                      | You must provide evidence of address, such as council tax bills, tax records, and utility bills.                                        |
+| Citizenship    | 5-year absence limit   | Maximum 450 days                    | Total absences must not exceed 450 days in the 5 years before your application date.                                                    |
+| Citizenship    | Final 12-month limit   | Maximum 90 days                     | Total absences must not exceed 90 days in the 12 months before your application date.                                                   |
+| Citizenship    | Physical presence      | Present in the UK                   | You must have been physically present in the UK on the exact date 5 years before your application date.                                 |
+
+---
+
+## Quick Start
 
 ### Prerequisites
 
-- **Node.js**: `^22.18.0` or `>=24.12.0`
-- **npm**: `^10.0.0` or higher
+Make sure that your system has the required software:
 
-### Installation & Setup
+- Node.js version `^22.18.0` or `>=24.12.0`
+- npm version `^10.0.0` or higher
 
-1. **Clone the repository**:
+### Installation and Setup
+
+1. Clone the repository:
+
    ```bash
    git clone https://github.com/your-username/bno-5plus1-tracker.git
    cd bno-5plus1-tracker
    ```
 
-2. **Install dependencies**:
+2. Install dependencies:
+
    ```bash
    npm install
    ```
 
-3. **Run the development server**:
+3. Start the local development server:
+
    ```bash
    npm run dev
    ```
-   Open your browser at `http://localhost:5173`.
+
+4. Open your browser at `http://localhost:5173`.
 
 ---
 
-## 🛠️ NPM Scripts
+## NPM Scripts
 
-| Command | Description |
-| :--- | :--- |
-| `npm run dev` | Starts the Vite local development server with hot module reloading. |
-| `npm run build` | Compiles production bundle into `dist/`. |
-| `npm run preview` | Serves the locally built `dist/` production bundle. |
-| `npm run test` | Runs the full test pipeline (Unit test suite + Playwright E2E tests). |
-| `npm run test:unit` | Runs Node native unit test suite (`tests/*.test.js`). |
-| `npm run test:e2e` | Runs Playwright end-to-end browser tests. |
-| `npm run test:e2e:ui` | Runs Playwright test inspector in interactive UI mode. |
-| `npm run capture:screenshots` | Runs Playwright screen capture script to generate desktop and mobile instruction guide screenshots (`public/instructions/`). |
-| `npm run format` | Runs Prettier to format all source code files in `src/`. |
+| Command                       | Description                                                     |
+| :---------------------------- | :-------------------------------------------------------------- |
+| `npm run dev`                 | Starts the Vite development server with hot module replacement. |
+| `npm run build`               | Compiles the production bundle into the `dist/` directory.      |
+| `npm run preview`             | Serves the local production build from the `dist/` directory.   |
+| `npm run test`                | Runs all unit tests and Playwright end-to-end tests.            |
+| `npm run test:unit`           | Runs the Node.js native unit test suite.                        |
+| `npm run test:e2e`            | Runs Playwright browser tests in headless mode.                 |
+| `npm run test:e2e:ui`         | Opens the Playwright test runner in interactive mode.           |
+| `npm run capture:screenshots` | Generates desktop and mobile screenshots for the user guide.    |
+| `npm run format`              | Formats source files with Prettier.                             |
 
 ---
 
-## 🏗️ Project Architecture
+## Project Architecture
 
-```
+```text
 bno-5plus1-tracker/
-├── e2e/                   # Playwright E2E UI & screenshot generation tests
-│   ├── app-ui.spec.js                         # E2E application user flow & UI test suite
-│   └── generate-instruction-screenshots.spec.js # Automated desktop & mobile user guide screenshot generator
-├── public/                # Static assets, PWA icons, OG social banner & user guide instructions
-│   ├── instructions/      # Desktop (step*.png) & mobile (narrow_step*.png) screenshots
-│   ├── og-image.png       # 1200x630px high-resolution Open Graph social preview banner (with app favicon)
-│   └── og-image.svg       # Vector source for Open Graph social banner
+├── e2e/                       # Playwright end-to-end and screenshot tests
+│   ├── app-ui.spec.js                             # End-to-end user flow test suite
+│   └── generate-instruction-screenshots.spec.js   # Automated screenshot generator
+├── public/                    # Static assets, icons, social banner, and guide images
+│   ├── instructions/          # Desktop and mobile guide screenshots
+│   ├── og-image.png           # Social preview banner
+│   └── og-image.svg           # Vector source for social preview banner
 ├── src/
-│   ├── assets/            # Global styles (main.css)
-│   ├── components/        # UI components
-│   │   ├── absence/       # Modular Absence Tracker subcomponents
-│   │   │   ├── AbsenceFormCard.vue           # Multi-stop graph timeline flow editor
-│   │   │   ├── AbsenceOverviewHeader.vue     # Title card & BNO Visa overview header
-│   │   │   ├── AbsenceRecordsTable.vue       # Absence list with full/compact timeline modes
-│   │   │   ├── AbsenceRuleStatusCards.vue    # ILR rolling 180-day & Citizenship 450/90-day status cards
-│   │   │   ├── AbsenceShareDialog.vue        # Companion profile journey sharing modal
-│   │   │   ├── DateRangeQueryCard.vue        # Segment Tree custom range query tool
-│   │   │   └── KeyDatesDialog.vue            # Key Visa start, expiry, arrival & ILR dates modal
-│   │   ├── document/      # Modular Document Readiness subcomponents
-│   │   │   ├── AddressHistorySection.vue     # UK address history table & add/edit/delete modals
-│   │   │   ├── DocumentHeaderCard.vue        # Readiness circular chart & requirement summaries
-│   │   │   ├── DocumentVaultSection.vue      # Document vault with dropzone, table & file modals
-│   │   │   ├── EnglishLanguageCard.vue       # English B1 requirement pathway, provider & status
-│   │   │   ├── LifeInUkCard.vue              # Life in the UK test status, date & URN
-│   │   │   ├── NationalInsuranceCard.vue     # NIN status toggle & auto-formatting input
-│   │   │   └── ResidenceChecklistSection.vue # 5-Year continuous residence accordion & custom items
-│   │   ├── ProfileDrawerSection.vue          # Side drawer multi-profile selector & management
-│   │   ├── ProfileManagementDialog.vue       # Modal dialog for managing applicant profiles
-│   │   └── ReloadPrompt.vue                  # PWA service worker update notification prompt
-│   ├── locales/           # i18n translation dictionaries
-│   │   ├── en.js          # English localization dictionary
-│   │   └── zh-HK.js       # Traditional Chinese (HK) localization dictionary
-│   ├── plugins/           # Vuetify 3 theme & i18n configuration (vuetify.js, i18n.js)
-│   ├── router/            # Vue Router routes (index.js)
-│   ├── services/          # Services & Data I/O
-│   │   ├── dbService.js               # IndexedDB initialisation & v2 schema migration
-│   │   ├── fileStorageService.js      # IndexedDB binary blob CRUD service ('files' object store)
-│   │   ├── backupService.js           # YAML export/import service with node-level comments
-│   │   ├── zipService.js              # JSZip backup archiving & extraction service
-│   │   ├── profileService.js          # Multi-profile management & data swapping engine
-│   │   └── schemaValidationService.js # Strict YAML & backup schema validation engine
-│   ├── stores/            # Pinia stores
-│   │   ├── absents.js     # Absence store (useAbsentsStore) & segment tree syncing
-│   │   ├── documents.js   # Document & file store (useDocumentsStore)
-│   │   └── profiles.js    # Multi-profile store (useProfilesStore)
-│   ├── utils/             # Helper utilities
-│   │   ├── date.js        # Centralized UTC date parsing, formatting & day math
-│   │   ├── segmentTree.js # AbsenceSegmentTree O(log N) data structure
-│   │   ├── seo.js         # Centralized SEO metadata, canonical URLs, OG/Twitter tags & Schema.org JSON-LD engine
-│   │   ├── format.js      # Text formatting helper utilities
-│   │   └── id.js          # Unique ID generator utility
-│   ├── views/             # Application views
-│   │   ├── AbsenceView.vue     # Absence tracker dashboard (orchestrates absence/ subcomponents)
-│   │   ├── DocumentView.vue    # Qualifications & Document Vault (orchestrates document/ subcomponents)
-│   │   ├── ReferenceView.vue   # Useful links & official guidance page
-│   │   └── InstructionView.vue # User guide & operation manual with responsive screenshots
-│   ├── App.vue            # Root layout with right navigation drawer & language switcher
-│   └── main.js            # Vue app entrypoint with i18n plugin initialization
-├── tests/                 # Automated unit test suite
-│   ├── tracker.test.js            # Core absence store, segment tree & backup unit tests
-│   ├── profiles.test.js           # Multi-profile isolation, swapping & companion sync tests
-│   ├── components_and_e2e.test.js # E2E user flows & binary file upload integration tests
-│   ├── indexeddb_emulation.test.js# IndexedDB app_state & files object store tests
-│   ├── seo.test.js                # SEO metadata, dynamic CI_PAGES_URL, sitemap.xml & Schema.org JSON-LD tests
-│   └── validation.test.js         # Strict YAML schema validation & date utility edge case tests
-├── AGENTS.md              # AI Agent workspace context & guidelines
-├── .gitlab-ci.yml         # GitLab CI/CD pipeline for GitLab Pages
-├── index.html             # HTML entry template
-├── package.json           # App manifest and dependencies
-├── playwright.config.js   # Playwright configuration with testIgnore isolation
-└── vite.config.js         # Vite build configuration with Vuetify, VitePWA & dynamic SEO plugins
+│   ├── assets/                # Global stylesheet files
+│   ├── components/            # UI components
+│   │   ├── absence/           # Absence tracker subcomponents
+│   │   │   ├── AbsenceFormCard.vue               # Travel record editor
+│   │   │   ├── AbsenceOverviewHeader.vue         # Visa overview banner
+│   │   │   ├── AbsenceRecordsTable.vue           # Absence list table
+│   │   │   ├── AbsenceRuleStatusCards.vue        # Absence rule status cards
+│   │   │   ├── AbsenceShareDialog.vue            # Profile journey sharing dialog
+│   │   │   ├── DateRangeQueryCard.vue            # Custom date range query card
+│   │   │   └── KeyDatesDialog.vue                # Key visa dates modal dialog
+│   │   ├── document/          # Document and qualification subcomponents
+│   │   │   ├── AddressHistorySection.vue         # UK address history table and dialogs
+│   │   │   ├── DocumentHeaderCard.vue            # Readiness chart and status summary
+│   │   │   ├── DocumentVaultSection.vue          # File upload area and file table
+│   │   │   ├── EnglishLanguageCard.vue           # English B1 pathway card
+│   │   │   ├── LifeInUkCard.vue                  # Life in the UK test card
+│   │   │   ├── NationalInsuranceCard.vue         # National Insurance card
+│   │   │   └── ResidenceChecklistSection.vue     # Continuous residence checklist
+│   │   ├── ProfileDrawerSection.vue              # Profile drawer selector
+│   │   ├── ProfileManagementDialog.vue           # Profile management dialog
+│   │   └── ReloadPrompt.vue                      # Service worker update prompt
+│   ├── locales/               # Translation dictionary files
+│   │   ├── en.js              # English dictionary
+│   │   └── zh-HK.js           # Traditional Chinese dictionary
+│   ├── plugins/               # Vuetify and i18n initialization
+│   ├── router/                # Vue Router route definitions
+│   ├── services/              # Data services and file operations
+│   │   ├── dbService.js               # IndexedDB initialization and schema migration
+│   │   ├── fileStorageService.js      # IndexedDB binary file storage service
+│   │   ├── backupService.js           # YAML export and import service
+│   │   ├── zipService.js              # ZIP backup compression and extraction
+│   │   ├── profileService.js          # Multi-profile data swapping service
+│   │   └── schemaValidationService.js # YAML and manifest schema validation
+│   ├── stores/                # Pinia state stores
+│   │   ├── absents.js         # Absence records and segment tree state
+│   │   ├── documents.js       # Document records and file metadata state
+│   │   └── profiles.js        # Multi-profile state
+│   ├── utils/                 # Utility functions
+│   │   ├── date.js            # Date parsing and calculation utilities
+│   │   ├── segmentTree.js     # Segment tree data structure
+│   │   ├── seo.js             # Metadata and structured data generator
+│   │   ├── format.js          # String formatting helpers
+│   │   └── id.js              # Unique identifier generator
+│   ├── views/                 # Primary page views
+│   │   ├── AbsenceView.vue    # Absence tracker view
+│   │   ├── DocumentView.vue   # Document readiness view
+│   │   ├── ReferenceView.vue  # Guidance links view
+│   │   └── InstructionView.vue# User guide view
+│   ├── App.vue                # Main layout with navigation drawer
+│   └── main.js                # Application initialization entrypoint
+├── tests/                     # Automated unit tests
+│   ├── tracker.test.js                # Absence store and segment tree tests
+│   ├── profiles.test.js               # Multi-profile isolation and sync tests
+│   ├── components_and_e2e.test.js     # Component integration tests
+│   ├── indexeddb_emulation.test.js    # IndexedDB storage tests
+│   ├── seo.test.js                    # Metadata and sitemap generator tests
+│   └── validation.test.js             # Schema validation and date tests
+├── AGENTS.md                  # AI agent context router
+├── .agents/                   # Modular agent rules, workflows, skills, and documentation
+├── .gitlab-ci.yml             # GitLab CI deployment pipeline
+├── index.html                 # HTML entry template
+├── package.json               # Package dependencies and scripts
+├── playwright.config.js       # Playwright test configuration
+└── vite.config.js             # Vite build configuration
 ```
 
-### Key Modules & Data Structures
+### Key Modules and Data Structures
 
-- **[AbsenceSegmentTree](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/segmentTree.js)**: 1-indexed array-backed segment tree (`Int32Array`) using standard `leftNode = 2 * node` and `rightNode = 2 * node + 1` child indexing (0th index unused), initialized to zero by default, supporting $O(1)$ point queries (`queryPoint`), $O(1)$ per-step sliding window rolling updates, $O(D \log N)$ interval range updates (`updateRange`, $D = \text{range length}$), and $O(\log N)$ range sum queries (`query`) over a 10-year period (3,653 days).
-- **[seo.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/seo.js)**: Centralized SEO and structured data engine. Dynamically resolves base deployment URLs from GitLab CI (`CI_PAGES_URL` / `VITE_CI_PAGES_URL`), produces route-specific `<title>`, `<meta name="description">`, keywords, canonical `<link>` tags, and generates Schema.org JSON-LD structured data (`WebApplication`, `BreadcrumbList`, `FAQPage`, `HowTo`) alongside XML sitemaps and crawler `robots.txt` directives.
-- **[date.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/utils/date.js)**: Centralized UTC date parsing (`parseDateUTC`), formatting (`formatDateUTC`, `formatDisplayDate`), normalization (`normalizeDate`), day arithmetic (`calculateDays`, `getOneDayBefore`), and tree boundary calculations (`getMaxSegmentTreeReturnDate`).
-- **[dbService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/dbService.js)**: Database service managing IndexedDB open/upgrade transactions, supporting `app_state` (key-value) and `files` (file blobs with `folderId` index) object stores under DB Schema Version 2.
-- **[fileStorageService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/fileStorageService.js)**: Dedicated IndexedDB binary blob service handling file record persistence, on-demand blob retrieval, size formatting, object URL creation, and metadata queries.
-- **[profileService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/profileService.js)** & **[useProfilesStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/profiles.js)**: Multi-profile management engine supporting isolated tracking for multiple family members, active profile switching, data swapping, duplication, renaming, cross-profile absence journey sharing with visa start date eligibility validation (`syncSharedAbsenceProfiles`), two-way real-time edit synchronization (`syncUpdatedAbsenceAcrossProfiles`), and companion lookup (`getProfilesSharingAbsence`).
-- **[schemaValidationService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/schemaValidationService.js)**: Strict schema validation engine enforcing YAML backup structure and ZIP manifest integrity (`backup.yaml` and `files-manifest.yaml`).
-- **[backupService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/backupService.js)**: Consolidated YAML backup service for structured data exports/imports with node-level comments.
-- **[zipService.js](file:///Users/csniper/Projects/bno-5plus1-tracker/src/services/zipService.js)**: ZIP archiving engine using `jszip` and `yaml` serialization to package `backup.yaml`, `files-manifest.yaml`, and document file blobs into `.zip` archives.
-- **[locales/](file:///Users/csniper/Projects/bno-5plus1-tracker/src/locales)**: Internationalization translation dictionaries (`en.js` & `zh-HK.js`) providing full English and Traditional Chinese (HK) translations for all application views, forms, dialogs, badges, and official link cards.
-- **[useAbsentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/absents.js)**: Pinia store handling absence records, visa/arrival/ILR dates, auto-arrival record sync, and $O(1)$ sliding-window rolling calculation getters (`max12MonthAbsenceInfo`, `naturalizationQualifyingPeriod`).
-- **[useDocumentsStore](file:///Users/csniper/Projects/bno-5plus1-tracker/src/stores/documents.js)**: Pinia store managing Life in the UK test details, English B1 qualification, 5-year continuous residence checklist, UK address history log, and uploaded file metadata state.
+- [AbsenceSegmentTree](src/utils/segmentTree.js): A 1-indexed segment tree that uses an `Int32Array` buffer. It stores daily travel state over 10 years (3,653 days). It supports point queries in constant time, rolling window updates in constant time, and range sum queries in logarithmic time.
+- [seo.js](src/utils/seo.js): An engine that creates search metadata and structured data. It reads base URLs from GitLab CI variables. It creates page titles, descriptions, canonical links, social preview tags, and Schema.org JSON-LD definitions. It also creates `sitemap.xml` and `robots.txt` files during build.
+- [date.js](src/utils/date.js): A utility for date calculations in UTC. It parses and formats `YYYY-MM-DD` strings. It calculates absent days, computes day offsets, and finds date boundaries for the segment tree.
+- [dbService.js](src/services/dbService.js): A database service for browser IndexedDB storage. It initializes database schema version 2. It manages the `app_state` store for key-value data and the `files` store for document blobs.
+- [fileStorageService.js](src/services/fileStorageService.js): A service that manages document files in IndexedDB. It stores and retrieves binary data, creates temporary object URLs for viewing, and enforces a 10 MB file size limit.
+- [profileService.js](src/services/profileService.js) and [useProfilesStore](src/stores/profiles.js): Services that manage data for multiple user profiles. They swap active profile data, duplicate profiles, and share journeys between family members who meet visa start date rules.
+- [schemaValidationService.js](src/services/schemaValidationService.js): A validation service that inspects imported YAML backups and ZIP manifests. It rejects corrupted files, invalid dates, and malformed records.
+- [backupService.js](src/services/backupService.js): A service that exports and imports application data as YAML files with comments.
+- [zipService.js](src/services/zipService.js): An archiving service that packages application state, manifest indexes, and document files into `.zip` archives.
+- [locales/](src/locales): Translation files for English (`en.js`) and Traditional Chinese (`zh-HK.js`). They supply translated text for all views, dialogs, badges, and guidance cards.
+- [useAbsentsStore](src/stores/absents.js): A Pinia store for travel records, key dates, and absence calculations. It synchronizes records with the segment tree and monitors rolling 180-day limits.
+- [useDocumentsStore](src/stores/documents.js): A Pinia store for settlement requirements. It tracks test records, address history entries, residence checklists, and uploaded file metadata.
 
-### 🔄 Development & Maintenance Routines
+### Development and Maintenance Routines
 
-- **Instruction Page & Responsive Screen Capture Procedure ([InstructionView.vue](file:///Users/csniper/Projects/bno-5plus1-tracker/src/views/InstructionView.vue))**:
-  - Run `npm run capture:screenshots` to execute the automated Playwright script ([generate-instruction-screenshots.spec.js](file:///Users/csniper/Projects/bno-5plus1-tracker/e2e/generate-instruction-screenshots.spec.js)).
-  - Automatically seeds realistic key dates, multi-stop absence records, qualification details, and address log.
-  - Captures 7 desktop screenshots (`1280x800` -> `public/instructions/step*.png`) and 7 matching mobile screenshots (`390x844` -> `public/instructions/narrow_step*.png`).
-  - `InstructionView.vue` dynamically switches between desktop and mobile screenshot sets (`imgPrefix`) using Vuetify's `$vuetify.display.smAndDown` breakpoint while offering manual `Desktop View` / `Mobile View` toggle overrides.
-- **Automatic Documentation Maintenance Routine**:
-  - Automatically triggered upon completing tasks that introduce architectural updates, store schema changes, new UI features, package dependency updates, or workflow/script edits.
-  - Synchronizes feature descriptions, rules tables, script options, directory tree diagrams, module explanations, and developer guidelines across [README.md](file:///Users/csniper/Projects/bno-5plus1-tracker/README.md) and [AGENTS.md](file:///Users/csniper/Projects/bno-5plus1-tracker/AGENTS.md).
-
----
-
-## 🔗 Useful Links & Official Resources
-
-Below are key official UK Government (GOV.UK), UK Parliament, and verified non-commercial NGO resources for Hong Kong BNO visa holders, accessible within the application via the **Reference & Official Guidance** (`ReferenceView`) page:
-
-- **[BNO Visa: Settle in the UK (ILR Guidance)](https://www.gov.uk/british-national-overseas-bno-visa/settle-in-the-uk)**  
-  Official Home Office guidance on settlement eligibility, 5-year continuous residence requirements, 180-day absence limits, and required qualifications.
-- **[Hong Kong BN(O) Route Caseworker Guidance](https://www.gov.uk/government/publications/hong-kong-british-national-overseas-route)**  
-  Official Home Office staff decision-making manual for assessing entry clearance, extensions, adult children eligibility, and settlement.
-- **[Immigration Rules Appendix Hong Kong BN(O)](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-hong-kong-british-national-overseas)**  
-  Statutory immigration rules enacted by UK Parliament establishing validity, suitability, continuous residence, and settlement criteria (HK 51.1–HK 64.1).
-- **[HMRC Statutory Residence Test (SRT) Guidance (RDR3)](https://www.gov.uk/government/publications/rdr3-statutory-residence-test-srt)**  
-  Official HMRC tax residence guide detailing day-counting rules (midnight rule), automatic overseas/UK tests, and split-year tax treatment.
-- **[Prove Your Right to Work in the UK (Share Code Service)](https://www.gov.uk/prove-right-to-work)**  
-  Official digital portal for generating employer share codes to verify employment permissions.
-- **[Prove Your Right to Rent in the UK (Share Code Service)](https://www.gov.uk/prove-right-to-rent)**  
-  Official digital portal for generating landlord share codes for tenancy checks in England.
-- **[View & Prove Your Immigration Status (eVisa Account)](https://www.gov.uk/view-prove-immigration-status)**  
-  Official UKVI digital portal for accessing eVisa records and updating linked passport details for travel.
-- **[Register to Vote in the UK (Electoral Roll)](https://www.gov.uk/register-to-vote)**  
-  Official voter registration portal (BNO citizens are Commonwealth citizens eligible to vote; registration builds UK credit history).
-- **[NHS UK Global Health Insurance Card (GHIC) Application](https://www.nhs.uk/using-the-nhs/healthcare-abroad/apply-for-a-free-uk-global-health-insurance-card-ghic/)**  
-  Official NHS portal to apply for or renew a free UK GHIC card for accessing state-provided healthcare during temporary visits to EU countries.
-- **[Life in the UK Test Official Booking Portal](https://www.gov.uk/life-in-the-uk-test)**  
-  Official booking portal, test center locator, ID guidelines, and fee information for the mandatory Life in the UK test.
-- **[Prove Your Knowledge of English (B1 Level)](https://www.gov.uk/english-language)**  
-  Official requirements and recognized SELT test providers (Trinity, IELTS SELT, PSI) for demonstrating B1 level English.
-- **[Ecctis Qualification Recognition & English Verification](https://www.ecctis.com/)**  
-  Official UK national agency designated for recognizing foreign university degrees and satisfying English requirements without SELT exams. Verified channel: LinkedIn.
-- **[Apply for British Citizenship by Naturalisation (Form AN)](https://www.gov.uk/apply-citizenship-indefinite-leave-to-remain)**  
-  Official guidance and requirements for naturalisation after obtaining ILR, including the 450-day 5-year limit and 90-day final 12-month limit.
-- **[Good Character Caseworker Guidance](https://www.gov.uk/government/publications/good-character-guidance)**  
-  Home Office caseworker criteria for assessing character requirements (tax compliance, fines, legal conduct) during citizenship applications.
-- **[Hongkongers in Britain (HKB)](https://www.hongkongers.org.uk/)**  
-  Leading registered charity established by Hongkongers in the UK providing resettlement guides, employment workshops, CV clinics, and mental health support. Verified channels: Facebook, Instagram, Threads, X (`@HongkongersUK`).
-- **[Hong Kong Watch](https://www.hongkongwatch.org/)**  
-  Registered non-governmental organization (NGO) advocating for BNO holders' rights, MPF pension withdrawal policy briefs, and student fee status. Verified channels: Facebook, Instagram, Threads, X (`@hk_watch`), YouTube, LinkedIn.
-- **[Citizens Advice UK](https://www.citizensadvice.org.uk/)**  
-  UK's largest independent advice charity offering free, confidential advice on tenant rights, employment contracts, council tax, and NRPF support. Verified channels: Facebook, X (`@CitizensAdvice`), YouTube, LinkedIn.
-- **[Hong Kong Well UK](https://www.hongkongwell.uk/)**  
-  Registered non-profit Community Interest Company (CIC) providing subsidized Cantonese mental health counseling and SEN educational advice for BNO families. Verified channels: Facebook, Instagram.
-- **[Hong Kong Aid (HKAID)](https://www.hkaid.org.uk/)**  
-  UK-registered Community Interest Company (CIC) providing regulated immigration advice (OISC Level 3), emergency crisis intervention, temporary accommodation support, and Cantonese mental health counselling for Hong Kongers in the UK. Verified channels: Facebook, Instagram, Threads, X (`@hkaiduk`), LinkedIn.
-- **[The Migration Observatory (University of Oxford)](https://migrationobservatory.ox.ac.uk/)**  
-  Independent, non-profit academic research unit based at Oxford University providing data-driven analysis of UK migration policy and BNO population trends. Verified channels: X (`@migobs`), YouTube (`@MigrationObservatory`), LinkedIn.
+- Screenshot capture procedure:
+  1. Run `npm run capture:screenshots` to start the Playwright capture script.
+  2. The script populates sample dates, journeys, test records, and address history.
+  3. The script captures seven desktop screenshots (`1280x800`) in `public/instructions/step*.png`.
+  4. The script captures seven mobile screenshots (`390x844`) in `public/instructions/narrow_step*.png`.
+  5. The user guide in `InstructionView.vue` switches between desktop and mobile images based on screen width.
+- Documentation maintenance routine:
+  1. Update documentation after you change system architecture, store schemas, user interface features, dependencies, or scripts.
+  2. Make sure that descriptions, tables, directory trees, and guidelines match across [README.md](README.md), [AGENTS.md](AGENTS.md), and the modular [.agents/](.agents/) directory.
 
 ---
 
-## 📄 License
+## Official and Community Resources
+
+The application provides access to official UK Government resources and community organizations through the reference page:
+
+- [BNO Visa: Settle in the UK (ILR Guidance)](https://www.gov.uk/british-national-overseas-bno-visa/settle-in-the-uk): Home Office guidance on settlement requirements, continuous residence, and absence limits.
+- [Hong Kong BN(O) Route Caseworker Guidance](https://www.gov.uk/government/publications/hong-kong-british-national-overseas-route): Home Office caseworker instructions for evaluating applications and settlement.
+- [Immigration Rules Appendix Hong Kong BN(O)](https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-hong-kong-british-national-overseas): Statutory rules for the BNO route enacted by UK Parliament.
+- [HMRC Statutory Residence Test Guidance (RDR3)](https://www.gov.uk/government/publications/rdr3-statutory-residence-test-srt): Tax residence rules, day-counting procedures, and split-year treatment.
+- [Prove Your Right to Work in the UK](https://www.gov.uk/prove-right-to-work): Digital share code service for employment status checks.
+- [Prove Your Right to Rent in the UK](https://www.gov.uk/prove-right-to-rent): Digital share code service for tenancy checks in England.
+- [View and Prove Your Immigration Status](https://www.gov.uk/view-prove-immigration-status): UKVI portal to access your eVisa record and update travel document numbers.
+- [Register to Vote in the UK](https://www.gov.uk/register-to-vote): Electoral registration portal for Commonwealth citizens living in the UK.
+- [NHS UK Global Health Insurance Card Application](https://www.nhs.uk/using-the-nhs/healthcare-abroad/apply-for-a-free-uk-global-health-insurance-card-ghic/): Portal to apply for a free GHIC card for medical treatment in the European Union.
+- [Life in the UK Test Official Booking Portal](https://www.gov.uk/life-in-the-uk-test): Booking portal, test center locator, and identification rules for the citizenship test.
+- [Prove Your Knowledge of English (B1 Level)](https://www.gov.uk/english-language): Recognized test providers and qualifications that satisfy the B1 English requirement.
+- [Ecctis Qualification Recognition](https://www.ecctis.com/): UK national agency that verifies foreign degree equivalency and English proficiency.
+- [Apply for British Citizenship by Naturalisation (Form AN)](https://www.gov.uk/apply-citizenship-indefinite-leave-to-remain): Guidance and requirements for citizenship applications after settlement.
+- [Good Character Caseworker Guidance](https://www.gov.uk/government/publications/good-character-guidance): Home Office standards for evaluating character and legal compliance.
+- [Hongkongers in Britain](https://www.hongkongers.org.uk/): Registered charity that provides integration support, employment advice, and community services.
+- [Hong Kong Watch](https://www.hongkongwatch.org/): Registered organization that advocates for the rights of BNO visa holders.
+- [Citizens Advice UK](https://www.citizensadvice.org.uk/): Independent advice network that provides free guidance on housing, employment, and legal rights.
+- [Hong Kong Well UK](https://www.hongkongwell.uk/): Community organization that provides mental health counseling and educational support.
+- [Hong Kong Aid](https://www.hkaid.org.uk/): Community organization that provides immigration advice, crisis assistance, and temporary housing support.
+- [The Migration Observatory](https://migrationobservatory.ox.ac.uk/): Research group at the University of Oxford that provides data on UK migration trends.
+
+---
+
+## License
 
 This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-## ⚠️ Disclaimer & Privacy Notice
+## Disclaimer and Privacy Notice
 
-*This application is an **independent, 3rd-party utility** provided for informational and personal tracking purposes only. It is **NOT an official application**, nor is it affiliated with, endorsed by, or connected to the UK Home Office or the UK Government. It does not constitute official legal or immigration advice. All data input into this application (absence history, key dates, qualification details, address history) is stored strictly locally on your device in your browser's `IndexedDB`. No server or remote database is used, and no personal data is collected or transmitted to external services. Always verify your eligibility, rules, and dates against official UK Home Office guidelines before submitting an ILR or Naturalisation application.*
+This application is an independent third-party tool for personal tracking only. It is not an official application. It is not affiliated with, endorsed by, or connected to the UK Home Office or the UK Government. It does not provide legal or immigration advice.
+
+All data remains on your local device. The application stores absence history, dates, test records, address history, and files in your browser IndexedDB storage. The application uses no remote database and sends no data to external servers.
+
+Before you submit a settlement or citizenship application, make sure that your dates and eligibility match official UK Home Office guidance.

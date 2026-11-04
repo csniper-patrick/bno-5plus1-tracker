@@ -208,7 +208,7 @@ export default {
     },
 
     /**
-     * Maximum return date string (YYYY-MM-DD) supported by the Segment Tree (10 years from visa start).
+     * Maximum return date string (YYYY-MM-DD) supported by the Segment Tree (20 years from visa start).
      * @returns {string}
      */
     maxSegmentTreeReturnDate() {
@@ -258,7 +258,7 @@ export default {
     },
 
     /**
-     * Validates form return date against departure date and 10-year Segment Tree limit.
+     * Validates form return date against departure date and 20-year Segment Tree limit.
      * @returns {string} Validation error message or empty string if valid.
      */
     endDateError() {

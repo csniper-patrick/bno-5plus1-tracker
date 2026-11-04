@@ -89,16 +89,16 @@ export function getOneDayBefore(dateStr) {
 }
 
 /**
- * Calculates the maximum return date (10 years from visa start date) for Segment Tree boundaries.
+ * Calculates the maximum return date for Segment Tree boundaries (8,192 days from visa start date).
  *
  * @param {string} visaStartDateStr - The visa start date string in 'YYYY-MM-DD' format.
+ * @param {number} [days=8192] - Total day capacity of the Segment Tree (defaults to 8,192).
  * @returns {string|null} Maximum return date in 'YYYY-MM-DD' format, or null if invalid.
  */
-export function getMaxSegmentTreeReturnDate(visaStartDateStr) {
+export function getMaxSegmentTreeReturnDate(visaStartDateStr, days = 8192) {
   const vStart = parseDateUTC(visaStartDateStr)
   if (!vStart) return null
-  const maxDate = new Date(vStart)
-  maxDate.setUTCFullYear(maxDate.getUTCFullYear() + 10)
+  const maxDate = new Date(vStart.getTime() + days * 86400000)
   return formatDateUTC(maxDate)
 }
 

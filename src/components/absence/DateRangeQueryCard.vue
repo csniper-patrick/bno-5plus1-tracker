@@ -113,7 +113,7 @@ export default {
           color="primary"
           size="small"
           prepend-icon="mdi-restore"
-          title="Reset query range to maximum 10-year period"
+          title="Reset query range to maximum 20-year period"
           @click="$emit('reset-max-range')"
         >
           {{ $t('absence.reset_max_range') }}

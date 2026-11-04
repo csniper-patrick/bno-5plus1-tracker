@@ -92,7 +92,7 @@ describe('Absence Form & Validation Utilities', () => {
   it('should compute segment tree max limit accurately', () => {
     const visaStartDate = '2021-06-15'
     const maxReturn = getMaxSegmentTreeReturnDate(visaStartDate)
-    assert.strictEqual(maxReturn, '2031-06-15')
+    assert.strictEqual(maxReturn, '2043-11-19')
   })
 })
 

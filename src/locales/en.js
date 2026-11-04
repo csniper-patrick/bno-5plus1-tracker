@@ -168,7 +168,7 @@ export default {
     visa_cover_verified_body:
       'Your current visa is valid until {expiry}, which covers your earliest ILR settlement date ({target}).',
     ilr_title: 'ILR / Settlement',
-    ilr_limit_exceeded: 'ILR Limit Exceeded (>10 Yrs)',
+    ilr_limit_exceeded: 'ILR Limit Exceeded (>20 Yrs)',
     ilr_window_delayed: 'ILR Window Delayed',
     within_ilr_limit: 'Within ILR Limit',
     rolling_180_rule: '180-Day Rolling Rule',
@@ -182,7 +182,7 @@ export default {
     ilr_app_notice:
       'Applications can be submitted up to 28 days before completing the 5-year qualifying period.',
     citizenship_title: 'British Citizenship',
-    out_of_tracker_range: 'Period Exceeds 10-Yr Tracker Range',
+    out_of_tracker_range: 'Period Exceeds 20-Yr Tracker Range',
     within_cit_limit_delayed: 'Within Citizenship Limit (Delayed)',
     within_cit_limit: 'Within Citizenship Limit',
     based_on_ilr: '(Based on ILR Approved Date: {date})',
@@ -196,7 +196,7 @@ export default {
     custom_range_title: 'Custom Date Range',
     instant_query: 'Instant Query',
     custom_range_desc:
-      'Query total absent days within any custom interval across 10 years from Visa Start Date.',
+      'Query total absent days within any custom interval across 20 years from Visa Start Date.',
     queried_range_absences: 'Queried Range Absences:',
     absences: 'Absences',
     reset_max_range: 'Reset to Max Range',
@@ -208,7 +208,7 @@ export default {
     start_date_err_return: 'Departure date cannot be later than return date.',
     end_date_err_departure: 'Return date cannot be earlier than departure date.',
     end_date_err_max:
-      'Return date cannot be later than 10 years from Visa Start Date ({maxReturn}).',
+      'Return date cannot be later than 20 years from Visa Start Date ({maxReturn}).',
     added_success: 'Absence record added!',
     updated_success: 'Absence record updated!',
     deleted_success: 'Absence record deleted.',

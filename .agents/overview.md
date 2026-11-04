@@ -146,14 +146,15 @@ bno-5plus1-tracker/
 
 ### 1. High-Performance Absence Segment Tree ([segmentTree.js](../src/utils/segmentTree.js))
 
-To evaluate arbitrary date ranges efficiently over a 10-year period (up to 3,653 days):
+To evaluate arbitrary date ranges efficiently over a 20-year period (native power-of-2 capacity of 8,192 days, $\approx 22.4$ years):
 
-- A **1-indexed Segment Tree** backed by a `TypedArray` (`Int32Array` of size `4 * N + 1`, 0th index unused) with standard binary child node formulas (`leftNode = 2 * node`, `rightNode = 2 * node + 1`).
-- **Leaf Map & Fast Point Access**: Stores pre-calculated leaf node indices in `leafMap`. Provides $O(1)$ point queries via `queryPoint(idx)` utilizing `_getLeafNode(idx)` with bounds checking.
+- A **canonical power-of-2 iterative Segment Tree** operating on standard **0-indexed day offsets** ($[0, \text{cap} - 1]$ from Visa Start Date), backed by an `Int32Array` buffer of size $2 \times \text{cap} = 16,384$ (where $\text{cap} = 8,192 = 2^{13}$, leaves positioned at contiguous indices $\text{cap} + \text{idx}$).
+- **Direct Arithmetic Point Access**: Provides $O(1)$ point queries via direct arithmetic (`cap + idx`) without auxiliary lookup tables or recursive initializations.
 - **Sliding Window Optimization**: Enables $O(1)$ constant-time sliding window updates in `useAbsentsStore` (`max12MonthAbsenceInfo` & `naturalizationQualifyingPeriod`) by subtracting exiting days (`queryPoint(i - 1)`) and adding entering days (`queryPoint(i + 364)`).
-- **Range Updates & Interval Building**: Range updates traverse leaves in $O(D \log N)$ time (where $D = \text{endIdx} - \text{startIdx} + 1$ is the range length in days) via `updateRange(qstart, qend, val)` and `build(intervals, val)`.
-- **Range Queries**: $O(\log N)$ range sum queries for fast computation of absent days in any custom date interval or rolling window via `query(qstart, qend)`.
-- **Leaf Coverage Array**: An `Int32Array` (`leafCover`) tracks trip coverage count per leaf index, ensuring leaf values in `tree` transition between `0` and `1` accurately when adding or deleting overlapping trips.
+- **Iterative Range Updates**: Updates leaf coverage and pulls ancestor node sums iteratively in $O(D + \log K)$ time via `updateRange(qstart, qend, val)`.
+- **Single-Pass $O(K)$ Batch Build**: `build(intervals, val)` marks all coverage intervals on `leafCover` and computes the complete tree in a single bottom-up linear sweep without repeated tree descents.
+- **Branchless Iterative Range Queries**: Non-recursive $O(\log K)$ bitwise range sum queries (`query(qstart, qend)`) traversing from leaves to root (`l >>= 1, r >>= 1`) without stack overhead.
+- **Leaf Coverage Array**: An `Int32Array` (`leafCover` of size $\text{cap}$) tracks trip coverage count per day, ensuring leaf values in `tree` transition between `0` and `1` accurately when adding or deleting overlapping trips.
 
 ### 2. Centralized Date Utilities ([date.js](../src/utils/date.js))
 

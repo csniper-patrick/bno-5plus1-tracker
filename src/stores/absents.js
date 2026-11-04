@@ -1,7 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
 
-import { AbsenceSegmentTree } from '../utils/segmentTree.js'
+import { AbsenceSegmentTree, DEFAULT_SEGMENT_TREE_CAPACITY } from '../utils/segmentTree.js'
 import {
   parseDateUTC,
   formatDateUTC,
@@ -28,7 +28,7 @@ const AUTO_ARRIVAL_ID = 'auto_uk_arrival_record'
 
 /**
  * Pinia store for managing absence records and calculating total days absent.
- * Maintains an incremental Segment Tree covering 10 years from visaStartDate for fast O(log N) range queries.
+ * Maintains an incremental Segment Tree covering 20 years from visaStartDate for fast O(log N) range queries.
  */
 export const useAbsentsStore = defineStore('absents', () => {
   // ---------------------------------------------------------------------------
@@ -221,7 +221,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   /**
-   * Rebuilds the segment tree from scratch for the 10-year period.
+   * Rebuilds the segment tree from scratch for the power-of-2 tracking period (8,192 days).
    * Called when visaStartDate changes or during initial setup.
    */
   function rebuildSegmentTree() {
@@ -240,24 +240,12 @@ export const useAbsentsStore = defineStore('absents', () => {
       return
     }
 
-    // 10-year window from visa start date
-    const vEnd = new Date(vStart)
-    vEnd.setUTCFullYear(vEnd.getUTCFullYear() + 10)
-
-    const n = Math.round((vEnd.getTime() - vStart.getTime()) / 86400000)
-    if (n <= 0) {
-      segmentTree.value = null
-      segmentTreeSize = 0
-      segmentTreeVersion.value++
-      return
-    }
-
-    segmentTreeSize = n
-    const tree = new AbsenceSegmentTree(n)
+    segmentTreeSize = DEFAULT_SEGMENT_TREE_CAPACITY
+    const tree = new AbsenceSegmentTree(DEFAULT_SEGMENT_TREE_CAPACITY)
 
     const intervals = []
     for (const item of absences.value) {
-      const range = getRecordIndexRange(item, vStart, n)
+      const range = getRecordIndexRange(item, vStart, DEFAULT_SEGMENT_TREE_CAPACITY)
       if (range) intervals.push(range)
     }
     tree.build(intervals, 1)
@@ -492,7 +480,7 @@ export const useAbsentsStore = defineStore('absents', () => {
         targetDate: '',
         earliestApplicationDate: '',
         isShifted: false,
-        is10YearExceeded: false,
+        isLimitExceeded: false,
         max12MonthAbsence: 0,
         peakStartDate: null,
         peakEndDate: null,
@@ -511,7 +499,7 @@ export const useAbsentsStore = defineStore('absents', () => {
         targetDate: '',
         earliestApplicationDate: '',
         isShifted: false,
-        is10YearExceeded: false,
+        isLimitExceeded: false,
         max12MonthAbsence: 0,
         peakStartDate: null,
         peakEndDate: null,
@@ -528,8 +516,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     baselineAppDate.setUTCDate(baselineAppDate.getUTCDate() - 28)
     const baselineAppDateStr = formatDateUTC(baselineAppDate)
 
-    const tenYearDeadline = new Date(vStart)
-    tenYearDeadline.setUTCFullYear(tenYearDeadline.getUTCFullYear() + 10)
+    const trackerDeadline = new Date(vStart.getTime() + DEFAULT_SEGMENT_TREE_CAPACITY * 86400000)
 
     const baselinePeakInfo = calcPeak12MoInWindow(vStart, baselineTarget)
 
@@ -549,7 +536,7 @@ export const useAbsentsStore = defineStore('absents', () => {
       finalPeakInfo = baselinePeakInfo
       finalTotalAbsence = queryAbsentDaysInRange(vStart, baselineTarget)
     } else {
-      while (safetyCounter < 3650) {
+      while (safetyCounter < DEFAULT_SEGMENT_TREE_CAPACITY) {
         const currentTarget = new Date(currentStart)
         currentTarget.setUTCFullYear(currentTarget.getUTCFullYear() + 5)
 
@@ -564,7 +551,7 @@ export const useAbsentsStore = defineStore('absents', () => {
           break
         }
 
-        if (currentTarget > tenYearDeadline) {
+        if (currentTarget > trackerDeadline) {
           finalStartStr = formatDateUTC(currentStart)
           finalTargetStr = formatDateUTC(currentTarget)
           finalPeakInfo = peakInfo
@@ -578,10 +565,10 @@ export const useAbsentsStore = defineStore('absents', () => {
     }
 
     const isShifted = finalTargetStr !== baselineTargetStr
-    let is10YearExceeded = false
+    let isLimitExceeded = false
     const finalTargetObj = parseDateUTC(finalTargetStr)
-    if (finalTargetObj && finalTargetObj > tenYearDeadline) {
-      is10YearExceeded = true
+    if (finalTargetObj && finalTargetObj > trackerDeadline) {
+      isLimitExceeded = true
     }
 
     const appDate = new Date(finalTargetObj || baselineTarget)
@@ -597,7 +584,7 @@ export const useAbsentsStore = defineStore('absents', () => {
       targetDate: finalTargetStr,
       earliestApplicationDate: earliestAppDateStr,
       isShifted,
-      is10YearExceeded,
+      isLimitExceeded,
       max12MonthAbsence: finalPeakInfo.maxDays,
       peakStartDate: finalPeakInfo.peakStartDate,
       peakEndDate: finalPeakInfo.peakEndDate,
@@ -620,7 +607,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   const ilr5YearTotalAbsence = computed(() => ilrQualifyingPeriod.value.total5YearAbsence)
 
   const ruleStatusColor = computed(() => {
-    if (ilrQualifyingPeriod.value.is10YearExceeded) return 'error'
+    if (ilrQualifyingPeriod.value.isLimitExceeded) return 'error'
     if (isIlrWindowShifted.value) return 'warning'
     const days = max12MonthAbsence.value
     if (days > 180) return 'error'
@@ -690,10 +677,10 @@ export const useAbsentsStore = defineStore('absents', () => {
         windowStartDate: '',
         targetDate: '',
         isShifted: false,
-        is10YearExceeded: false,
+        isLimitExceeded: false,
         fiveYearAbsence: 0,
         final12MoAbsence: 0,
-        tenYearDeadlineDate: '',
+        trackerDeadlineDate: '',
         initialViolations: [],
       }
     }
@@ -704,10 +691,10 @@ export const useAbsentsStore = defineStore('absents', () => {
       windowStartDate: '',
       targetDate: '',
       isShifted: false,
-      is10YearExceeded: false,
+      isLimitExceeded: false,
       fiveYearAbsence: 0,
       final12MoAbsence: 0,
-      tenYearDeadlineDate: '',
+      trackerDeadlineDate: '',
       initialViolations: [],
     }
 
@@ -731,21 +718,21 @@ export const useAbsentsStore = defineStore('absents', () => {
     baselineTarget.setUTCFullYear(baselineTarget.getUTCFullYear() + 5)
     const baselineTargetStr = formatDateUTC(baselineTarget)
 
-    let tenYearDeadline = null
+    let trackerDeadline = null
     if (visaStartDate.value) {
       const vStart = parseDateUTC(visaStartDate.value)
       if (vStart) {
-        tenYearDeadline = new Date(vStart)
-        tenYearDeadline.setUTCFullYear(tenYearDeadline.getUTCFullYear() + 10)
+        trackerDeadline = new Date(vStart.getTime() + DEFAULT_SEGMENT_TREE_CAPACITY * 86400000)
       }
     } else if (ilrApprovedDate.value) {
       const ilrDate = parseDateUTC(ilrApprovedDate.value)
       if (ilrDate) {
-        tenYearDeadline = new Date(ilrDate)
-        tenYearDeadline.setUTCFullYear(tenYearDeadline.getUTCFullYear() + 5)
+        trackerDeadline = new Date(
+          ilrDate.getTime() + (DEFAULT_SEGMENT_TREE_CAPACITY - 5 * 365) * 86400000,
+        )
       }
     }
-    const tenYearDeadlineStr = tenYearDeadline ? formatDateUTC(tenYearDeadline) : ''
+    const trackerDeadlineStr = trackerDeadline ? formatDateUTC(trackerDeadline) : ''
 
     let currentStart = new Date(baselineStart)
     let safetyCounter = 0
@@ -766,7 +753,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     let prevTargetIdx = -1
     let prevF12StartIdx = -1
 
-    while (safetyCounter < 3650) {
+    while (safetyCounter < DEFAULT_SEGMENT_TREE_CAPACITY) {
       const targetDate = new Date(currentStart)
       targetDate.setUTCFullYear(targetDate.getUTCFullYear() + 5)
 
@@ -840,7 +827,7 @@ export const useAbsentsStore = defineStore('absents', () => {
         break
       }
 
-      if (tenYearDeadline && targetDate > tenYearDeadline) {
+      if (trackerDeadline && targetDate > trackerDeadline) {
         finalStartStr = formatDateUTC(currentStart)
         finalTargetStr = formatDateUTC(targetDate)
         fiveYearAbs = f5
@@ -853,11 +840,11 @@ export const useAbsentsStore = defineStore('absents', () => {
     }
 
     const isShifted = finalTargetStr !== baselineTargetStr
-    let is10YearExceeded = false
-    if (tenYearDeadline && finalTargetStr) {
+    let isLimitExceeded = false
+    if (trackerDeadline && finalTargetStr) {
       const finalTargetDateObj = parseDateUTC(finalTargetStr)
-      if (finalTargetDateObj && finalTargetDateObj > tenYearDeadline) {
-        is10YearExceeded = true
+      if (finalTargetDateObj && finalTargetDateObj > trackerDeadline) {
+        isLimitExceeded = true
       }
     }
 
@@ -867,10 +854,10 @@ export const useAbsentsStore = defineStore('absents', () => {
       windowStartDate: finalStartStr,
       targetDate: finalTargetStr,
       isShifted,
-      is10YearExceeded,
+      isLimitExceeded,
       fiveYearAbsence: fiveYearAbs,
       final12MoAbsence: final12MoAbs,
-      tenYearDeadlineDate: tenYearDeadlineStr,
+      trackerDeadlineDate: trackerDeadlineStr,
       initialViolations,
     }
   })
@@ -887,8 +874,8 @@ export const useAbsentsStore = defineStore('absents', () => {
   const isNaturalizationWindowShifted = computed(
     () => naturalizationQualifyingPeriod.value?.isShifted || false,
   )
-  const isNaturalization10YearExceeded = computed(
-    () => naturalizationQualifyingPeriod.value?.is10YearExceeded || false,
+  const isNaturalizationLimitExceeded = computed(
+    () => naturalizationQualifyingPeriod.value?.isLimitExceeded || false,
   )
   const naturalization5YearAbsence = computed(
     () => naturalizationQualifyingPeriod.value?.fiveYearAbsence ?? 0,
@@ -898,7 +885,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   )
 
   const naturalizationStatusColor = computed(() => {
-    if (isNaturalization10YearExceeded.value) return 'error'
+    if (isNaturalizationLimitExceeded.value) return 'error'
     if (isNaturalizationWindowShifted.value) return 'warning'
     const f5 = naturalization5YearAbsence.value
     const f12 = naturalizationFinal12MoAbsence.value
@@ -906,7 +893,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     return 'success'
   })
 
-  const isNaturalizationEligible = computed(() => !isNaturalization10YearExceeded.value)
+  const isNaturalizationEligible = computed(() => !isNaturalizationLimitExceeded.value)
 
   // ---------------------------------------------------------------------------
   // Actions & Helper Algorithms
@@ -1083,7 +1070,7 @@ export const useAbsentsStore = defineStore('absents', () => {
       if (maxReturn && endDate > maxReturn) {
         return {
           valid: false,
-          error: `Return date cannot be later than 10 years from visa start date (${maxReturn}).`,
+          error: `Return date cannot be later than 20 years from visa start date (${maxReturn}).`,
         }
       }
     }
@@ -1336,7 +1323,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     naturalizationWindowStartDate,
     naturalizationCalculatedEarliestDate,
     isNaturalizationWindowShifted,
-    isNaturalization10YearExceeded,
+    isNaturalizationLimitExceeded,
     naturalization5YearAbsence,
     naturalizationFinal12MoAbsence,
     naturalizationStatusColor,

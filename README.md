@@ -185,7 +185,7 @@ bno-5plus1-tracker/
 
 ### Key Modules and Data Structures
 
-- [AbsenceSegmentTree](src/utils/segmentTree.js): A 1-indexed segment tree that uses an `Int32Array` buffer. It stores daily travel state over 10 years (3,653 days). It supports point queries in constant time, rolling window updates in constant time, and range sum queries in logarithmic time.
+- [AbsenceSegmentTree](src/utils/segmentTree.js): A canonical power-of-2 iterative segment tree using an `Int32Array` buffer with capacity for 8,192 days (~22.4 years). It supports direct mathematical leaf addressing in $O(1)$, single-pass batch builds in $O(K)$, iterative range updates in $O(D + \log K)$, and branchless range sum queries in $O(\log K)$.
 - [seo.js](src/utils/seo.js): An engine that creates search metadata and structured data. It reads base URLs from GitLab CI variables. It creates page titles, descriptions, canonical links, social preview tags, and Schema.org JSON-LD definitions. It also creates `sitemap.xml` and `robots.txt` files during build.
 - [date.js](src/utils/date.js): A utility for date calculations in UTC. It parses and formats `YYYY-MM-DD` strings. It calculates absent days, computes day offsets, and finds date boundaries for the segment tree.
 - [dbService.js](src/services/dbService.js): A database service for browser IndexedDB storage. It initializes database schema version 2. It manages the `app_state` store for key-value data and the `files` store for document blobs.

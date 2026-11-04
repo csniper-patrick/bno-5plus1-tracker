@@ -51,8 +51,8 @@ describe('Date Utilities', () => {
     assert.strictEqual(calculateDays('2024-01-10', '2024-01-10'), 0)
   })
 
-  it('should compute 10-year max segment tree return date', () => {
-    assert.strictEqual(getMaxSegmentTreeReturnDate('2022-04-15'), '2032-04-15')
+  it('should compute power-of-2 max segment tree return date', () => {
+    assert.strictEqual(getMaxSegmentTreeReturnDate('2022-04-15'), '2044-09-18')
   })
 
   it('should format display date string', () => {
@@ -148,16 +148,15 @@ describe('AbsenceSegmentTree', () => {
     assert.strictEqual(tree.query(0, 4), 0)
   })
 
-  it('should store pre-calculated leafMap node indices', () => {
-    const arr = new Uint8Array([0, 1, 1, 0, 1, 0, 1]) // 7 days
+  it('should calculate direct leaf node indices via canonical power-of-2 addressing', () => {
+    const arr = new Uint8Array([0, 1, 1, 0, 1, 0, 1]) // 7 days (cap rounds to 8)
     const tree = new AbsenceSegmentTree(7)
     tree.build(arr)
 
-    assert.ok(tree.leafMap[0] > 0)
-    assert.ok(tree.leafMap[6] > 0)
-    assert.strictEqual(tree.leafMap[0], 8) // leaf 0 at node 8
-    assert.strictEqual(tree.leafMap[6], 7) // leaf 6 at node 7
-    assert.strictEqual(tree._getLeafNode(7), -1) // targetIdx out of bounds
+    assert.strictEqual(tree.cap, 8)
+    assert.strictEqual(tree._getLeafNode(0), 8) // leaf 0 at node 8 (cap + 0)
+    assert.strictEqual(tree._getLeafNode(6), 14) // leaf 6 at node 14 (cap + 6)
+    assert.strictEqual(tree._getLeafNode(8), -1) // targetIdx out of bounds
     assert.strictEqual(tree._getLeafNode(-1), -1) // negative index
   })
 
@@ -532,6 +531,43 @@ absences:
     assert.strictEqual(store.queryAbsentDaysInRange('2020-01-12', '2020-01-13'), 2)
   })
 
+  it('should track absences across the power-of-2 period (8,192 days) and enforce boundary limit', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    store.setVisaStartDate('2022-01-01')
+    store.setUkArrivalDate('2022-01-01')
+
+    // 8,192-day maximum return date (2022-01-01 + 8192 days = 2044-06-06)
+    assert.strictEqual(store.getMaxSegmentTreeReturnDate('2022-01-01'), '2044-06-06')
+
+    // Adding trip in Year 20 (2042) should succeed without error
+    const tripYear20 = store.addAbsence({
+      startDate: '2042-01-01',
+      endDate: '2042-01-15',
+      dest: 'Future Trip Year 20',
+    })
+    assert.ok(tripYear20.id)
+    assert.strictEqual(store.queryAbsentDaysInRange('2042-01-01', '2042-01-15'), 13)
+
+    // Route-neutral properties
+    assert.strictEqual(store.ilrQualifyingPeriod.isLimitExceeded, false)
+    assert.strictEqual(store.isNaturalizationLimitExceeded, false)
+
+    // Adding trip beyond 8,192 days should throw validation error
+    assert.throws(
+      () => {
+        store.addAbsence({
+          startDate: '2044-06-01',
+          endDate: '2044-06-10',
+          dest: 'Beyond Capacity',
+        })
+      },
+      /Return date cannot be later than 20 years from visa start date/,
+    )
+  })
+
   it('should preserve all backup fields including visa_expiry_date in full backup export and import', () => {
     localStorage.clear()
     setActivePinia(createPinia())
@@ -850,6 +886,23 @@ describe('AbsenceSegmentTree Edge Cases', () => {
     assert.strictEqual(tree.query(3, 1), 0) // start > end
     assert.strictEqual(tree.query(-10, -5), 0) // out of bounds left
     assert.strictEqual(tree.query(10, 20), 0) // out of bounds right
+  })
+
+  it('should support power-of-2 capacity (8,192 days) with fast point and range queries', () => {
+    const days = 8192
+    const tree = new AbsenceSegmentTree(days)
+
+    assert.strictEqual(tree.cap, 8192)
+    assert.strictEqual(tree.tree.length, 2 * days)
+    assert.strictEqual(tree.leafCover.length, days)
+
+    // Range in Year 22 (e.g. day 8000 to 8030)
+    tree.updateRange(8000, 8030, 1)
+    assert.strictEqual(tree.queryPoint(8000), 1)
+    assert.strictEqual(tree.queryPoint(8030), 1)
+    assert.strictEqual(tree.queryPoint(8031), 0)
+    assert.strictEqual(tree.query(8000, 8030), 31)
+    assert.strictEqual(tree.query(0, 8191), 31)
   })
 })
 

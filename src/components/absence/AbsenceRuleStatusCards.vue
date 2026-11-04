@@ -51,7 +51,7 @@ export default {
           >
             <v-icon
               :icon="
-                absentsStore.ilrQualifyingPeriod.is10YearExceeded
+                absentsStore.ilrQualifyingPeriod.isLimitExceeded
                   ? 'mdi-alert-circle'
                   : absentsStore.isIlrWindowShifted
                     ? 'mdi-clock-alert-outline'
@@ -60,7 +60,7 @@ export default {
               start
             ></v-icon>
             {{
-              absentsStore.ilrQualifyingPeriod.is10YearExceeded
+              absentsStore.ilrQualifyingPeriod.isLimitExceeded
                 ? $t('absence.ilr_limit_exceeded')
                 : absentsStore.isIlrWindowShifted
                   ? $t('absence.ilr_window_delayed')
@@ -215,7 +215,7 @@ export default {
           >
             <v-icon
               :icon="
-                absentsStore.isNaturalization10YearExceeded
+                absentsStore.isNaturalizationLimitExceeded
                   ? 'mdi-alert-circle'
                   : absentsStore.isNaturalizationWindowShifted
                     ? 'mdi-clock-alert-outline'
@@ -224,7 +224,7 @@ export default {
               start
             ></v-icon>
             {{
-              absentsStore.isNaturalization10YearExceeded
+              absentsStore.isNaturalizationLimitExceeded
                 ? $t('absence.out_of_tracker_range')
                 : absentsStore.isNaturalizationWindowShifted
                   ? $t('absence.within_cit_limit_delayed')
@@ -303,7 +303,7 @@ export default {
 
           <!-- Earliest Naturalisation Application Banners -->
           <v-alert
-            v-if="absentsStore.isNaturalization10YearExceeded"
+            v-if="absentsStore.isNaturalizationLimitExceeded"
             type="error"
             variant="tonal"
             icon="mdi-alert-circle"

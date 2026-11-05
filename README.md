@@ -20,7 +20,7 @@ This application is an independent third-party tool. The application is not affi
 - Internationalization: The user interface supports English (`en`) and Traditional Chinese (`zh-HK`). You can switch the language in the top bar. The application saves your language preference to local storage.
 - Day-count calculations: Departure and return dates are excluded from absent day counts. The Home Office counts only full 24-hour days outside the UK as absences.
 - Key date tracking: You can record your visa start date, your UK arrival date, your visa expiration date, and your approved settlement date. If your arrival date differs from your visa start date, the application creates an initial absence record.
-- Settlement absence monitoring: The application calculates absent days in each rolling 365-day period. If absences exceed 180 days in a period, the application delays the 5-year qualifying window forward to the earliest compliant date.
+- Settlement absence monitoring: The application calculates absent days in each rolling 12-month period. If absences exceed 180 days in a period, the application delays the 5-year qualifying window forward to the earliest compliant date.
 - Citizenship absence monitoring: The application evaluates the 450-day limit for the 5-year period and the 90-day limit for the final 12 months. The application makes sure that you were physically present in the UK exactly 5 years before the application date. It enforces an inclusive lower bound of today (UTC midnight) for the earliest citizenship application date so past candidate dates are never suggested, and displays an immediate eligibility banner when you can apply today.
 - Custom range query synchronization: The custom date range query tool automatically resets its date boundaries to match the active 20-year tracking period whenever key dates change, backup data is imported, or the active profile is switched.
 - Visa summary card: The card shows your visa start date, your visa expiration date, and your earliest settlement date. If your visa expires before your settlement date, the card shows a warning.
@@ -32,7 +32,7 @@ This application is an independent third-party tool. The application is not affi
 - Guidance and community links: The reference page lists official UK Government guidance documents, statutory rules, tax guides, and verified non-government organization channels.
 - Multi-profile management: You can track records for multiple family members in isolated profiles. You can share travel journeys across profiles that meet visa date requirements. Edits to shared journeys update across all linked profiles.
 - Data export and import: You can export your data as a `.zip` archive that contains a YAML backup, a file manifest, and stored documents. You can import `.zip` archives or standalone `.yaml` files.
-- Segment tree calculations: The calculation engine uses a segment tree data structure to compute range queries and sliding window counts in constant time.
+- Segment tree calculations: The calculation engine uses a segment tree data structure to compute exact date-to-date range queries in logarithmic time and point queries in constant time.
 - Search engine optimization: Pre-rendered static pages include metadata tags, social preview images, and Schema.org structured data.
 - Local storage and privacy: The application stores your data only in browser IndexedDB storage on your device. The application does not send data to external servers.
 - Offline support: The progressive web application runs offline on desktop and mobile browsers.
@@ -44,7 +44,7 @@ This application is an independent third-party tool. The application is not affi
 | Stage          | Rule                   | Limit or requirement                | Description                                                                                                                             |
 | :------------- | :--------------------- | :---------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
 | General        | Full day absence       | Departure and return dates excluded | Only full 24-hour days outside the UK count as absences. Departure and arrival dates do not count as absences.                          |
-| ILR            | Rolling 12-month limit | Maximum 180 days                    | Absences must not exceed 180 days in any rolling 365-day period during the qualifying period.                                           |
+| ILR            | Rolling 12-month limit | Maximum 180 days                    | Absences must not exceed 180 days in any rolling 12-month period during the qualifying period.                                           |
 | ILR            | Qualifying period      | 5-year sliding window               | Continuous residence lasts 5 years from your visa start date or UK arrival date. The window shifts forward if absences exceed 180 days. |
 | ILR            | Visa expiration        | Set by visa                         | Visas last 5 years by default. The application shows an alert if your visa expires before your earliest settlement date.                |
 | ILR            | Earliest application   | 28 days before                      | You can submit your settlement application up to 28 days before you complete 5 years of continuous residence.                           |
@@ -186,18 +186,18 @@ bno-5plus1-tracker/
 
 ### Key Modules and Data Structures
 
-- [AbsenceSegmentTree](src/utils/segmentTree.js): A canonical power-of-2 iterative segment tree using an `Int32Array` buffer with capacity for 8,192 days (~22.4 years). It supports direct mathematical leaf addressing in $O(1)$, single-pass batch builds in $O(K)$, iterative range updates in $O(D + \log K)$, and branchless range sum queries in $O(\log K)$.
+- [AbsenceSegmentTree](src/utils/segmentTree.js): A canonical power-of-2 iterative segment tree using an `Int32Array` buffer with capacity for 8,192 days (~22.4 years). It supports direct mathematical leaf addressing in $O(1)$, single-pass batch builds in $O(K)$, iterative range updates in $O(D + \log K)$, and branchless range sum queries in $O(\log K)$ with $O(1)$ single-leaf and full-tree root fast-paths.
 - [seo.js](src/utils/seo.js): An engine that creates search metadata and structured data. It reads base URLs from GitLab CI variables. It creates page titles, descriptions, canonical links, social preview tags, and Schema.org JSON-LD definitions. It also creates `sitemap.xml` and `robots.txt` files during build.
-- [date.js](src/utils/date.js): A utility for date calculations in UTC. It parses and formats `YYYY-MM-DD` strings. It calculates absent days, computes day offsets, and finds date boundaries for the segment tree.
+- [date.js](src/utils/date.js): A utility for date calculations in UTC. It parses and formats `YYYY-MM-DD` strings and caches `Intl.DateTimeFormat` instances for display formatting. It calculates absent days, computes day offsets, and finds date boundaries for the segment tree.
 - [dbService.js](src/services/dbService.js): A database service for browser IndexedDB storage. It initializes database schema version 2. It manages the `app_state` store for key-value data and the `files` store for document blobs.
 - [fileStorageService.js](src/services/fileStorageService.js): A service that manages document files in IndexedDB. It stores and retrieves binary data, creates temporary object URLs for viewing, and enforces a 10 MB file size limit.
-- [profileService.js](src/services/profileService.js) and [useProfilesStore](src/stores/profiles.js): Services that manage data for multiple user profiles. They swap active profile data, duplicate profiles, and share journeys between family members who meet visa start date rules.
+- [profileService.js](src/services/profileService.js) and [useProfilesStore](src/stores/profiles.js): Services that manage data for multiple user profiles. They swap active profile data, duplicate profiles, and index shared journeys in $O(1)$ between family members who meet visa start date rules.
 - [schemaValidationService.js](src/services/schemaValidationService.js): A validation service that inspects imported YAML backups and ZIP manifests. It rejects corrupted files, invalid dates, and malformed records.
 - [backupService.js](src/services/backupService.js): A service that exports and imports application data as YAML files with comments.
 - [zipService.js](src/services/zipService.js): An archiving service that packages application state, manifest indexes, and document files into `.zip` archives.
 - [locales/](src/locales): Translation files for English (`en.js`) and Traditional Chinese (`zh-HK.js`). They supply translated text for all views, dialogs, badges, and guidance cards.
-- [useAbsentsStore](src/stores/absents.js): A Pinia store for travel records, key dates, and absence calculations. It synchronizes records with the segment tree, monitors rolling 180-day limits, enforces naturalisation earliest application lower bounds, computes individual rule coloring states, and tracks data import and reload versions to synchronize custom range queries.
-- [useDocumentsStore](src/stores/documents.js): A Pinia store for settlement requirements. It tracks test records, address history entries, residence checklists, and uploaded file metadata.
+- [useAbsentsStore](src/stores/absents.js): A Pinia store for travel records, key dates, and absence calculations. It synchronizes records with the segment tree, monitors rolling 12-month limits with violation-jump shifting, enforces naturalisation earliest application lower bounds, computes individual rule coloring states, and tracks data import and reload versions to synchronize custom range queries.
+- [useDocumentsStore](src/stores/documents.js): A Pinia store for settlement requirements. It tracks test records, address history entries, residence checklists, and indexed file metadata.
 
 ### Development and Maintenance Routines
 

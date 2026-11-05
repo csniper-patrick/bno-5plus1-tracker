@@ -225,7 +225,7 @@ export function getSeoConfigBuilder(baseUrl = getBaseUrl()) {
               name: 'How does the 180-day rolling rule calculation work?',
               acceptedAnswer: {
                 '@type': 'Answer',
-                text: 'The tracker scans every possible continuous 365-day window across your 5-year qualifying period. If any single 365-day window exceeds 180 days absent, it calculates the delay required to restore continuous residence compliance.',
+                text: 'The tracker scans every possible continuous 12-month window across your 5-year qualifying period. If any single 12-month window exceeds 180 days absent, it calculates the delay required to restore continuous residence compliance.',
               },
             },
           ],
@@ -245,7 +245,8 @@ export const SEO_CONFIG = getSeoConfigBuilder()
  */
 export function getSeoMeta(routeKey, customBaseUrl) {
   const baseUrl = customBaseUrl ? String(customBaseUrl).trim().replace(/\/+$/, '') : getBaseUrl()
-  const config = getSeoConfigBuilder(baseUrl)[routeKey] || getSeoConfigBuilder(baseUrl).home
+  const configDict = baseUrl === BASE_URL ? SEO_CONFIG : getSeoConfigBuilder(baseUrl)
+  const config = configDict[routeKey] || configDict.home
   const canonicalUrl = config.path ? `${baseUrl}/${config.path}` : `${baseUrl}/`
   const ogImageUrl = `${baseUrl}/og-image.png`
 

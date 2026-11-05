@@ -177,7 +177,11 @@ export function sanitizeResidenceChecklist(loadedChecklist, uploadedFilesList = 
  */
 function sortAddresses(arr) {
   if (!Array.isArray(arr)) return []
-  return arr.sort((a, b) => ((b && b.startDate) || '').localeCompare((a && a.startDate) || ''))
+  return arr.sort((a, b) => {
+    const startA = (a && a.startDate) || ''
+    const startB = (b && b.startDate) || ''
+    return startB < startA ? -1 : startB > startA ? 1 : 0
+  })
 }
 
 /**
@@ -229,7 +233,16 @@ export const useDocumentsStore = defineStore('documents', () => {
   /** Loads state from IndexedDB (migrating from localStorage if needed). */
   async function initStore() {
     await dbService.migrateFromLocalStorage([STORAGE_KEY])
-    const savedData = await dbService.getItem(STORAGE_KEY)
+    const [savedData, fileMeta] = await Promise.all([
+      dbService.getItem(STORAGE_KEY),
+      fileStorage.getAllFilesMeta().catch((e) => {
+        console.error('Failed to load file metadata:', e)
+        return []
+      }),
+    ])
+
+    uploadedFiles.value = Array.isArray(fileMeta) ? fileMeta : []
+
     if (savedData && typeof savedData === 'object') {
       if (savedData.lifeInUk) lifeInUk.value = savedData.lifeInUk
       if (savedData.englishTest) englishTest.value = savedData.englishTest
@@ -244,12 +257,10 @@ export const useDocumentsStore = defineStore('documents', () => {
         }
         nationalInsurance.value = nin
       }
-      if (savedData.residenceChecklist) {
-        residenceChecklist.value = sanitizeResidenceChecklist(
-          savedData.residenceChecklist,
-          uploadedFiles.value,
-        )
-      }
+      residenceChecklist.value = sanitizeResidenceChecklist(
+        savedData.residenceChecklist || residenceChecklist.value,
+        uploadedFiles.value,
+      )
       if (Array.isArray(savedData.addressHistory)) {
         const sorted = [...savedData.addressHistory]
         sortAddresses(sorted)
@@ -270,20 +281,7 @@ export const useDocumentsStore = defineStore('documents', () => {
       addressHistory.value = []
     }
 
-    // Load file metadata from IndexedDB (blobs loaded on-demand)
-    try {
-      const fileMeta = await fileStorage.getAllFilesMeta()
-      uploadedFiles.value = fileMeta
-      residenceChecklist.value = sanitizeResidenceChecklist(
-        residenceChecklist.value,
-        uploadedFiles.value,
-      )
-      autoPromoteChecklistStatuses()
-    } catch (e) {
-      console.error('Failed to load file metadata:', e)
-      uploadedFiles.value = []
-    }
-
+    autoPromoteChecklistStatuses()
     isInitialized.value = true
   }
 
@@ -860,14 +858,47 @@ export const useDocumentsStore = defineStore('documents', () => {
     return counts
   })
 
+  const filesByChecklistKey = computed(() => {
+    const map = new Map()
+    for (const f of uploadedFiles.value) {
+      if (f.linkedYear && f.linkedItemId) {
+        const key = `${f.linkedYear}_${f.linkedItemId}`
+        let list = map.get(key)
+        if (!list) {
+          list = []
+          map.set(key, list)
+        }
+        list.push(f)
+      }
+    }
+    return map
+  })
+
+  const filesByAddressId = computed(() => {
+    const map = new Map()
+    for (const f of uploadedFiles.value) {
+      if (f.linkedAddressId) {
+        let list = map.get(f.linkedAddressId)
+        if (!list) {
+          list = []
+          map.set(f.linkedAddressId, list)
+        }
+        list.push(f)
+      }
+    }
+    return map
+  })
+
   /** Files linked to a specific checklist item */
   function getFilesForItem(year, itemId) {
-    return uploadedFiles.value.filter((f) => f.linkedYear === year && f.linkedItemId === itemId)
+    const list = filesByChecklistKey.value.get(`${year}_${itemId}`)
+    return list ? list.slice() : []
   }
 
   /** Files linked to a specific address entry */
   function getFilesForAddress(addressId) {
-    return uploadedFiles.value.filter((f) => f.linkedAddressId === addressId)
+    const list = filesByAddressId.value.get(addressId)
+    return list ? list.slice() : []
   }
 
   watch(lifeInUk, () => saveToStorage(), { deep: true })

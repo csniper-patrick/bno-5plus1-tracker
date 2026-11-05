@@ -124,6 +124,29 @@ export function calculateDays(startDateStr, endDateStr) {
   return Math.max(0, diffDays - 1)
 }
 
+const displayDateFormatters = new Map()
+
+/**
+ * Returns a cached Intl.DateTimeFormat instance for the given locale.
+ *
+ * @param {string} locale - Locale identifier.
+ * @returns {Intl.DateTimeFormat}
+ */
+function getDisplayDateFormatter(locale) {
+  const effectiveLocale = locale || 'en-GB'
+  let formatter = displayDateFormatters.get(effectiveLocale)
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(effectiveLocale, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC',
+    })
+    displayDateFormatters.set(effectiveLocale, formatter)
+  }
+  return formatter
+}
+
 /**
  * Formats a YYYY-MM-DD date string to a human-readable locale display date.
  *
@@ -134,12 +157,7 @@ export function calculateDays(startDateStr, endDateStr) {
 export function formatDisplayDate(dateStr, locale = 'en-GB') {
   const parsed = parseDateUTC(dateStr)
   if (!parsed) return ''
-  return parsed.toLocaleDateString(locale, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  })
+  return getDisplayDateFormatter(locale).format(parsed)
 }
 
 /**

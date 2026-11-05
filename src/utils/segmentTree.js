@@ -144,7 +144,8 @@ export class AbsenceSegmentTree {
   }
 
   /**
-   * Queries range sum in [qstart, qend] in O(log K) time using branchless iterative traversal.
+   * Queries range sum in [qstart, qend] in O(log K) time using branchless iterative traversal,
+   * with O(1) fast-paths for single-leaf and full-tree root queries.
    *
    * @param {number} qstart - Start leaf index.
    * @param {number} qend - End leaf index.
@@ -155,6 +156,8 @@ export class AbsenceSegmentTree {
     let l = Math.max(0, qstart)
     let r = Math.min(this.cap - 1, qend)
     if (l > r) return 0
+    if (l === r) return this.tree[this.cap + l]
+    if (l === 0 && r === this.cap - 1) return this.tree[1]
 
     let sum = 0
     for (l += this.cap, r += this.cap + 1; l < r; l >>= 1, r >>= 1) {

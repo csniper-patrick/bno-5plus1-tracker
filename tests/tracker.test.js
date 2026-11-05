@@ -665,6 +665,95 @@ absences:
     assert.strictEqual(store.naturalization5YearAbsence, exact5Yr)
   })
 
+  it('should calculate date-to-date 12-month and 5-year periods accurately across leap years', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    // -------------------------------------------------------------------------
+    // Scenario 1: Rolling 12-month period crossing a leap year (366 days)
+    // 2023-06-01 to 2024-06-01 crosses Feb 29, 2024 (366 days elapsed).
+    // Trip 1 (2023-06-01 to 2023-08-31) = 90 full absent days (June 2 to Aug 30)
+    // Trip 2 (2024-03-02 to 2024-06-02) = 91 full absent days (March 3 to June 1)
+    // In date-to-date 12-month window [2023-06-01, 2024-06-01], June 1 is included (181 days total).
+    // In a fixed 365-day window [2023-06-01, 2024-05-31], June 1 would be omitted (180 days).
+    // -------------------------------------------------------------------------
+    store.setVisaStartDate('2023-06-01')
+    store.setUkArrivalDate('2023-06-01')
+
+    store.addAbsence({
+      startDate: '2023-06-01',
+      endDate: '2023-08-31',
+      dest: 'Trip 1 (90 days)',
+    })
+    store.addAbsence({
+      startDate: '2024-03-02',
+      endDate: '2024-06-02',
+      dest: 'Trip 2 (91 days ending June 1)',
+    })
+
+    // Date-to-date scan must capture all 181 days in the 366-day leap-year window
+    assert.strictEqual(store.ilrQualifyingPeriod.baselineMax12MonthAbsence, 181)
+    assert.strictEqual(store.isRuleExceeded, true)
+    assert.strictEqual(store.isIlrWindowShifted, true)
+
+    // Shifting forward: on 2023-06-03, June 2 drops out, bringing peak down to compliant 180 days
+    assert.strictEqual(store.ilrQualifyingPeriod.windowStartDate, '2023-06-03')
+    assert.strictEqual(store.settlementTargetDate, '2028-06-03')
+    assert.strictEqual(store.max12MonthAbsence, 180)
+
+    // -------------------------------------------------------------------------
+    // Scenario 2: 5-year qualifying period spanning 2 leap years (1,827 days)
+    // 2024-01-01 to 2029-01-01 crosses both 2024-02-29 and 2028-02-29.
+    // -------------------------------------------------------------------------
+    store.clearAbsences()
+    store.setVisaStartDate('2024-01-01')
+    store.setUkArrivalDate('2024-01-01')
+
+    assert.strictEqual(store.settlementTargetDate, '2029-01-01')
+    const days5YrSpan = Math.round(
+      (parseDateUTC('2029-01-01').getTime() - parseDateUTC('2024-01-01').getTime()) / 86400000,
+    )
+    assert.strictEqual(days5YrSpan, 1827) // 2 leap years: 366 + 365 + 365 + 365 + 366 = 1827
+
+    // Add trips across leap days
+    store.addAbsence({ startDate: '2024-02-28', endDate: '2024-03-02', dest: 'Leap 2024 Trip' }) // 2 days (Feb 29, Mar 1)
+    store.addAbsence({ startDate: '2028-02-28', endDate: '2028-03-02', dest: 'Leap 2028 Trip' }) // 2 days (Feb 29, Mar 1)
+    store.addAbsence({ startDate: '2028-12-28', endDate: '2029-01-05', dest: 'Boundary Trip' }) // Dec 29 to Jan 4 (7 days total)
+
+    const expected5YrAbs = store.queryAbsentDaysInRange('2024-01-01', '2029-01-01')
+    assert.strictEqual(store.ilr5YearTotalAbsence, expected5YrAbs)
+
+    // -------------------------------------------------------------------------
+    // Scenario 3: Naturalisation final 12-month period crossing a leap year (366 days)
+    // Baseline naturalisation window: 2023-06-01 to 2028-06-01
+    // Final 12 months: 2027-06-01 to 2028-06-01 (crosses Feb 29, 2028, 366 days).
+    // Total 91 absent days in final 12 months violates 90-day limit and shifts window.
+    // -------------------------------------------------------------------------
+    store.clearAbsences()
+    store.setVisaStartDate('2023-06-01')
+    store.setUkArrivalDate('2023-06-01')
+    store.setIlrApprovedDate('2027-06-01')
+
+    // Baseline window: 2023-06-01 to 2028-06-01. Final 12 months: 2027-06-01 to 2028-06-01
+    store.addAbsence({
+      startDate: '2027-06-01',
+      endDate: '2027-07-17',
+      dest: 'Final 12 Mo Trip 1 (45 days)',
+    }) // June 2 to July 16 = 29 + 16 = 45 days
+    store.addAbsence({
+      startDate: '2028-04-16',
+      endDate: '2028-06-02',
+      dest: 'Final 12 Mo Trip 2 (46 days ending June 1)',
+    }) // April 17 to June 1 = 14 + 31 + 1 = 46 days (45 + 46 = 91 days in 366-day span)
+
+    assert.strictEqual(store.isNaturalizationFinal12MoLimitViolated, true)
+    assert.strictEqual(store.isNaturalizationWindowShifted, true)
+    assert.strictEqual(store.naturalizationWindowStartDate, '2023-06-03')
+    assert.strictEqual(store.naturalizationTargetDate, '2028-06-03')
+    assert.strictEqual(store.naturalizationFinal12MoAbsence, 90)
+  })
+
   it('should test queryAbsentDaysInRange and isAbsentDay Segment Tree queries', () => {
     localStorage.clear()
     setActivePinia(createPinia())

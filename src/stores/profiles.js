@@ -40,8 +40,7 @@ export const useProfilesStore = defineStore('profiles', () => {
   async function reloadConnectedStores() {
     const absentsStore = useAbsentsStore()
     const documentsStore = useDocumentsStore()
-    await absentsStore.initStore()
-    await documentsStore.initStore()
+    await Promise.all([absentsStore.initStore(), documentsStore.initStore()])
   }
 
   /**
@@ -53,7 +52,7 @@ export const useProfilesStore = defineStore('profiles', () => {
       const { activeId, metaList } = await profileService.initProfiles()
       activeProfileId.value = activeId
       profilesList.value = metaList.map((p) => ({ ...p }))
-      profilesData.value = await profileService.getProfilesData()
+      profilesData.value = { ...(await profileService.getProfilesData()) }
       isInitialized.value = true
     } catch (e) {
       console.error('profilesStore.initStore error:', e)
@@ -77,7 +76,7 @@ export const useProfilesStore = defineStore('profiles', () => {
         activeProfileId.value = targetProfileId
         const { metaList } = await profileService.initProfiles()
         profilesList.value = metaList.map((p) => ({ ...p }))
-        profilesData.value = await profileService.getProfilesData()
+        profilesData.value = { ...(await profileService.getProfilesData()) }
         await reloadConnectedStores()
       }
       return success
@@ -104,7 +103,7 @@ export const useProfilesStore = defineStore('profiles', () => {
         const { activeId, metaList } = await profileService.initProfiles()
         activeProfileId.value = activeId
         profilesList.value = metaList.map((p) => ({ ...p }))
-        profilesData.value = await profileService.getProfilesData()
+        profilesData.value = { ...(await profileService.getProfilesData()) }
         await reloadConnectedStores()
       }
       return newMeta
@@ -145,7 +144,7 @@ export const useProfilesStore = defineStore('profiles', () => {
         const { activeId, metaList } = await profileService.initProfiles()
         activeProfileId.value = activeId
         profilesList.value = metaList
-        profilesData.value = await profileService.getProfilesData()
+        profilesData.value = { ...(await profileService.getProfilesData()) }
         await reloadConnectedStores()
       }
       return success
@@ -171,7 +170,7 @@ export const useProfilesStore = defineStore('profiles', () => {
         const { activeId, metaList } = await profileService.initProfiles()
         activeProfileId.value = activeId
         profilesList.value = metaList
-        profilesData.value = await profileService.getProfilesData()
+        profilesData.value = { ...(await profileService.getProfilesData()) }
         await reloadConnectedStores()
       }
       return newMeta
@@ -193,7 +192,7 @@ export const useProfilesStore = defineStore('profiles', () => {
   async function syncSharedAbsenceProfiles(record, targetProfileIds) {
     try {
       const result = await profileService.syncSharedAbsenceProfiles(record, targetProfileIds)
-      profilesData.value = await profileService.getProfilesData()
+      profilesData.value = { ...(await profileService.getProfilesData()) }
       return result
     } catch (e) {
       console.error('profilesStore.syncSharedAbsenceProfiles error:', e)
@@ -232,13 +231,38 @@ export const useProfilesStore = defineStore('profiles', () => {
   async function syncUpdatedAbsenceAcrossProfiles(record) {
     try {
       const result = await profileService.syncUpdatedAbsenceAcrossProfiles(record)
-      profilesData.value = await profileService.getProfilesData()
+      profilesData.value = { ...(await profileService.getProfilesData()) }
       return result
     } catch (e) {
       console.error('profilesStore.syncUpdatedAbsenceAcrossProfiles error:', e)
       return { success: false, updatedCount: 0, updatedProfiles: [] }
     }
   }
+
+  /** Precomputed lookup map of absenceId -> Array<ProfileMeta> for other profiles */
+  const sharedAbsenceProfilesMap = computed(() => {
+    const map = new Map()
+    const activeId = activeProfileId.value
+    for (const profile of profilesList.value) {
+      if (profile.id === activeId) continue
+      const data = profilesData.value[profile.id]
+      if (data && Array.isArray(data.absences)) {
+        const seenForProfile = new Set()
+        for (const a of data.absences) {
+          if (a && a.id && !seenForProfile.has(a.id)) {
+            seenForProfile.add(a.id)
+            let list = map.get(a.id)
+            if (!list) {
+              list = []
+              map.set(a.id, list)
+            }
+            list.push({ ...profile })
+          }
+        }
+      }
+    }
+    return map
+  })
 
   /**
    * Returns a list of other profiles (excluding active profile) that contain an absence record with the given ID.
@@ -248,17 +272,8 @@ export const useProfilesStore = defineStore('profiles', () => {
    */
   function getProfilesSharingAbsence(absenceId) {
     if (!absenceId) return []
-    const matching = []
-    for (const profile of profilesList.value) {
-      if (profile.id === activeProfileId.value) continue
-      const data = profilesData.value[profile.id]
-      if (data && Array.isArray(data.absences)) {
-        if (data.absences.some((a) => a.id === absenceId)) {
-          matching.push({ ...profile })
-        }
-      }
-    }
-    return matching
+    const matching = sharedAbsenceProfilesMap.value.get(absenceId)
+    return matching ? matching.map((p) => ({ ...p })) : []
   }
 
   return {

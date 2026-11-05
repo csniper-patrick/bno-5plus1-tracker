@@ -12,6 +12,14 @@ export default {
     earliestIlrApplicationDate() {
       return this.formatDateWithCountdown(this.absentsStore.earliestIlrApplicationDate)
     },
+
+    isNaturalizationDateToday() {
+      return this.absentsStore.isNaturalizationDateToday
+    },
+
+    isIlrDateToday() {
+      return this.absentsStore.isEarliestIlrDateTodayOrPast
+    },
   },
 
   methods: {
@@ -172,6 +180,27 @@ export default {
           </v-alert>
 
           <v-alert
+            v-else-if="isIlrDateToday"
+            type="success"
+            variant="tonal"
+            icon="mdi-check-circle-outline"
+            class="mt-3 text-caption rounded-lg"
+            density="compact"
+          >
+            <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+              <span>
+                <strong>{{ $t('absence.earliest_application_date') }}</strong>
+              </span>
+              <strong class="text-subtitle-2 text-success font-weight-bold">
+                {{ earliestIlrApplicationDate }}
+              </strong>
+            </div>
+            <div class="mt-1 opacity-90 text-caption">
+              {{ $t('absence.ilr_app_notice') }}
+            </div>
+          </v-alert>
+
+          <v-alert
             v-else
             type="info"
             variant="tonal"
@@ -250,7 +279,7 @@ export default {
             <v-col cols="12" sm="6">
               <v-card
                 variant="tonal"
-                :color="absentsStore.naturalizationStatusColor"
+                :color="absentsStore.naturalization5YearRuleColor"
                 class="pa-3 rounded-lg h-100"
               >
                 <div class="d-flex align-center justify-space-between mb-1">
@@ -258,7 +287,7 @@ export default {
                     $t('absence.cit_5yr_limit')
                   }}</span>
                   <v-chip
-                    :color="absentsStore.naturalizationStatusColor"
+                    :color="absentsStore.naturalization5YearRuleColor"
                     size="x-small"
                     variant="flat"
                     class="font-weight-bold"
@@ -277,7 +306,7 @@ export default {
             <v-col cols="12" sm="6">
               <v-card
                 variant="tonal"
-                :color="absentsStore.naturalizationStatusColor"
+                :color="absentsStore.naturalizationFinal12MoRuleColor"
                 class="pa-3 rounded-lg h-100"
               >
                 <div class="d-flex align-center justify-space-between mb-1">
@@ -285,7 +314,7 @@ export default {
                     $t('absence.cit_final_12mo_limit')
                   }}</span>
                   <v-chip
-                    :color="absentsStore.naturalizationStatusColor"
+                    :color="absentsStore.naturalizationFinal12MoRuleColor"
                     size="x-small"
                     variant="flat"
                     class="font-weight-bold"
@@ -322,16 +351,84 @@ export default {
             type="warning"
             variant="tonal"
             icon="mdi-clock-alert-outline"
-            class="mt-3 text-caption"
+            class="mt-3 text-caption rounded-lg"
             density="compact"
           >
             <div class="d-flex align-center justify-space-between flex-wrap ga-2">
               <span>
-                <strong>{{ $t('absence.earliest_delayed_app_date') }}</strong>
+                <strong>{{ $t('absence.earliest_delayed_cit_app_date') }}</strong>
               </span>
               <strong class="text-subtitle-2 font-weight-bold">
                 {{ formatDateWithCountdown(absentsStore.naturalizationTargetDate) }}
               </strong>
+            </div>
+
+            <!-- Delayed Reason Indicators -->
+            <div class="mt-2 d-flex flex-wrap align-center ga-1">
+              <span class="font-weight-bold">{{ $t('absence.cit_delay_reason_label') }}:</span>
+              <v-chip
+                v-if="absentsStore.isAbsentOnBaselineStart"
+                color="warning"
+                size="x-small"
+                variant="flat"
+                class="font-weight-bold rounded-lg"
+              >
+                <v-icon icon="mdi-map-marker-remove" start size="x-small"></v-icon>
+                {{
+                  $t('absence.cit_presence_violated_chip', {
+                    date: formatDate(absentsStore.naturalizationBaselineWindowStartDate),
+                  })
+                }}
+              </v-chip>
+              <v-chip
+                v-if="absentsStore.isNaturalization5YearLimitViolated"
+                color="warning"
+                size="x-small"
+                variant="flat"
+                class="font-weight-bold rounded-lg"
+              >
+                <v-icon icon="mdi-calendar-remove" start size="x-small"></v-icon>
+                {{
+                  $t('absence.cit_5yr_limit_violated_chip', {
+                    days: absentsStore.naturalizationQualifyingPeriod.baseline5YearAbsence,
+                  })
+                }}
+              </v-chip>
+              <v-chip
+                v-if="absentsStore.isNaturalizationFinal12MoLimitViolated"
+                color="warning"
+                size="x-small"
+                variant="flat"
+                class="font-weight-bold rounded-lg"
+              >
+                <v-icon icon="mdi-calendar-alert" start size="x-small"></v-icon>
+                {{
+                  $t('absence.cit_12mo_limit_violated_chip', {
+                    days: absentsStore.naturalizationQualifyingPeriod.baselineFinal12MoAbsence,
+                  })
+                }}
+              </v-chip>
+            </div>
+          </v-alert>
+
+          <v-alert
+            v-else-if="isNaturalizationDateToday"
+            type="success"
+            variant="tonal"
+            icon="mdi-check-circle-outline"
+            class="mt-3 text-caption rounded-lg"
+            density="compact"
+          >
+            <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+              <span>
+                <strong>{{ $t('absence.earliest_application_date') }}</strong>
+              </span>
+              <strong class="text-subtitle-2 text-success font-weight-bold">
+                {{ formatDateWithCountdown(absentsStore.naturalizationTargetDate) }}
+              </strong>
+            </div>
+            <div class="mt-1 opacity-90 text-caption">
+              {{ $t('absence.cit_app_notice') }}
             </div>
           </v-alert>
 

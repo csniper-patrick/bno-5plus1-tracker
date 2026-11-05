@@ -54,11 +54,22 @@ export const useAbsentsStore = defineStore('absents', () => {
     })
   }
 
+  /**
+   * Returns a Date object representing today's UTC midnight (00:00:00.000Z).
+   *
+   * @returns {Date}
+   */
+  function getTodayUTC() {
+    const now = new Date()
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+  }
+
   // ---------------------------------------------------------------------------
   // State Initialization
   // ---------------------------------------------------------------------------
 
   const isInitialized = ref(false)
+  const dataImportVersion = ref(0)
 
   /** Primary reactive list of absence records, maintained in chronological order. */
   const absences = ref([])
@@ -105,6 +116,7 @@ export const useAbsentsStore = defineStore('absents', () => {
 
     syncArrivalRecord()
     rebuildSegmentTree()
+    dataImportVersion.value++
     isInitialized.value = true
     await dbService.setItem(STORAGE_KEY, absences.value)
   }
@@ -680,8 +692,10 @@ export const useAbsentsStore = defineStore('absents', () => {
         isLimitExceeded: false,
         fiveYearAbsence: 0,
         final12MoAbsence: 0,
+        baseline5YearAbsence: 0,
+        baselineFinal12MoAbsence: 0,
+        isAbsentOnBaselineStart: false,
         trackerDeadlineDate: '',
-        initialViolations: [],
       }
     }
 
@@ -694,8 +708,10 @@ export const useAbsentsStore = defineStore('absents', () => {
       isLimitExceeded: false,
       fiveYearAbsence: 0,
       final12MoAbsence: 0,
+      baseline5YearAbsence: 0,
+      baselineFinal12MoAbsence: 0,
+      isAbsentOnBaselineStart: false,
       trackerDeadlineDate: '',
-      initialViolations: [],
     }
 
     let baselineStart
@@ -713,9 +729,24 @@ export const useAbsentsStore = defineStore('absents', () => {
       baselineStart.setUTCFullYear(baselineStart.getUTCFullYear() - 4)
     }
 
-    const baselineStartStr = formatDateUTC(baselineStart)
-    const baselineTarget = new Date(baselineStart)
+    let baselineTarget = new Date(baselineStart)
     baselineTarget.setUTCFullYear(baselineTarget.getUTCFullYear() + 5)
+
+    const todayUTC = getTodayUTC()
+
+    if (baselineTarget < todayUTC) {
+      baselineStart = new Date(todayUTC)
+      baselineStart.setUTCFullYear(baselineStart.getUTCFullYear() - 5)
+      baselineTarget = new Date(baselineStart)
+      baselineTarget.setUTCFullYear(baselineTarget.getUTCFullYear() + 5)
+      while (baselineTarget < todayUTC) {
+        baselineStart.setUTCDate(baselineStart.getUTCDate() + 1)
+        baselineTarget = new Date(baselineStart)
+        baselineTarget.setUTCFullYear(baselineTarget.getUTCFullYear() + 5)
+      }
+    }
+
+    const baselineStartStr = formatDateUTC(baselineStart)
     const baselineTargetStr = formatDateUTC(baselineTarget)
 
     let trackerDeadline = null
@@ -742,7 +773,9 @@ export const useAbsentsStore = defineStore('absents', () => {
     let finalTargetStr = baselineTargetStr
     let fiveYearAbs = 0
     let final12MoAbs = 0
-    const initialViolations = []
+    let baseline5YearAbs = 0
+    let baselineFinal12MoAbs = 0
+    let isAbsentOnBaselineStart = false
 
     const hasTree = segmentTree.value && visaStartDate.value && segmentTreeSize > 0
     const vStart = hasTree ? parseDateUTC(visaStartDate.value) : null
@@ -772,26 +805,26 @@ export const useAbsentsStore = defineStore('absents', () => {
         if (startIdx >= 0 && targetIdx < segmentTreeSize) {
           isAbsentOnStart = segmentTree.value.queryPoint(startIdx) === 1
 
-          if (safetyCounter === 0) {
+          if (
+            safetyCounter === 0 ||
+            prevStartIdx < 0 ||
+            startIdx !== prevStartIdx + 1 ||
+            targetIdx !== prevTargetIdx + 1 ||
+            f12StartIdx !== prevF12StartIdx + 1
+          ) {
             f5 = segmentTree.value.query(startIdx, targetIdx)
             f12 = segmentTree.value.query(f12StartIdx, targetIdx)
             currentF5 = f5
             currentF12 = f12
           } else {
-            // O(1) sliding window update using queryPoint
+            // O(1) sliding window update using queryPoint when all boundaries advance by 1 day
             currentF5 +=
               segmentTree.value.queryPoint(targetIdx) - segmentTree.value.queryPoint(prevStartIdx)
-            if (targetIdx !== prevTargetIdx + 1) {
-              currentF5 += segmentTree.value.query(prevTargetIdx + 1, targetIdx)
-            }
             f5 = currentF5
 
             currentF12 +=
               segmentTree.value.queryPoint(targetIdx) -
               segmentTree.value.queryPoint(prevF12StartIdx)
-            if (f12StartIdx !== prevF12StartIdx + 1) {
-              currentF12 -= segmentTree.value.query(prevF12StartIdx, f12StartIdx - 1)
-            }
             f12 = currentF12
           }
 
@@ -802,6 +835,7 @@ export const useAbsentsStore = defineStore('absents', () => {
           isAbsentOnStart = isAbsentDay(currentStart)
           f5 = queryAbsentDaysInRange(currentStart, targetDate)
           f12 = queryAbsentDaysInRange(final12MoStartDate, targetDate)
+          prevStartIdx = -1
         }
       } else {
         isAbsentOnStart = isAbsentDay(currentStart)
@@ -810,12 +844,18 @@ export const useAbsentsStore = defineStore('absents', () => {
       }
 
       if (safetyCounter === 0) {
+        baseline5YearAbs = f5
+        baselineFinal12MoAbs = f12
+        isAbsentOnBaselineStart = isAbsentOnStart
         fiveYearAbs = f5
         final12MoAbs = f12
-        if (isAbsentOnStart)
-          initialViolations.push('Physical presence requirement on window start date')
-        if (f5 > 450) initialViolations.push('5-year absence limit (> 450 days)')
-        if (f12 > 90) initialViolations.push('Final 12-month absence limit (> 90 days)')
+      } else if (isAbsentOnStart || f5 > 450 || f12 > 90) {
+        if (f5 > 450 && f5 > baseline5YearAbs) {
+          baseline5YearAbs = f5
+        }
+        if (f12 > 90 && f12 > baselineFinal12MoAbs) {
+          baselineFinal12MoAbs = f12
+        }
       }
 
       if (!isAbsentOnStart && f5 <= 450 && f12 <= 90) {
@@ -857,8 +897,10 @@ export const useAbsentsStore = defineStore('absents', () => {
       isLimitExceeded,
       fiveYearAbsence: fiveYearAbs,
       final12MoAbsence: final12MoAbs,
+      baseline5YearAbsence: baseline5YearAbs,
+      baselineFinal12MoAbsence: baselineFinal12MoAbs,
+      isAbsentOnBaselineStart,
       trackerDeadlineDate: trackerDeadlineStr,
-      initialViolations,
     }
   })
 
@@ -883,6 +925,55 @@ export const useAbsentsStore = defineStore('absents', () => {
   const naturalizationFinal12MoAbsence = computed(
     () => naturalizationQualifyingPeriod.value?.final12MoAbsence ?? 0,
   )
+  const isAbsentOnBaselineStart = computed(
+    () => naturalizationQualifyingPeriod.value?.isAbsentOnBaselineStart || false,
+  )
+  const naturalizationBaselineWindowStartDate = computed(
+    () => naturalizationQualifyingPeriod.value?.baselineWindowStartDate || '',
+  )
+  const naturalizationBaselineTargetDate = computed(
+    () => naturalizationQualifyingPeriod.value?.baselineTargetDate || '',
+  )
+
+  const isNaturalization5YearLimitViolated = computed(() => {
+    const baseline5 = naturalizationQualifyingPeriod.value?.baseline5YearAbsence ?? 0
+    return baseline5 > 450
+  })
+
+  const isNaturalizationFinal12MoLimitViolated = computed(() => {
+    const baseline12 = naturalizationQualifyingPeriod.value?.baselineFinal12MoAbsence ?? 0
+    return baseline12 > 90
+  })
+
+  const naturalization5YearRuleColor = computed(() => {
+    if (naturalization5YearAbsence.value > 450) return 'error'
+    if (isNaturalizationWindowShifted.value) {
+      return isNaturalization5YearLimitViolated.value ? 'warning' : 'success'
+    }
+    if (naturalization5YearAbsence.value >= 380) return 'warning'
+    return 'success'
+  })
+
+  const naturalizationFinal12MoRuleColor = computed(() => {
+    if (naturalizationFinal12MoAbsence.value > 90) return 'error'
+    if (isNaturalizationWindowShifted.value) {
+      return isNaturalizationFinal12MoLimitViolated.value ? 'warning' : 'success'
+    }
+    if (naturalizationFinal12MoAbsence.value >= 75) return 'warning'
+    return 'success'
+  })
+
+  const isNaturalizationDateToday = computed(() => {
+    if (!naturalizationTargetDate.value) return false
+    const todayStr = formatDateUTC(getTodayUTC())
+    return naturalizationTargetDate.value === todayStr
+  })
+
+  const isEarliestIlrDateTodayOrPast = computed(() => {
+    if (!earliestIlrApplicationDate.value) return false
+    const todayStr = formatDateUTC(getTodayUTC())
+    return earliestIlrApplicationDate.value <= todayStr
+  })
 
   const naturalizationStatusColor = computed(() => {
     if (isNaturalizationLimitExceeded.value) return 'error'
@@ -902,6 +993,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   function setVisaStartDate(dateStr) {
     visaStartDate.value = dateStr || ''
     rebuildSegmentTree()
+    dataImportVersion.value++
   }
 
   function setVisaExpiryDate(dateStr) {
@@ -927,6 +1019,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     ukArrivalDate.value = uArrival || ''
     ilrApprovedDate.value = iApproved || ''
     rebuildSegmentTree()
+    dataImportVersion.value++
   }
 
   /**
@@ -1104,38 +1197,44 @@ export const useAbsentsStore = defineStore('absents', () => {
   }
 
   function updateAbsence(id, updatedFields) {
-    const index = absences.value.findIndex((item) => item.id === id)
-    if (index !== -1) {
-      if (absences.value[index].isAutoArrival || id === AUTO_ARRIVAL_ID) {
-        throw new Error(
-          'Initial UK Entry record is automatically managed by Key Dates and cannot be manually edited.',
-        )
-      }
-
-      const oldRecord = { ...absences.value[index] }
-      const mergedRecord = {
-        ...absences.value[index],
-        ...updatedFields,
-      }
-
-      if (!mergedRecord.isAutoArrival) {
-        const validation = validateAbsence(mergedRecord)
-        if (!validation.valid) {
-          throw new Error(validation.error)
-        }
-      }
-
-      absences.value[index] = mergedRecord
-      sortAbsencesArray(absences.value)
-      removeRecordFromSegmentTree(oldRecord)
-      addRecordToSegmentTree(absences.value[index])
-
-      profileService.syncUpdatedAbsenceAcrossProfiles(absences.value[index]).catch((err) => {
-        console.error('Failed to sync updated absence across profiles:', err)
-      })
-
-      return absences.value[index]
+    if (!id || typeof id !== 'string') {
+      throw new Error('[useAbsentsStore] updateAbsence called without valid record ID.')
     }
+
+    const index = absences.value.findIndex((item) => item.id === id)
+    if (index === -1) {
+      throw new Error(`[useAbsentsStore] Absence record with ID "${id}" not found for update.`)
+    }
+
+    if (absences.value[index].isAutoArrival || id === AUTO_ARRIVAL_ID) {
+      throw new Error(
+        'Initial UK Entry record is automatically managed by Key Dates and cannot be manually edited.',
+      )
+    }
+
+    const oldRecord = { ...absences.value[index] }
+    const mergedRecord = {
+      ...absences.value[index],
+      ...updatedFields,
+    }
+
+    if (!mergedRecord.isAutoArrival) {
+      const validation = validateAbsence(mergedRecord)
+      if (!validation.valid) {
+        throw new Error(validation.error)
+      }
+    }
+
+    absences.value[index] = mergedRecord
+    sortAbsencesArray(absences.value)
+    removeRecordFromSegmentTree(oldRecord)
+    addRecordToSegmentTree(mergedRecord)
+
+    profileService.syncUpdatedAbsenceAcrossProfiles(mergedRecord).catch((err) => {
+      console.error('Failed to sync updated absence across profiles:', err)
+    })
+
+    return mergedRecord
   }
 
   function removeAbsence(id) {
@@ -1277,6 +1376,7 @@ export const useAbsentsStore = defineStore('absents', () => {
     sortAbsencesArray(absences.value)
     syncArrivalRecord()
     rebuildSegmentTree()
+    dataImportVersion.value++
 
     return {
       count: validNewEntries.length,
@@ -1290,6 +1390,7 @@ export const useAbsentsStore = defineStore('absents', () => {
   return {
     isInitialized,
     initStore,
+    dataImportVersion,
     absences,
     visaStartDate,
     isVisaDateSet,
@@ -1322,11 +1423,20 @@ export const useAbsentsStore = defineStore('absents', () => {
     naturalizationTargetDate,
     naturalizationWindowStartDate,
     naturalizationCalculatedEarliestDate,
+    naturalizationBaselineWindowStartDate,
+    naturalizationBaselineTargetDate,
     isNaturalizationWindowShifted,
     isNaturalizationLimitExceeded,
     naturalization5YearAbsence,
     naturalizationFinal12MoAbsence,
+    isAbsentOnBaselineStart,
     naturalizationStatusColor,
+    isNaturalization5YearLimitViolated,
+    isNaturalizationFinal12MoLimitViolated,
+    naturalization5YearRuleColor,
+    naturalizationFinal12MoRuleColor,
+    isNaturalizationDateToday,
+    isEarliestIlrDateTodayOrPast,
     isNaturalizationEligible,
     sortedAbsences,
     totalDaysAbsent,

@@ -177,8 +177,13 @@ export default {
     total_5yr_desc: 'Total cumulative full days absent over the 5-year route.',
     earliest_application_date: 'Earliest Application Date:',
     earliest_delayed_app_date: 'Earliest Delayed ILR Application Date:',
+    earliest_delayed_cit_app_date: 'Earliest Delayed Citizenship Application Date:',
     qualifying_period_delayed_notice:
       'Baseline calculated date was {baseline}. Because rolling 12-month absences exceeded 180 days in the initial 5 years, the 5-year ILR qualifying window automatically delayed to {windowStart} – {settlementTarget}.',
+    cit_delay_reason_label: 'Reason for delay',
+    cit_presence_violated_chip: 'Physical presence requirement not met on {date}',
+    cit_5yr_limit_violated_chip: '5-year absence limit exceeded ({days} / 450 days)',
+    cit_12mo_limit_violated_chip: 'Final 12-month limit exceeded ({days} / 90 days)',
     ilr_app_notice:
       'Applications can be submitted up to 28 days before completing the 5-year qualifying period.',
     citizenship_title: 'British Citizenship',

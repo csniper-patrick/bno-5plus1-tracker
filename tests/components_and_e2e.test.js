@@ -565,4 +565,122 @@ describe('Address History Housing Status Options & Localization', () => {
 
     assert.strictEqual(docStore.addressHistory.length, 4)
   })
+
+  it('should reset custom range query boundaries via AbsenceView watchers and methods when key dates, data import, or profile changes', async () => {
+    await dbService.clear()
+    setActivePinia(createPinia())
+    const absentsStore = useAbsentsStore()
+    await absentsStore.initStore()
+
+    // Extract actual method and watcher handlers from AbsenceView.vue
+    const absenceViewSource = fs.readFileSync(
+      path.join(process.cwd(), 'src/views/AbsenceView.vue'),
+      'utf8',
+    )
+    assert.ok(
+      absenceViewSource.includes("'absentsStore.visaStartDate'"),
+      'AbsenceView.vue must watch absentsStore.visaStartDate',
+    )
+    assert.ok(
+      absenceViewSource.includes("'absentsStore.dataImportVersion'"),
+      'AbsenceView.vue must watch absentsStore.dataImportVersion',
+    )
+    assert.ok(
+      absenceViewSource.includes("'profilesStore.activeProfileId'"),
+      'AbsenceView.vue must watch profilesStore.activeProfileId',
+    )
+
+    const resetMethodMatch = absenceViewSource.match(
+      /resetQueryDateRangeToMax\(\)\s*\{([\s\S]*?)\n\s*\},/,
+    )
+    assert.ok(resetMethodMatch, 'resetQueryDateRangeToMax method must be defined in AbsenceView.vue')
+    const resetQueryDateRangeToMaxFn = new Function(
+      'getMaxSegmentTreeReturnDate',
+      `return function() { ${resetMethodMatch[1]} }`,
+    )(getMaxSegmentTreeReturnDate)
+
+    const visaStartWatchMatch = absenceViewSource.match(
+      /'absentsStore\.visaStartDate':\s*\{\s*immediate:\s*true,\s*handler\(newVal\)\s*\{([\s\S]*?)\n\s*\},\s*\},/,
+    )
+    assert.ok(visaStartWatchMatch, 'visaStartDate watcher handler must be defined in AbsenceView.vue')
+    const onVisaStartDateChange = new Function(
+      'newVal',
+      visaStartWatchMatch[1],
+    )
+
+    const dataImportWatchMatch = absenceViewSource.match(
+      /'absentsStore\.dataImportVersion':\s*\{\s*handler\(\)\s*\{([\s\S]*?)\n\s*\},\s*\},/,
+    )
+    assert.ok(dataImportWatchMatch, 'dataImportVersion watcher handler must be defined in AbsenceView.vue')
+    const onDataImportVersionChange = new Function(dataImportWatchMatch[1])
+
+    const vm = {
+      absentsStore,
+      queryForm: { startDate: '', endDate: '' },
+      editingId: null,
+      resetFormCalled: false,
+      resetForm() {
+        this.editingId = null
+        this.resetFormCalled = true
+      },
+    }
+    vm.resetQueryDateRangeToMax = resetQueryDateRangeToMaxFn.bind(vm)
+
+    // 1. Initial key dates setup: 2020-01-01
+    absentsStore.setVisaStartDate('2020-01-01')
+    onVisaStartDateChange.call(vm, absentsStore.visaStartDate)
+    assert.strictEqual(vm.queryForm.startDate, '2020-01-01')
+    assert.strictEqual(vm.queryForm.endDate, getMaxSegmentTreeReturnDate('2020-01-01'))
+
+    // 2. User narrows custom query range and starts editing a record
+    vm.queryForm.startDate = '2021-01-01'
+    vm.queryForm.endDate = '2021-06-01'
+    vm.editingId = 'rec_123'
+
+    // 3. Key dates updated via dialog: visa start moves to 2022-01-01
+    absentsStore.setVisaAndArrivalDates({
+      visaStartDate: '2022-01-01',
+      visaExpiryDate: '2027-01-01',
+      ukArrivalDate: '2022-01-01',
+      ilrApprovedDate: '',
+    })
+    onDataImportVersionChange.call(vm)
+    assert.strictEqual(vm.queryForm.startDate, '2022-01-01')
+    assert.strictEqual(vm.queryForm.endDate, getMaxSegmentTreeReturnDate('2022-01-01'))
+    assert.strictEqual(vm.editingId, null)
+
+    // 4. Data import changes key dates and increments dataImportVersion
+    vm.queryForm.startDate = '2023-01-01'
+    vm.queryForm.endDate = '2023-06-01'
+    const initialImportVersion = absentsStore.dataImportVersion
+    const yamlData = `
+visa_start_date: '2024-05-01'
+visa_expiry_date: '2029-05-01'
+uk_arrival_date: '2024-05-01'
+absences:
+  - startDate: '2025-06-01'
+    endDate: '2025-06-20'
+`
+    absentsStore.importYAML(yamlData)
+    assert.strictEqual(absentsStore.dataImportVersion > initialImportVersion, true)
+    onDataImportVersionChange.call(vm)
+    assert.strictEqual(vm.queryForm.startDate, '2024-05-01')
+    assert.strictEqual(vm.queryForm.endDate, getMaxSegmentTreeReturnDate('2024-05-01'))
+
+    // 5. Profile reload via initStore() with same visaStartDate increments dataImportVersion and resets custom range
+    vm.queryForm.startDate = '2024-08-01'
+    vm.queryForm.endDate = '2024-09-01'
+    const versionBeforeReload = absentsStore.dataImportVersion
+    await absentsStore.initStore()
+    assert.strictEqual(absentsStore.dataImportVersion > versionBeforeReload, true)
+    onDataImportVersionChange.call(vm)
+    assert.strictEqual(vm.queryForm.startDate, '2024-05-01')
+    assert.strictEqual(vm.queryForm.endDate, getMaxSegmentTreeReturnDate('2024-05-01'))
+
+    // 6. Clearing absences resets tracking period to empty
+    await absentsStore.clearAbsences()
+    onDataImportVersionChange.call(vm)
+    assert.strictEqual(vm.queryForm.startDate, '')
+    assert.strictEqual(vm.queryForm.endDate, '')
+  })
 })

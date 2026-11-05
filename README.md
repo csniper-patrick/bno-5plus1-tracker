@@ -21,7 +21,8 @@ This application is an independent third-party tool. The application is not affi
 - Day-count calculations: Departure and return dates are excluded from absent day counts. The Home Office counts only full 24-hour days outside the UK as absences.
 - Key date tracking: You can record your visa start date, your UK arrival date, your visa expiration date, and your approved settlement date. If your arrival date differs from your visa start date, the application creates an initial absence record.
 - Settlement absence monitoring: The application calculates absent days in each rolling 365-day period. If absences exceed 180 days in a period, the application delays the 5-year qualifying window forward to the earliest compliant date.
-- Citizenship absence monitoring: The application evaluates the 450-day limit for the 5-year period and the 90-day limit for the final 12 months. The application makes sure that you were physically present in the UK exactly 5 years before the application date.
+- Citizenship absence monitoring: The application evaluates the 450-day limit for the 5-year period and the 90-day limit for the final 12 months. The application makes sure that you were physically present in the UK exactly 5 years before the application date. It enforces an inclusive lower bound of today (UTC midnight) for the earliest citizenship application date so past candidate dates are never suggested, and displays an immediate eligibility banner when you can apply today.
+- Custom range query synchronization: The custom date range query tool automatically resets its date boundaries to match the active 20-year tracking period whenever key dates change, backup data is imported, or the active profile is switched.
 - Visa summary card: The card shows your visa start date, your visa expiration date, and your earliest settlement date. If your visa expires before your settlement date, the card shows a warning.
 - Qualification tracking: You can record your National Insurance number, your Life in the UK test details, and your English B1 qualification pathway.
 - Continuous residence checklist: You can track residence evidence across years 1 through 5, including council tax, tax records, bank statements, and utility bills.
@@ -195,7 +196,7 @@ bno-5plus1-tracker/
 - [backupService.js](src/services/backupService.js): A service that exports and imports application data as YAML files with comments.
 - [zipService.js](src/services/zipService.js): An archiving service that packages application state, manifest indexes, and document files into `.zip` archives.
 - [locales/](src/locales): Translation files for English (`en.js`) and Traditional Chinese (`zh-HK.js`). They supply translated text for all views, dialogs, badges, and guidance cards.
-- [useAbsentsStore](src/stores/absents.js): A Pinia store for travel records, key dates, and absence calculations. It synchronizes records with the segment tree and monitors rolling 180-day limits.
+- [useAbsentsStore](src/stores/absents.js): A Pinia store for travel records, key dates, and absence calculations. It synchronizes records with the segment tree, monitors rolling 180-day limits, enforces naturalisation earliest application lower bounds, computes individual rule coloring states, and tracks data import and reload versions to synchronize custom range queries.
 - [useDocumentsStore](src/stores/documents.js): A Pinia store for settlement requirements. It tracks test records, address history entries, residence checklists, and uploaded file metadata.
 
 ### Development and Maintenance Routines

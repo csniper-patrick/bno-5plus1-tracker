@@ -16,7 +16,7 @@ _Note: This application is an independent 3rd-party tool provided for personal t
 4. **Auto UK Arrival Sync**: Automatic generation/updating of initial arrival absence record if UK Arrival Date > BNO Visa Start Date.
 5. **Earliest Application Dates Countdown**: Applications for ILR can be submitted up to **28 days** prior to completing 5-year continuous residence. Both Earliest ILR Application Date and Earliest Naturalisation Date display a dynamic countdown in brackets for future dates showing the single most significant non-zero unit.
 6. **Naturalisation Chaining & Absence Limits**:
-   - Baseline Naturalisation target date automatically inherits `ilrTargetDate + 1 year` when ILR is delayed (or uses explicit `ilrApprovedDate` when available).
+   - Baseline Naturalisation target date automatically inherits `ilrTargetDate + 1 year` when ILR is delayed (or uses explicit `ilrApprovedDate` when available), with an inclusive lower bound of today (UTC midnight) so past candidate application dates are bounded to today.
    - Maximum **450 days** absent in the 5 years prior to naturalisation application.
    - Maximum **90 days** absent in the final 12 months prior to naturalisation application.
    - Physical Presence Requirement: Applicants must be physically present in the UK on the exact date 5 years prior to application. If the start date falls on an absent day, the start date automatically shifts to the earliest subsequent day present in the UK.

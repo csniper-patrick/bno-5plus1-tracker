@@ -174,8 +174,13 @@ export default {
     total_5yr_desc: '5 年路徑中累計的完整離英總日數。',
     earliest_application_date: '最早可申請日期：',
     earliest_delayed_app_date: '最早順延可申請永居日期：',
+    earliest_delayed_cit_app_date: '最早順延可申請入籍日期：',
     qualifying_period_delayed_notice:
       '原本基線計算日期為 {baseline}。由於首 5 年內滾動 12 個月離英日數超過 180 日，5 年永居資格窗口已自動順延至 {windowStart} – {settlementTarget}。',
+    cit_delay_reason_label: '順延原因',
+    cit_presence_violated_chip: '於 {date} 未符合實體身在英國要求',
+    cit_5yr_limit_violated_chip: '5 年離境超出限制 ({days} / 450 日)',
+    cit_12mo_limit_violated_chip: '最後 12 個月超出限制 ({days} / 90 日)',
     ilr_app_notice: '可以在完成 5 年資格期前最多 28 天遞交申請。',
     citizenship_title: '英國公民入籍',
     out_of_tracker_range: '超出 20 年追蹤器範圍',

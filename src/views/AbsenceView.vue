@@ -412,12 +412,26 @@ export default {
       immediate: true,
       handler(newVal) {
         if (newVal) {
-          if (!this.queryForm.startDate) {
-            this.queryForm.startDate = newVal
-          }
-          if (!this.queryForm.endDate) {
-            this.queryForm.endDate = this.maxSegmentTreeReturnDate
-          }
+          this.resetQueryDateRangeToMax()
+        } else {
+          this.queryForm.startDate = ''
+          this.queryForm.endDate = ''
+        }
+      },
+    },
+    'absentsStore.dataImportVersion': {
+      handler() {
+        this.resetQueryDateRangeToMax()
+        if (this.editingId) {
+          this.resetForm()
+        }
+      },
+    },
+    'profilesStore.activeProfileId': {
+      handler() {
+        this.resetQueryDateRangeToMax()
+        if (this.editingId) {
+          this.resetForm()
         }
       },
     },
@@ -464,6 +478,7 @@ export default {
         ukArrivalDate: this.arrivalDateInput,
         ilrApprovedDate: this.ilrApprovedDateInput,
       })
+      this.resetQueryDateRangeToMax()
       this.visaDateDialog = false
       this.showSnackbar(this.$t('absence.save_dates_success'), 'success')
     },
@@ -517,25 +532,32 @@ export default {
       const summaryDest = this.formSummaryDest
 
       if (this.editingId) {
-        this.absentsStore.updateAbsence({
-          id: this.editingId,
-          startDate: sDate,
-          endDate: eDate,
-          dest: summaryDest,
-          stops: stopsCopy,
-        })
-        this.showSnackbar(this.$t('absence.record_updated_success'), 'success')
+        try {
+          this.absentsStore.updateAbsence(this.editingId, {
+            startDate: sDate,
+            endDate: eDate,
+            dest: summaryDest,
+            stops: stopsCopy,
+          })
+          this.showSnackbar(this.$t('absence.record_updated_success'), 'success')
+          this.resetForm()
+        } catch (err) {
+          this.showSnackbar(err.message || 'Failed to update record', 'error')
+        }
       } else {
-        this.absentsStore.addAbsence({
-          startDate: sDate,
-          endDate: eDate,
-          dest: summaryDest,
-          stops: stopsCopy,
-        })
-        this.showSnackbar(this.$t('absence.record_added_success'), 'success')
+        try {
+          this.absentsStore.addAbsence({
+            startDate: sDate,
+            endDate: eDate,
+            dest: summaryDest,
+            stops: stopsCopy,
+          })
+          this.showSnackbar(this.$t('absence.record_added_success'), 'success')
+          this.resetForm()
+        } catch (err) {
+          this.showSnackbar(err.message || 'Failed to add record', 'error')
+        }
       }
-
-      this.resetForm()
     },
 
     /**
@@ -698,8 +720,9 @@ export default {
     },
 
     resetQueryDateRangeToMax() {
-      this.queryForm.startDate = this.absentsStore.visaStartDate || ''
-      this.queryForm.endDate = this.maxSegmentTreeReturnDate || ''
+      const vStart = this.absentsStore.visaStartDate || ''
+      this.queryForm.startDate = vStart
+      this.queryForm.endDate = vStart ? getMaxSegmentTreeReturnDate(vStart) || '' : ''
     },
 
     showSnackbar(text, color = 'success') {

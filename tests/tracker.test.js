@@ -355,6 +355,16 @@ describe('Absents Store Reactivity', () => {
     assert.strictEqual(store.max12MonthAbsence, 180)
     assert.strictEqual(store.isRuleExceeded, true)
 
+    // Verify Rule 12 (Fail Loud): updateAbsence throws when ID is missing or not found
+    assert.throws(
+      () => store.updateAbsence('', { startDate: '2021-01-01', endDate: '2021-07-11' }),
+      /updateAbsence called without valid record ID/,
+    )
+    assert.throws(
+      () => store.updateAbsence('non_existent_id', { startDate: '2021-01-01', endDate: '2021-07-11' }),
+      /not found for update/,
+    )
+
     // Clear absences
     store.clearAbsences()
     assert.strictEqual(store.totalDaysAbsent, 0)
@@ -491,24 +501,168 @@ absences:
     setActivePinia(createPinia())
     const store = useAbsentsStore()
 
-    store.setVisaStartDate('2020-01-01')
-    store.setUkArrivalDate('2020-01-01')
+    store.setVisaStartDate('2024-01-01')
+    store.setUkArrivalDate('2024-01-01')
 
-    // Baseline Naturalisation Target: 2026-01-01 (window: 2021-01-01 to 2026-01-01)
-    assert.strictEqual(store.naturalizationTargetDate, '2026-01-01')
+    // Baseline Naturalisation Target: 2030-01-01 (window: 2025-01-01 to 2030-01-01)
+    assert.strictEqual(store.naturalizationTargetDate, '2030-01-01')
 
-    // Add a trip where applicant is abroad on naturalisation start date (2021-01-01)
-    store.addAbsence({ startDate: '2020-12-25', endDate: '2021-01-05', dest: 'New Year Abroad' })
+    // Add a trip where applicant is abroad on naturalisation start date (2025-01-01)
+    store.addAbsence({ startDate: '2024-12-25', endDate: '2025-01-05', dest: 'New Year Abroad' })
 
     // Window must shift forward because of start date physical presence requirement
     assert.strictEqual(store.isNaturalizationWindowShifted, true)
-    assert.ok(store.naturalizationWindowStartDate > '2021-01-01')
+    assert.ok(store.naturalizationWindowStartDate > '2025-01-01')
 
-    // Set explicit ILR approved date
-    store.setIlrApprovedDate('2025-06-01')
-    // Naturalisation window start should now be 4 years after ILR approved date (2021-06-01 to 2026-06-01)
-    assert.strictEqual(store.naturalizationWindowStartDate, '2021-06-01')
-    assert.strictEqual(store.naturalizationTargetDate, '2026-06-01')
+    // Set explicit ILR approved date in future
+    store.setIlrApprovedDate('2029-06-01')
+    // Naturalisation window start should now be 4 years after ILR approved date (2025-06-01 to 2030-06-01)
+    assert.strictEqual(store.naturalizationWindowStartDate, '2025-06-01')
+    assert.strictEqual(store.naturalizationTargetDate, '2030-06-01')
+  })
+
+  it('should enforce today as the inclusive lower bound for earliest citizenship application date', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    const now = new Date()
+    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+    const todayStr = formatDateUTC(todayUTC)
+
+    const expectedWindowStart = new Date(todayUTC)
+    expectedWindowStart.setUTCFullYear(expectedWindowStart.getUTCFullYear() - 5)
+    let expectedWindowTarget = new Date(expectedWindowStart)
+    expectedWindowTarget.setUTCFullYear(expectedWindowTarget.getUTCFullYear() + 5)
+    while (expectedWindowTarget < todayUTC) {
+      expectedWindowStart.setUTCDate(expectedWindowStart.getUTCDate() + 1)
+      expectedWindowTarget = new Date(expectedWindowStart)
+      expectedWindowTarget.setUTCFullYear(expectedWindowTarget.getUTCFullYear() + 5)
+    }
+    const expectedWindowStartStr = formatDateUTC(expectedWindowStart)
+    const expectedWindowTargetStr = formatDateUTC(expectedWindowTarget)
+
+    // Set visa start date far in the past so baseline ILR + 1 year precedes today
+    store.setVisaStartDate('2020-01-01')
+    store.setUkArrivalDate('2020-01-01')
+
+    // Naturalisation target date must be bounded by today (or leap-adjusted today)
+    assert.strictEqual(store.naturalizationTargetDate, expectedWindowTargetStr)
+    assert.strictEqual(store.naturalizationWindowStartDate, expectedWindowStartStr)
+    assert.strictEqual(store.isNaturalizationWindowShifted, false)
+
+    // If applicant was absent 5 years prior to today, the date shifts past today
+    const tripStartObj = new Date(expectedWindowStart)
+    tripStartObj.setUTCDate(tripStartObj.getUTCDate() - 1)
+    const tripEndObj = new Date(expectedWindowStart)
+    tripEndObj.setUTCDate(tripEndObj.getUTCDate() + 2)
+
+    store.addAbsence({
+      startDate: formatDateUTC(tripStartObj),
+      endDate: formatDateUTC(tripEndObj),
+      dest: 'Trip Overlapping Window Start',
+    })
+
+    assert.strictEqual(store.isNaturalizationWindowShifted, true)
+    assert.ok(store.naturalizationTargetDate > expectedWindowTargetStr)
+
+    // With explicit ILR approved date in the past, target date is also bounded by today
+    store.clearAbsences()
+    store.setVisaStartDate('2020-01-01')
+    store.setIlrApprovedDate('2021-06-01')
+    assert.strictEqual(store.naturalizationTargetDate, expectedWindowTargetStr)
+    assert.strictEqual(store.isNaturalizationDateToday, true)
+  })
+
+  it('should color only violated conditions amber when delayed and keep non-violated conditions green', () => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+    const store = useAbsentsStore()
+
+    // Setup future-anchored baseline window: 2025-01-01 to 2030-01-01
+    store.setVisaStartDate('2024-01-01')
+    store.setUkArrivalDate('2024-01-01')
+
+    // Case 1: Initial compliant future window
+    assert.strictEqual(store.naturalizationTargetDate, '2030-01-01')
+    assert.strictEqual(store.isNaturalizationWindowShifted, false)
+    assert.strictEqual(store.isAbsentOnBaselineStart, false)
+    assert.strictEqual(store.naturalizationBaselineWindowStartDate, '2025-01-01')
+    assert.strictEqual(store.naturalizationBaselineTargetDate, '2030-01-01')
+    assert.strictEqual(store.naturalization5YearRuleColor, 'success')
+    assert.strictEqual(store.naturalizationFinal12MoRuleColor, 'success')
+    assert.strictEqual(store.isNaturalizationDateToday, false)
+
+    // Case 2: Only physical presence violated on start date (2025-01-01)
+    // 5-year absence is 5 days, 12-month is 0 days
+    store.addAbsence({ startDate: '2024-12-30', endDate: '2025-01-06', dest: 'Start Trip' }) // 5 full days (Dec 31 to Jan 5)
+    assert.strictEqual(store.isNaturalizationWindowShifted, true)
+    assert.strictEqual(store.isAbsentOnBaselineStart, true)
+    assert.strictEqual(store.naturalizationBaselineWindowStartDate, '2025-01-01')
+    assert.strictEqual(store.naturalizationBaselineTargetDate, '2030-01-01')
+    assert.strictEqual(store.isNaturalization5YearLimitViolated, false)
+    assert.strictEqual(store.isNaturalizationFinal12MoLimitViolated, false)
+    // Both rule cards stay green because neither 450-day nor 90-day was violated
+    assert.strictEqual(store.naturalization5YearRuleColor, 'success')
+    assert.strictEqual(store.naturalizationFinal12MoRuleColor, 'success')
+
+    // Case 3: Only final 12-month limit violated (> 90 days)
+    store.clearAbsences()
+    store.setVisaStartDate('2024-01-01')
+    store.setUkArrivalDate('2024-01-01')
+    // Add trip in final 12 months (2029-02-01 to 2029-05-10: 97 full days)
+    store.addAbsence({ startDate: '2029-02-01', endDate: '2029-05-10', dest: 'Spring Away' })
+    assert.strictEqual(store.isNaturalizationWindowShifted, true)
+    assert.strictEqual(store.isNaturalizationFinal12MoLimitViolated, true)
+    assert.strictEqual(store.isNaturalization5YearLimitViolated, false)
+    // Final 12-month is warning (amber), 5-year stays green
+    assert.strictEqual(store.naturalizationFinal12MoRuleColor, 'warning')
+    assert.strictEqual(store.naturalization5YearRuleColor, 'success')
+
+    // Case 4: Only 5-year limit violated (> 450 days) with final 12-month within 90 days
+    store.clearAbsences()
+    store.setVisaStartDate('2024-01-01')
+    store.setUkArrivalDate('2024-01-01')
+    // Add trips totaling 460 days in years 2-4 (outside final 12 months)
+    store.addAbsence({ startDate: '2026-01-01', endDate: '2026-06-05', dest: 'Trip A' }) // 154 days
+    store.addAbsence({ startDate: '2027-01-01', endDate: '2027-06-05', dest: 'Trip B' }) // 154 days
+    store.addAbsence({ startDate: '2028-01-01', endDate: '2028-06-04', dest: 'Trip C' }) // 154 days (total 462 days)
+    assert.strictEqual(store.isNaturalizationWindowShifted, true)
+    assert.strictEqual(store.isNaturalization5YearLimitViolated, true)
+    assert.strictEqual(store.isNaturalizationFinal12MoLimitViolated, false)
+    // 5-year is warning (amber), final 12-month stays green
+    assert.strictEqual(store.naturalization5YearRuleColor, 'warning')
+    assert.strictEqual(store.naturalizationFinal12MoRuleColor, 'success')
+
+    // Case 5: Compound shift (physical presence violation on baseline start followed by > 90-day violation on shifted window)
+    store.clearAbsences()
+    store.setVisaStartDate('2024-01-01')
+    store.setUkArrivalDate('2024-01-01')
+    // Absent across baseline start 2025-01-01 (shifts start to 2025-01-06)
+    store.addAbsence({ startDate: '2024-12-30', endDate: '2025-01-06', dest: 'Start Trip' })
+    // 89 absent days in 2029 (inside initial final 12 months) + 4 absent days in Jan 2030 (entering window when shifted to 2025-01-06)
+    store.addAbsence({ startDate: '2029-06-01', endDate: '2029-08-30', dest: 'Summer 2029' }) // 89 full days
+    store.addAbsence({ startDate: '2030-01-01', endDate: '2030-01-06', dest: 'New Year 2030' }) // 4 full days (Jan 2-5)
+    assert.strictEqual(store.isNaturalizationWindowShifted, true)
+    assert.strictEqual(store.isAbsentOnBaselineStart, true)
+    assert.strictEqual(store.isNaturalizationFinal12MoLimitViolated, true)
+    assert.strictEqual(store.naturalizationFinal12MoRuleColor, 'warning')
+
+    // Case 6: Leap-year sliding window accuracy when shifting across Feb 29 (2028-02-29)
+    store.clearAbsences()
+    store.setVisaStartDate('2023-02-25')
+    store.setUkArrivalDate('2023-02-25')
+    store.setIlrApprovedDate('2032-02-25')
+    // Baseline naturalisation window: 2028-02-25 to 2033-02-25 (crosses leap day 2028-02-29)
+    // Add trip across 2028-02-24 to 2028-03-05 forcing window shift across 2028-02-29
+    store.addAbsence({ startDate: '2028-02-24', endDate: '2028-03-05', dest: 'Leap Year Shift' })
+    // Add trip around 2033-02-28 to 2033-03-04 so targetIdx crosses leap-year boundary with absences
+    store.addAbsence({ startDate: '2033-02-27', endDate: '2033-03-04', dest: 'Target Boundary Trip' })
+    const exact5Yr = store.queryAbsentDaysInRange(
+      store.naturalizationWindowStartDate,
+      store.naturalizationTargetDate,
+    )
+    assert.strictEqual(store.naturalization5YearAbsence, exact5Yr)
   })
 
   it('should test queryAbsentDaysInRange and isAbsentDay Segment Tree queries', () => {
@@ -556,16 +710,13 @@ absences:
     assert.strictEqual(store.isNaturalizationLimitExceeded, false)
 
     // Adding trip beyond 8,192 days should throw validation error
-    assert.throws(
-      () => {
-        store.addAbsence({
-          startDate: '2044-06-01',
-          endDate: '2044-06-10',
-          dest: 'Beyond Capacity',
-        })
-      },
-      /Return date cannot be later than 20 years from visa start date/,
-    )
+    assert.throws(() => {
+      store.addAbsence({
+        startDate: '2044-06-01',
+        endDate: '2044-06-10',
+        dest: 'Beyond Capacity',
+      })
+    }, /Return date cannot be later than 20 years from visa start date/)
   })
 
   it('should preserve all backup fields including visa_expiry_date in full backup export and import', () => {
@@ -591,11 +742,11 @@ absences:
     assert.ok(fullYaml.includes(`id: ${originalAbsenceId}`))
     assert.ok(
       fullYaml.includes('visa_expiry_date: 2023-09-01') ||
-      fullYaml.includes("visa_expiry_date: '2023-09-01'"),
+        fullYaml.includes("visa_expiry_date: '2023-09-01'"),
     )
     assert.ok(
       fullYaml.includes('ilr_approved_date: 2026-03-01') ||
-      fullYaml.includes("ilr_approved_date: '2026-03-01'"),
+        fullYaml.includes("ilr_approved_date: '2026-03-01'"),
     )
 
     // Clear store and re-import
@@ -1065,4 +1216,3 @@ describe('Residence Checklist Date Range Hints (UTC Consistency)', () => {
     assert.strictEqual(computeRange(5), '2028-01-15 to 2029-01-14')
   })
 })
-

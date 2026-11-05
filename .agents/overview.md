@@ -11,7 +11,7 @@ _Note: This application is an independent 3rd-party tool provided for personal t
 ## Key Regulations & Application Data Tracked
 
 1. **Full-Day Absence Rule**: Departure (start) and return (end) dates are partially spent in the UK and are excluded. Only complete 24-hour calendar days spent entirely abroad count as days absent.
-2. **Rolling 12-Month Limit & 5-Year Sliding Window (ILR)**: Maximum **180 days** absent in any continuous rolling 365-day period during the 5-year qualifying period. If the 180-day rule cannot be satisfied within the baseline 5 years, the qualifying period automatically shifts/delays forward to the earliest subsequent compliant 5-year window, flagged with a yellow **"Delayed"** warning and active period peak scanning.
+2. **Rolling 12-Month Limit & 5-Year Sliding Window (ILR)**: Maximum **180 days** absent in any continuous rolling 12-month period during the 5-year qualifying period. If the 180-day rule cannot be satisfied within the baseline 5 years, the qualifying period automatically shifts/delays forward to the earliest subsequent compliant 5-year window, flagged with a yellow **"Delayed"** warning and active period peak scanning.
 3. **5-Year Qualifying Period & Visa Expiry**: Calculated from BNO Visa Start Date or initial UK Arrival Date. Supports an optional **Visa Expiry Date** (defaults to 5 years after visa start), catering to 30-month initial visas or custom extensions, displaying extension warning alerts if visa expiry precedes the earliest ILR settlement date, and displaying a dynamic countdown in brackets (`X yrs to go`, `X mos to go`, or `X days to go`) for future dates.
 4. **Auto UK Arrival Sync**: Automatic generation/updating of initial arrival absence record if UK Arrival Date > BNO Visa Start Date.
 5. **Earliest Application Dates Countdown**: Applications for ILR can be submitted up to **28 days** prior to completing 5-year continuous residence. Both Earliest ILR Application Date and Earliest Naturalisation Date display a dynamic countdown in brackets for future dates showing the single most significant non-zero unit.
@@ -150,15 +150,16 @@ To evaluate arbitrary date ranges efficiently over a 20-year period (native powe
 
 - A **canonical power-of-2 iterative Segment Tree** operating on standard **0-indexed day offsets** ($[0, \text{cap} - 1]$ from Visa Start Date), backed by an `Int32Array` buffer of size $2 \times \text{cap} = 16,384$ (where $\text{cap} = 8,192 = 2^{13}$, leaves positioned at contiguous indices $\text{cap} + \text{idx}$).
 - **Direct Arithmetic Point Access**: Provides $O(1)$ point queries via direct arithmetic (`cap + idx`) without auxiliary lookup tables or recursive initializations.
-- **Sliding Window Optimization**: Enables $O(1)$ constant-time sliding window updates in `useAbsentsStore` (`max12MonthAbsenceInfo` & `naturalizationQualifyingPeriod`) by subtracting exiting days (`queryPoint(i - 1)`) and adding entering days (`queryPoint(i + 364)`).
+- **Fast Date-to-Date Range Queries & Violation-Jump Shifting**: Enables exact calendar 12-month and 5-year qualifying period evaluations in `useAbsentsStore` (`calcPeak12MoInWindow`, `ilrQualifyingPeriod`, and `naturalizationQualifyingPeriod`) via non-recursive $O(\log K)$ branchless range queries (`query(currStartIdx, currEndIdx)`), naturally accounting for leap year variations (365 or 366 days for 12 months, 1,826 or 1,827 days for 5 years). Delayed ILR windows jump directly past the latest violating 12-month start date (`lastViolatingStartMs + 1 day`) to avoid redundant full-window re-scans.
 - **Iterative Range Updates**: Updates leaf coverage and pulls ancestor node sums iteratively in $O(D + \log K)$ time via `updateRange(qstart, qend, val)`.
 - **Single-Pass $O(K)$ Batch Build**: `build(intervals, val)` marks all coverage intervals on `leafCover` and computes the complete tree in a single bottom-up linear sweep without repeated tree descents.
-- **Branchless Iterative Range Queries**: Non-recursive $O(\log K)$ bitwise range sum queries (`query(qstart, qend)`) traversing from leaves to root (`l >>= 1, r >>= 1`) without stack overhead.
+- **Branchless Iterative Range Queries**: Non-recursive $O(\log K)$ bitwise range sum queries (`query(qstart, qend)`) traversing from leaves to root (`l >>= 1, r >>= 1`) with $O(1)$ fast-paths for single-leaf and full-tree root (`tree[1]`) queries.
 - **Leaf Coverage Array**: An `Int32Array` (`leafCover` of size $\text{cap}$) tracks trip coverage count per day, ensuring leaf values in `tree` transition between `0` and `1` accurately when adding or deleting overlapping trips.
 
 ### 2. Centralized Date Utilities ([date.js](../src/utils/date.js))
 
 - **`parseDateUTC(input)` / `formatDateUTC(dateObj)` / `normalizeDate(val)`**: Prevents timezone offset shifts by strictly converting inputs to UTC midnight Date objects and validating year, month ($1\text{--}12$), and day ($1\text{--}31$) bounds to prevent JS `Date` overflow/rollover.
+- **`formatDisplayDate(dateStr, locale)`**: Formats dates using cached `Intl.DateTimeFormat` instances keyed by locale.
 - **`calculateDays(startDateStr, endDateStr)`**: Full 24-hour day calculations excluding departure & return days.
 
 ### 3. IndexedDB Binary Blob Storage & Schema Migration ([dbService.js](../src/services/dbService.js) & [fileStorageService.js](../src/services/fileStorageService.js))
@@ -178,7 +179,7 @@ Manages non-absence settlement requirements and document vault metadata:
 - **Storage Key**: `bno_tracker_documents_v1`
 - **Data Sections**: `lifeInUk`, `englishTest`, `residenceChecklist` (Years 1-5), `addressHistory`, `uploadedFiles`, `folders`.
 - **Address History & Sorting**: `sortAddresses` maintains chronological order by move-in date. `addAddress` returns the newly created record.
-- **File Metadata Hydration**: Hydrates `uploadedFiles` metadata array from IndexedDB on startup without loading full binary blobs into memory until requested.
+- **File Metadata Hydration & Indexed Lookups**: Hydrates `uploadedFiles` metadata array from IndexedDB in parallel on startup without loading full binary blobs into memory until requested, and maintains $O(1)$ reactive `Map` indexes (`filesByChecklistKey`, `filesByAddressId`) for checklist item and address lookups.
 
 ### 6. Multi-Profile Engine & Strict Schema Validation ([profileService.js](../src/services/profileService.js), [schemaValidationService.js](../src/services/schemaValidationService.js) & [profiles.js](../src/stores/profiles.js))
 
@@ -186,7 +187,7 @@ Manages non-absence settlement requirements and document vault metadata:
 - **Companion Absence Sharing & Synchronization**:
   - `syncSharedAbsenceProfiles(record, targetProfileIds)`: Synchronizes absence records across selected profiles, enforcing that only target profiles with a configured `visaStartDate` and `record.startDate >= visaStartDate` (and `record.startDate >= ukArrivalDate` if set) receive the shared trip.
   - `syncUpdatedAbsenceAcrossProfiles(updatedRecord)`: Real-time two-way synchronization of edited trip details across all profiles sharing the same record ID.
-  - `getProfilesSharingAbsence(absenceId)`: Queries other profiles in storage sharing an absence ID for avatar chip rendering in the expanded table view.
+  - `getProfilesSharingAbsence(absenceId)`: Queries other profiles sharing an absence ID in $O(1)$ via `sharedAbsenceProfilesMap` for avatar chip rendering in the expanded table view.
 - **Strict Schema Enforcement**: `schemaValidationService.js` validates full application state YAML schemas and ZIP manifest files upon import to ensure integrity and reject corrupted backup data.
 
 ### 7. Search Engine Optimization (SEO) & Structured Data Engine ([seo.js](../src/utils/seo.js))

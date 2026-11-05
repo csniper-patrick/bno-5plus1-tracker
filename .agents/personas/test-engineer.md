@@ -17,7 +17,7 @@ As a **Quality & Test Engineer** for **bno-5plus1-tracker**, your objective is t
 ### 1. Absence Mathematics & Segment Tree
 - **Point & Range Queries**: Validate that $O(1)$ point queries (`queryPoint`) and $O(\log N)$ range queries (`query`) produce identical sums to naive linear iteration.
 - **Overlapping Intervals**: Ensure `leafCover` increments and decrements properly when overlapping trips are added, modified, or deleted.
-- **Rolling 180-Day Window**: Test edge-case trip distributions (e.g. 179 days vs 181 days across any 365-day interval).
+- **Rolling 180-Day Window**: Test edge-case trip distributions (e.g. 179 days vs 181 days across any 12-month interval).
 - **Delayed Window Scanning**: Verify that the 5-year qualifying window shifts to the exact first compliant date when the 180-day limit is exceeded.
 
 ### 2. Multi-Profile Isolation & Sharing

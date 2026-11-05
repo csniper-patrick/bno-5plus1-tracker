@@ -46,11 +46,10 @@ export const useAbsentsStore = defineStore('absents', () => {
     return arr.sort((a, b) => {
       const startA = (a && a.startDate) || ''
       const startB = (b && b.startDate) || ''
-      const startDiff = startA.localeCompare(startB)
-      if (startDiff !== 0) return startDiff
+      if (startA !== startB) return startA < startB ? -1 : 1
       const endA = (a && a.endDate) || ''
       const endB = (b && b.endDate) || ''
-      return endA.localeCompare(endB)
+      return endA < endB ? -1 : endA > endB ? 1 : 0
     })
   }
 
@@ -96,11 +95,14 @@ export const useAbsentsStore = defineStore('absents', () => {
       STORAGE_ILR_APPROVED_KEY,
     ])
 
-    const loadedAbsences = await dbService.getItem(STORAGE_KEY)
-    const loadedVisaStart = await dbService.getItem(STORAGE_VISA_KEY)
-    const loadedVisaExpiry = await dbService.getItem(STORAGE_VISA_EXPIRY_KEY)
-    const loadedArrival = await dbService.getItem(STORAGE_ARRIVAL_KEY)
-    const loadedIlrApproved = await dbService.getItem(STORAGE_ILR_APPROVED_KEY)
+    const [loadedAbsences, loadedVisaStart, loadedVisaExpiry, loadedArrival, loadedIlrApproved] =
+      await Promise.all([
+        dbService.getItem(STORAGE_KEY),
+        dbService.getItem(STORAGE_VISA_KEY),
+        dbService.getItem(STORAGE_VISA_EXPIRY_KEY),
+        dbService.getItem(STORAGE_ARRIVAL_KEY),
+        dbService.getItem(STORAGE_ILR_APPROVED_KEY),
+      ])
 
     if (Array.isArray(loadedAbsences)) {
       const sorted = [...loadedAbsences]
@@ -124,7 +126,10 @@ export const useAbsentsStore = defineStore('absents', () => {
   // Persistent Segment Tree & Coverage Tracking State
   const segmentTree = ref(null)
   const segmentTreeVersion = ref(0)
-  let coverageCount = null
+  const visaStartMs = computed(() => {
+    const parsed = parseDateUTC(visaStartDate.value)
+    return parsed ? parsed.getTime() : NaN
+  })
   let segmentTreeSize = 0
 
   // ---------------------------------------------------------------------------
@@ -400,12 +405,9 @@ export const useAbsentsStore = defineStore('absents', () => {
    */
   const totalDaysAbsent = computed(() => {
     const _v = segmentTreeVersion.value
-    if (segmentTree.value && visaStartDate.value && segmentTreeSize > 0) {
-      const vStart = parseDateUTC(visaStartDate.value)
-      if (vStart) {
-        // Direct O(1) query of the entire segment tree root
-        return segmentTree.value.query(0, segmentTreeSize - 1)
-      }
+    if (segmentTree.value && !isNaN(visaStartMs.value) && segmentTreeSize > 0) {
+      // Direct O(1) query of the entire segment tree root
+      return segmentTree.value.query(0, segmentTreeSize - 1)
     }
     return absences.value.reduce((sum, item) => {
       return sum + calculateDays(item.startDate, item.endDate)
@@ -414,63 +416,79 @@ export const useAbsentsStore = defineStore('absents', () => {
 
   /**
    * Helper algorithm to calculate peak 12-month rolling absence in a 5-year window [wStart, wTarget].
-   * Leverages the Segment Tree for an O(1) per-day sliding window scan over the 5-year qualifying period.
+   * Scans date-to-date 12-month periods using direct Segment Tree range queries with a zero-absence
+   * early exit and tracks the latest >180-day violating start timestamp for fast window shifting.
    */
   function calcPeak12MoInWindow(wStart, wTarget) {
     if (!wStart || !wTarget || wTarget <= wStart) {
-      return { maxDays: 0, peakStartDate: null, peakEndDate: null }
+      return { maxDays: 0, peakStartDate: null, peakEndDate: null, lastViolatingStartMs: -1 }
     }
 
-    const totalQualifyingDays = Math.round((wTarget.getTime() - wStart.getTime()) / 86400000)
-    const limit = Math.max(0, totalQualifyingDays - 365)
+    const wStartMs = wStart.getTime()
+    const wTargetMs = wTarget.getTime()
 
-    const hasTree = segmentTree.value && visaStartDate.value && segmentTreeSize > 0
-    const vStart = hasTree ? parseDateUTC(visaStartDate.value) : null
+    const scratchEnd = new Date(wStartMs)
+    scratchEnd.setUTCFullYear(scratchEnd.getUTCFullYear() + 1)
+    let peakStartMs = wStartMs
+    let peakEndMs = scratchEnd.getTime() > wTargetMs ? wTargetMs : scratchEnd.getTime()
+
+    if (queryAbsentDaysInRange(wStart, wTarget) === 0) {
+      return {
+        maxDays: 0,
+        peakStartDate: formatDateUTC(new Date(peakStartMs)),
+        peakEndDate: formatDateUTC(new Date(peakEndMs)),
+        lastViolatingStartMs: -1,
+      }
+    }
+
+    const vStartMs = visaStartMs.value
+    const tree = segmentTree.value
+    const hasTree = tree !== null && !isNaN(vStartMs) && segmentTreeSize > 0
 
     let maxDays = 0
-    let peakStart = wStart
-    let peakEnd = new Date(wStart.getTime() + 365 * 86400000)
+    let lastViolatingStartMs = -1
+    let currStartMs = wStartMs
+    const scratchStart = new Date(0)
+    let safetyCounter = 0
 
-    const startOffset = vStart ? Math.round((wStart.getTime() - vStart.getTime()) / 86400000) : 0
+    while (safetyCounter < DEFAULT_SEGMENT_TREE_CAPACITY) {
+      scratchEnd.setTime(currStartMs)
+      scratchEnd.setUTCFullYear(scratchEnd.getUTCFullYear() + 1)
+      const currEndMs = scratchEnd.getTime()
 
-    if (hasTree && vStart && startOffset >= 0) {
-      const initialEndIdx = Math.min(segmentTreeSize - 1, startOffset + 365)
-      let currentWindowDays = segmentTree.value.query(startOffset, initialEndIdx)
-      maxDays = currentWindowDays
-
-      for (let i = 1; i <= limit; i++) {
-        const currStartIdx = startOffset + i
-        const currEndIdx = currStartIdx + 365
-
-        const addVal = currEndIdx < segmentTreeSize ? segmentTree.value.queryPoint(currEndIdx) : 0
-        const subVal =
-          currStartIdx - 1 < segmentTreeSize ? segmentTree.value.queryPoint(currStartIdx - 1) : 0
-        currentWindowDays += addVal - subVal
-
-        if (currentWindowDays > maxDays) {
-          maxDays = currentWindowDays
-          peakStart = new Date(wStart.getTime() + i * 86400000)
-          peakEnd = new Date(wStart.getTime() + (i + 365) * 86400000)
-        }
+      if (currEndMs > wTargetMs) {
+        break
       }
-    } else {
-      for (let i = 0; i <= limit; i++) {
-        const windowStart = new Date(wStart.getTime() + i * 86400000)
-        const windowEnd = new Date(wStart.getTime() + (i + 365) * 86400000)
-        const days = queryAbsentDaysInRange(windowStart, windowEnd)
 
-        if (days > maxDays) {
-          maxDays = days
-          peakStart = windowStart
-          peakEnd = windowEnd
-        }
+      let days = 0
+      const currStartIdx = hasTree ? Math.round((currStartMs - vStartMs) / 86400000) : -1
+      const currEndIdx = hasTree ? Math.round((currEndMs - vStartMs) / 86400000) : -1
+
+      if (hasTree && currStartIdx >= 0 && currEndIdx < segmentTreeSize) {
+        days = tree.query(currStartIdx, currEndIdx)
+      } else {
+        scratchStart.setTime(currStartMs)
+        days = queryAbsentDaysInRange(scratchStart, scratchEnd)
       }
+
+      if (days > maxDays) {
+        maxDays = days
+        peakStartMs = currStartMs
+        peakEndMs = currEndMs
+      }
+      if (days > 180) {
+        lastViolatingStartMs = currStartMs
+      }
+
+      currStartMs += 86400000
+      safetyCounter++
     }
 
     return {
       maxDays,
-      peakStartDate: formatDateUTC(peakStart),
-      peakEndDate: formatDateUTC(peakEnd),
+      peakStartDate: formatDateUTC(new Date(peakStartMs)),
+      peakEndDate: formatDateUTC(new Date(peakEndMs)),
+      lastViolatingStartMs,
     }
   }
 
@@ -534,56 +552,86 @@ export const useAbsentsStore = defineStore('absents', () => {
 
     let currentStart = new Date(vStart)
     let safetyCounter = 0
-    let foundValid = false
 
     let finalStartStr = baselineStartStr
     let finalTargetStr = baselineTargetStr
+    let finalTargetMs = baselineTarget.getTime()
     let finalPeakInfo = baselinePeakInfo
     let finalTotalAbsence = 0
 
     if (baselinePeakInfo.maxDays <= 180) {
-      foundValid = true
       finalStartStr = baselineStartStr
       finalTargetStr = baselineTargetStr
+      finalTargetMs = baselineTarget.getTime()
       finalPeakInfo = baselinePeakInfo
       finalTotalAbsence = queryAbsentDaysInRange(vStart, baselineTarget)
     } else {
+      const trackerDeadlineMs = trackerDeadline.getTime()
+      const firstDeadlineStart = new Date(trackerDeadlineMs)
+      firstDeadlineStart.setUTCFullYear(firstDeadlineStart.getUTCFullYear() - 5)
+      const scratchDeadlineTarget = new Date(firstDeadlineStart)
+      scratchDeadlineTarget.setUTCFullYear(scratchDeadlineTarget.getUTCFullYear() + 5)
+      while (scratchDeadlineTarget.getTime() <= trackerDeadlineMs) {
+        firstDeadlineStart.setUTCDate(firstDeadlineStart.getUTCDate() + 1)
+        scratchDeadlineTarget.setTime(firstDeadlineStart.getTime())
+        scratchDeadlineTarget.setUTCFullYear(scratchDeadlineTarget.getUTCFullYear() + 5)
+      }
+      const firstDeadlineStartMs = firstDeadlineStart.getTime()
+
+      let nextStartMs =
+        baselinePeakInfo.lastViolatingStartMs >= vStart.getTime()
+          ? baselinePeakInfo.lastViolatingStartMs + 86400000
+          : vStart.getTime() + 86400000
+      if (nextStartMs > firstDeadlineStartMs) {
+        nextStartMs = firstDeadlineStartMs
+      }
+      currentStart.setTime(nextStartMs)
+      safetyCounter = Math.max(1, Math.round((nextStartMs - vStart.getTime()) / 86400000))
+
+      const currentTarget = new Date(0)
       while (safetyCounter < DEFAULT_SEGMENT_TREE_CAPACITY) {
-        const currentTarget = new Date(currentStart)
+        const currStartMs = currentStart.getTime()
+        currentTarget.setTime(currStartMs)
         currentTarget.setUTCFullYear(currentTarget.getUTCFullYear() + 5)
+        const currTargetMs = currentTarget.getTime()
 
         const peakInfo = calcPeak12MoInWindow(currentStart, currentTarget)
 
         if (peakInfo.maxDays <= 180) {
-          foundValid = true
           finalStartStr = formatDateUTC(currentStart)
           finalTargetStr = formatDateUTC(currentTarget)
+          finalTargetMs = currTargetMs
           finalPeakInfo = peakInfo
           finalTotalAbsence = queryAbsentDaysInRange(currentStart, currentTarget)
           break
         }
 
-        if (currentTarget > trackerDeadline) {
+        if (currTargetMs > trackerDeadlineMs) {
           finalStartStr = formatDateUTC(currentStart)
           finalTargetStr = formatDateUTC(currentTarget)
+          finalTargetMs = currTargetMs
           finalPeakInfo = peakInfo
           finalTotalAbsence = queryAbsentDaysInRange(currentStart, currentTarget)
           break
         }
 
-        currentStart.setUTCDate(currentStart.getUTCDate() + 1)
-        safetyCounter++
+        let jumpMs =
+          peakInfo.lastViolatingStartMs >= currStartMs
+            ? peakInfo.lastViolatingStartMs + 86400000
+            : currStartMs + 86400000
+        if (currStartMs < firstDeadlineStartMs && jumpMs > firstDeadlineStartMs) {
+          jumpMs = firstDeadlineStartMs
+        }
+        const stepDays = Math.max(1, Math.round((jumpMs - currStartMs) / 86400000))
+        currentStart.setTime(jumpMs)
+        safetyCounter += stepDays
       }
     }
 
     const isShifted = finalTargetStr !== baselineTargetStr
-    let isLimitExceeded = false
-    const finalTargetObj = parseDateUTC(finalTargetStr)
-    if (finalTargetObj && finalTargetObj > trackerDeadline) {
-      isLimitExceeded = true
-    }
+    const isLimitExceeded = finalTargetMs > trackerDeadline.getTime()
 
-    const appDate = new Date(finalTargetObj || baselineTarget)
+    const appDate = new Date(finalTargetMs)
     appDate.setUTCDate(appDate.getUTCDate() - 28)
     const earliestAppDateStr = formatDateUTC(appDate)
 
@@ -652,10 +700,10 @@ export const useAbsentsStore = defineStore('absents', () => {
     const _v = segmentTreeVersion.value
     if (!dateObj || isNaN(dateObj.getTime())) return false
 
-    if (segmentTree.value && visaStartDate.value && segmentTreeSize > 0) {
-      const vStart = parseDateUTC(visaStartDate.value)
-      if (vStart) {
-        const idx = Math.round((dateObj.getTime() - vStart.getTime()) / 86400000)
+    const vStartMs = visaStartMs.value
+    if (segmentTree.value && !isNaN(vStartMs) && segmentTreeSize > 0) {
+      const idx = Math.round((dateObj.getTime() - vStartMs) / 86400000)
+      if (idx >= 0 && idx < segmentTreeSize) {
         return segmentTree.value.queryPoint(idx) === 1
       }
     }
@@ -750,11 +798,8 @@ export const useAbsentsStore = defineStore('absents', () => {
     const baselineTargetStr = formatDateUTC(baselineTarget)
 
     let trackerDeadline = null
-    if (visaStartDate.value) {
-      const vStart = parseDateUTC(visaStartDate.value)
-      if (vStart) {
-        trackerDeadline = new Date(vStart.getTime() + DEFAULT_SEGMENT_TREE_CAPACITY * 86400000)
-      }
+    if (!isNaN(visaStartMs.value)) {
+      trackerDeadline = new Date(visaStartMs.value + DEFAULT_SEGMENT_TREE_CAPACITY * 86400000)
     } else if (ilrApprovedDate.value) {
       const ilrDate = parseDateUTC(ilrApprovedDate.value)
       if (ilrDate) {
@@ -764,129 +809,101 @@ export const useAbsentsStore = defineStore('absents', () => {
       }
     }
     const trackerDeadlineStr = trackerDeadline ? formatDateUTC(trackerDeadline) : ''
+    const trackerDeadlineMs = trackerDeadline ? trackerDeadline.getTime() : NaN
 
-    let currentStart = new Date(baselineStart)
     let safetyCounter = 0
-    let foundValid = false
 
-    let finalStartStr = baselineStartStr
-    let finalTargetStr = baselineTargetStr
-    let fiveYearAbs = 0
-    let final12MoAbs = 0
+    let fiveYearAbsence = 0
+    let final12MoAbsence = 0
     let baseline5YearAbs = 0
     let baselineFinal12MoAbs = 0
     let isAbsentOnBaselineStart = false
 
-    const hasTree = segmentTree.value && visaStartDate.value && segmentTreeSize > 0
-    const vStart = hasTree ? parseDateUTC(visaStartDate.value) : null
+    const vStartMs = visaStartMs.value
+    const tree = segmentTree.value
+    const hasTree = tree !== null && !isNaN(vStartMs) && segmentTreeSize > 0
 
-    let currentF5 = 0
-    let currentF12 = 0
-    let prevStartIdx = -1
-    let prevTargetIdx = -1
-    let prevF12StartIdx = -1
+    const baselineStartMs = baselineStart.getTime()
+    const baselineTargetMs = baselineTarget.getTime()
+    let currStartMs = baselineStartMs
+    let finalStartMs = baselineStartMs
+    let finalTargetMs = baselineTargetMs
+
+    const scratchStart = new Date(0)
+    const scratchTarget = new Date(0)
+    const scratchF12Start = new Date(0)
 
     while (safetyCounter < DEFAULT_SEGMENT_TREE_CAPACITY) {
-      const targetDate = new Date(currentStart)
-      targetDate.setUTCFullYear(targetDate.getUTCFullYear() + 5)
+      scratchTarget.setTime(currStartMs)
+      scratchTarget.setUTCFullYear(scratchTarget.getUTCFullYear() + 5)
+      const targetMs = scratchTarget.getTime()
 
-      const final12MoStartDate = new Date(targetDate)
-      final12MoStartDate.setUTCFullYear(final12MoStartDate.getUTCFullYear() - 1)
+      scratchF12Start.setTime(targetMs)
+      scratchF12Start.setUTCFullYear(scratchF12Start.getUTCFullYear() - 1)
+      const f12StartMs = scratchF12Start.getTime()
 
       let isAbsentOnStart = false
-      let f5 = 0
-      let f12 = 0
+      let fiveYearAbs = 0
+      let final12MoAbs = 0
 
-      if (hasTree && vStart) {
-        const startIdx = Math.round((currentStart.getTime() - vStart.getTime()) / 86400000)
-        const targetIdx = Math.round((targetDate.getTime() - vStart.getTime()) / 86400000)
-        const f12StartIdx = Math.round((final12MoStartDate.getTime() - vStart.getTime()) / 86400000)
+      const startIdx = hasTree ? Math.round((currStartMs - vStartMs) / 86400000) : -1
+      const targetIdx = hasTree ? Math.round((targetMs - vStartMs) / 86400000) : -1
 
-        if (startIdx >= 0 && targetIdx < segmentTreeSize) {
-          isAbsentOnStart = segmentTree.value.queryPoint(startIdx) === 1
-
-          if (
-            safetyCounter === 0 ||
-            prevStartIdx < 0 ||
-            startIdx !== prevStartIdx + 1 ||
-            targetIdx !== prevTargetIdx + 1 ||
-            f12StartIdx !== prevF12StartIdx + 1
-          ) {
-            f5 = segmentTree.value.query(startIdx, targetIdx)
-            f12 = segmentTree.value.query(f12StartIdx, targetIdx)
-            currentF5 = f5
-            currentF12 = f12
-          } else {
-            // O(1) sliding window update using queryPoint when all boundaries advance by 1 day
-            currentF5 +=
-              segmentTree.value.queryPoint(targetIdx) - segmentTree.value.queryPoint(prevStartIdx)
-            f5 = currentF5
-
-            currentF12 +=
-              segmentTree.value.queryPoint(targetIdx) -
-              segmentTree.value.queryPoint(prevF12StartIdx)
-            f12 = currentF12
-          }
-
-          prevStartIdx = startIdx
-          prevTargetIdx = targetIdx
-          prevF12StartIdx = f12StartIdx
-        } else {
-          isAbsentOnStart = isAbsentDay(currentStart)
-          f5 = queryAbsentDaysInRange(currentStart, targetDate)
-          f12 = queryAbsentDaysInRange(final12MoStartDate, targetDate)
-          prevStartIdx = -1
-        }
+      if (hasTree && startIdx >= 0 && targetIdx < segmentTreeSize) {
+        const f12StartIdx = Math.round((f12StartMs - vStartMs) / 86400000)
+        isAbsentOnStart = tree.queryPoint(startIdx) === 1
+        fiveYearAbs = tree.query(startIdx, targetIdx)
+        final12MoAbs = tree.query(f12StartIdx, targetIdx)
       } else {
-        isAbsentOnStart = isAbsentDay(currentStart)
-        f5 = queryAbsentDaysInRange(currentStart, targetDate)
-        f12 = queryAbsentDaysInRange(final12MoStartDate, targetDate)
+        scratchStart.setTime(currStartMs)
+        isAbsentOnStart = isAbsentDay(scratchStart)
+        fiveYearAbs = queryAbsentDaysInRange(scratchStart, scratchTarget)
+        final12MoAbs = queryAbsentDaysInRange(scratchF12Start, scratchTarget)
       }
 
       if (safetyCounter === 0) {
-        baseline5YearAbs = f5
-        baselineFinal12MoAbs = f12
+        baseline5YearAbs = fiveYearAbs
+        baselineFinal12MoAbs = final12MoAbs
         isAbsentOnBaselineStart = isAbsentOnStart
-        fiveYearAbs = f5
-        final12MoAbs = f12
-      } else if (isAbsentOnStart || f5 > 450 || f12 > 90) {
-        if (f5 > 450 && f5 > baseline5YearAbs) {
-          baseline5YearAbs = f5
+        fiveYearAbsence = fiveYearAbs
+        final12MoAbsence = final12MoAbs
+      } else if (isAbsentOnStart || fiveYearAbs > 450 || final12MoAbs > 90) {
+        if (fiveYearAbs > 450 && fiveYearAbs > baseline5YearAbs) {
+          baseline5YearAbs = fiveYearAbs
         }
-        if (f12 > 90 && f12 > baselineFinal12MoAbs) {
-          baselineFinal12MoAbs = f12
+        if (final12MoAbs > 90 && final12MoAbs > baselineFinal12MoAbs) {
+          baselineFinal12MoAbs = final12MoAbs
         }
       }
 
-      if (!isAbsentOnStart && f5 <= 450 && f12 <= 90) {
-        foundValid = true
-        finalStartStr = formatDateUTC(currentStart)
-        finalTargetStr = formatDateUTC(targetDate)
-        fiveYearAbs = f5
-        final12MoAbs = f12
+      if (!isAbsentOnStart && fiveYearAbs <= 450 && final12MoAbs <= 90) {
+        finalStartMs = currStartMs
+        finalTargetMs = targetMs
+        fiveYearAbsence = fiveYearAbs
+        final12MoAbsence = final12MoAbs
         break
       }
 
-      if (trackerDeadline && targetDate > trackerDeadline) {
-        finalStartStr = formatDateUTC(currentStart)
-        finalTargetStr = formatDateUTC(targetDate)
-        fiveYearAbs = f5
-        final12MoAbs = f12
+      if (!isNaN(trackerDeadlineMs) && targetMs > trackerDeadlineMs) {
+        finalStartMs = currStartMs
+        finalTargetMs = targetMs
+        fiveYearAbsence = fiveYearAbs
+        final12MoAbsence = final12MoAbs
         break
       }
 
-      currentStart.setUTCDate(currentStart.getUTCDate() + 1)
+      currStartMs += 86400000
       safetyCounter++
     }
 
+    const finalStartStr =
+      finalStartMs === baselineStartMs ? baselineStartStr : formatDateUTC(new Date(finalStartMs))
+    const finalTargetStr =
+      finalTargetMs === baselineTargetMs
+        ? baselineTargetStr
+        : formatDateUTC(new Date(finalTargetMs))
     const isShifted = finalTargetStr !== baselineTargetStr
-    let isLimitExceeded = false
-    if (trackerDeadline && finalTargetStr) {
-      const finalTargetDateObj = parseDateUTC(finalTargetStr)
-      if (finalTargetDateObj && finalTargetDateObj > trackerDeadline) {
-        isLimitExceeded = true
-      }
-    }
+    const isLimitExceeded = !isNaN(trackerDeadlineMs) && finalTargetMs > trackerDeadlineMs
 
     return {
       baselineTargetDate: baselineTargetStr,
@@ -895,8 +912,8 @@ export const useAbsentsStore = defineStore('absents', () => {
       targetDate: finalTargetStr,
       isShifted,
       isLimitExceeded,
-      fiveYearAbsence: fiveYearAbs,
-      final12MoAbsence: final12MoAbs,
+      fiveYearAbsence,
+      final12MoAbsence,
       baseline5YearAbsence: baseline5YearAbs,
       baselineFinal12MoAbsence: baselineFinal12MoAbs,
       isAbsentOnBaselineStart,
@@ -1026,7 +1043,10 @@ export const useAbsentsStore = defineStore('absents', () => {
    * Helper algorithm to calculate full absent days within [qStart, qEnd] by merging intervals.
    */
   function calculateIntervalAbsences(qStart, qEnd) {
-    if (!qStart || !qEnd || isNaN(qStart.getTime()) || isNaN(qEnd.getTime()) || qEnd < qStart) {
+    if (!qStart || !qEnd) return 0
+    const qStartMs = qStart.getTime()
+    const qEndMs = qEnd.getTime()
+    if (isNaN(qStartMs) || isNaN(qEndMs) || qEndMs < qStartMs) {
       return 0
     }
 
@@ -1035,19 +1055,22 @@ export const useAbsentsStore = defineStore('absents', () => {
       if (!item.startDate || !item.endDate) continue
       const s = parseDateUTC(item.startDate)
       const e = parseDateUTC(item.endDate)
-      if (!s || !e || e <= s) continue
+      if (!s || !e) continue
+      const sMs = s.getTime()
+      const eMs = e.getTime()
+      if (eMs <= sMs) continue
 
-      const firstAbsent = new Date(s.getTime() + 86400000)
-      const lastAbsent = new Date(e.getTime() - 86400000)
-      if (lastAbsent < firstAbsent) continue
+      const firstAbsentMs = sMs + 86400000
+      const lastAbsentMs = eMs - 86400000
+      if (lastAbsentMs < firstAbsentMs) continue
 
-      const intersectStart = firstAbsent > qStart ? firstAbsent : qStart
-      const intersectEnd = lastAbsent < qEnd ? lastAbsent : qEnd
+      const intersectStart = firstAbsentMs > qStartMs ? firstAbsentMs : qStartMs
+      const intersectEnd = lastAbsentMs < qEndMs ? lastAbsentMs : qEndMs
 
       if (intersectStart <= intersectEnd) {
         intervals.push({
-          start: intersectStart.getTime(),
-          end: intersectEnd.getTime(),
+          start: intersectStart,
+          end: intersectEnd,
         })
       }
     }
@@ -1062,9 +1085,9 @@ export const useAbsentsStore = defineStore('absents', () => {
       const lastMerged = merged[merged.length - 1]
 
       if (current.start <= lastMerged.end + 86400000) {
-        lastMerged.end = Math.max(lastMerged.end, current.end)
+        if (current.end > lastMerged.end) lastMerged.end = current.end
       } else {
-        merged.push({ ...current })
+        merged.push(current)
       }
     }
 
@@ -1096,41 +1119,39 @@ export const useAbsentsStore = defineStore('absents', () => {
       if (qEnd < qStart) return 0
     }
 
-    if (segmentTree.value && visaStartDate.value && segmentTreeSize > 0) {
-      const vStart = parseDateUTC(visaStartDate.value)
-      if (vStart) {
-        const qStartIdx = Math.round((qStart.getTime() - vStart.getTime()) / 86400000)
-        const qEndIdx = Math.round((qEnd.getTime() - vStart.getTime()) / 86400000)
+    const vStartMs = visaStartMs.value
+    if (segmentTree.value && !isNaN(vStartMs) && segmentTreeSize > 0) {
+      const qStartIdx = Math.round((qStart.getTime() - vStartMs) / 86400000)
+      const qEndIdx = Math.round((qEnd.getTime() - vStartMs) / 86400000)
 
-        if (qStartIdx >= 0 && qEndIdx < segmentTreeSize) {
-          if (qStartIdx === qEndIdx) return segmentTree.value.queryPoint(qStartIdx)
-          return segmentTree.value.query(qStartIdx, qEndIdx)
-        }
-
-        const inStart = Math.max(0, qStartIdx)
-        const inEnd = Math.min(segmentTreeSize - 1, qEndIdx)
-
-        let total = 0
-        if (inStart <= inEnd) {
-          total += segmentTree.value.query(inStart, inEnd)
-        }
-
-        if (qStartIdx < 0) {
-          const endBefore = new Date(vStart.getTime() - 86400000)
-          if (qStart <= endBefore) {
-            total += calculateIntervalAbsences(qStart, endBefore)
-          }
-        }
-
-        if (qEndIdx >= segmentTreeSize) {
-          const startAfter = new Date(vStart.getTime() + segmentTreeSize * 86400000)
-          if (startAfter <= qEnd) {
-            total += calculateIntervalAbsences(startAfter, qEnd)
-          }
-        }
-
-        return total
+      if (qStartIdx >= 0 && qEndIdx < segmentTreeSize) {
+        if (qStartIdx === qEndIdx) return segmentTree.value.queryPoint(qStartIdx)
+        return segmentTree.value.query(qStartIdx, qEndIdx)
       }
+
+      const inStart = Math.max(0, qStartIdx)
+      const inEnd = Math.min(segmentTreeSize - 1, qEndIdx)
+
+      let total = 0
+      if (inStart <= inEnd) {
+        total += segmentTree.value.query(inStart, inEnd)
+      }
+
+      if (qStartIdx < 0) {
+        const endBefore = new Date(vStartMs - 86400000)
+        if (qStart <= endBefore) {
+          total += calculateIntervalAbsences(qStart, endBefore)
+        }
+      }
+
+      if (qEndIdx >= segmentTreeSize) {
+        const startAfter = new Date(vStartMs + segmentTreeSize * 86400000)
+        if (startAfter <= qEnd) {
+          total += calculateIntervalAbsences(startAfter, qEnd)
+        }
+      }
+
+      return total
     }
 
     return calculateIntervalAbsences(qStart, qEnd)

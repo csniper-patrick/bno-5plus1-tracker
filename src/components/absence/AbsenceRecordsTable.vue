@@ -462,15 +462,14 @@ export default {
           v-model="localTimelineViewMode"
           mandatory
           density="compact"
-          size="x-small"
           color="primary"
           variant="outlined"
           class="rounded-lg"
         >
-          <v-btn value="full" prepend-icon="mdi-timeline-text-outline">
+          <v-btn value="full" size="small" prepend-icon="mdi-timeline-text-outline">
             {{ $t('absence.view_full') }}
           </v-btn>
-          <v-btn value="compact" prepend-icon="mdi-view-compact-outline">
+          <v-btn value="compact" size="small" prepend-icon="mdi-view-compact-outline">
             {{ $t('absence.view_compact') }}
           </v-btn>
         </v-btn-toggle>

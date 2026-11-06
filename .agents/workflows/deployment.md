@@ -17,7 +17,7 @@ review  ➔  test  ➔  deploy
 1. **Review Stage (`code-review.yml`)**:
    - Automated merge request review and lint checks included from the parent CI management configuration (`$CI_PROJECT_NAMESPACE/ci-mgmt`).
 2. **Test Stage (`test`)**:
-   - Container Image: `mcr.microsoft.com/playwright:v1.62.1-noble`
+   - Container Image: `mcr.microsoft.com/playwright:v1.65.0-noble`
    - Pre-configures UTF-8 locales (`en_GB.UTF-8`, `zh_HK.UTF-8`, `en_HK.UTF-8`).
    - Runs deterministic install: `npm ci --cache .npm --prefer-offline`
    - Executes full test suite: `npm test` (Unit tests + Playwright E2E browser tests).

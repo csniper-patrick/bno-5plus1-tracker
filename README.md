@@ -1,9 +1,9 @@
 # BNO 5+1 Tracker
 
 [![Vue 3](https://img.shields.io/badge/Vue-3.5-4fc08d.svg?logo=vuedotjs)](https://vuejs.org/)
-[![Vite](https://img.shields.io/badge/Vite-8.2-646cff.svg?logo=vite)](https://vite.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8.3-646cff.svg?logo=vite)](https://vite.dev/)
 [![Vuetify 3](https://img.shields.io/badge/Vuetify-3.7-1867c0.svg?logo=vuetify)](https://vuetifyjs.com/)
-[![Pinia](https://img.shields.io/badge/Pinia-4.0-yellow.svg)](https://pinia.vuejs.org/)
+[![Pinia](https://img.shields.io/badge/Pinia-4.1-yellow.svg)](https://pinia.vuejs.org/)
 [![vue-i18n](https://img.shields.io/badge/vue--i18n-11.4-green.svg)](https://vue-i18n.intlify.dev/)
 [![i18n](https://img.shields.io/badge/i18n-English%20%7C%20%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-blue.svg)](src/locales)
 [![PWA](https://img.shields.io/badge/PWA-Ready-5A0FC8.svg?logo=pwa)](https://github.com/vite-pwa/vite-plugin-pwa)
